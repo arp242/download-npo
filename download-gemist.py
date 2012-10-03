@@ -89,7 +89,7 @@ def DownloadVideo(url, outdir, filename):
 		# <title>Andere tijden: De genezen homo - Uitzending Gemist</title>
 		title = re.search('<title>(.+) - Uitzending Gemist</title>', data)
 		title = title.groups()[0]
-		filename = '%s-%s.mp4' % (title.strip().replace(' ', '_'), episode)
+		filename = '%s-%s.mp4' % (title.strip().replace(':', '').replace(' ', '_'), episode)
 
 	head, data = OpenUrl('http://www.uitzendinggemist.nl/player/' + episode)
 
