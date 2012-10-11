@@ -31,7 +31,7 @@ def Help():
 	print ''
 
 def Version():
-	print 'download-gemist 1.0, 2012-10-03'
+	print 'download-gemist 1.1, 2012-10-03'
 	print 'https://bitbucket.org/Carpetsmoker/download-gemist'
 	print ''
 	print 'Copyright (c) Martin Tournoij <martin@arp242.net>'
@@ -45,6 +45,7 @@ def OpenUrl(url):
 	"""
 	headers = {
 		'User-Agent': 'Opera/9.80 (X11; FreeBSD 9.0-RELEASE amd64; U; en) Presto/2.10.289 Version/12.02',
+		'Cookie': 'site_cookie_consent=yes',
 	}
 	req = urllib2.Request(url, headers=headers)
 	page = urllib2.urlopen(req)
@@ -61,7 +62,7 @@ def VideoRequest(url, cookie):
 
 	headers = {
 		'User-Agent': 'Opera/9.80 (X11; FreeBSD 9.0-RELEASE amd64; U; en) Presto/2.10.289 Version/12.02',
-		'Cookie': cookie,
+		'Cookie': 'site_cookie_consent=yes;' + cookie,
 	}
 	req = urllib2.Request(url, headers=headers)
 
