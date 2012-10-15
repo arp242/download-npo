@@ -12,22 +12,36 @@
 import getopt
 import re
 import sys
-import urllib2
+
+# Python 2
+try:
+	import urllib2
+# Python 3
+except ImportError:
+	import urllib.request as urllib2
 
 _verbose = False
 _silent = False
 _dryrun = False
 
 def Help():
-	print '%s [-hnvV] [-o output_dir] [url]' % sys.argv[0]
+	print('%s [-hnvV] [-o output_dir] [url]' % sys.argv[0])
 
 def Version():
-	print 'download-gemist 1.2, 2012-10-03'
-	print 'https://bitbucket.org/Carpetsmoker/download-gemist'
-	print ''
-	print 'Copyright (c) Martin Tournoij <martin@arp242.net>'
-	print 'Freely redistributable and modifiable under the terms of the MIT license'
-	print 'http://opensource.org/licenses/MIT'
+	print('download-gemist 1.2, 2012-10-03')
+	print('https://bitbucket.org/Carpetsmoker/download-gemist')
+	print('')
+	print('Copyright (c) Martin Tournoij <martin@arp242.net>')
+	print('Freely redistributable and modifiable under the terms of the MIT license')
+	print('http://opensource.org/licenses/MIT')
+
+def Error(msg):
+	"""
+	Print message to stderr, can't use print because of Python 2/3
+	incompatibility
+	"""
+
+	sys.stderr.write(msg + '\n')
 
 def OpenUrl(url):
 	"""
@@ -41,7 +55,7 @@ def OpenUrl(url):
 	page = urllib2.urlopen(req)
 
 	if _verbose:
-		print 'OpenUrl url: ' + url
+		print('OpenUrl url: ' + url)
 
 	return (page.info(), page.read())
 
@@ -75,7 +89,7 @@ if __name__ == '__main__':
 	try:
 		options, program = getopt.getopt(sys.argv[1:], 'hvVsno:p:')
 	except getopt.GetoptError:
-		print >> sys.stderr, 'Error:', sys.exc_info()[1]
+		Error('Error:', sys.exc_info()[1])
 		Help()
 		sys.exit(1)
 
@@ -100,11 +114,11 @@ if __name__ == '__main__':
 			pages = int(arg)
 
 	if len(program) == 0:
-		print 'URL required'
+		print('URL required')
 		Help()
 		sys.exit(1)
 
 	videos = ProcProgram(program[0], pages)
 
 	for v in videos:
-		print '|'.join(v)
+		print('|'.join(v))

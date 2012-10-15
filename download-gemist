@@ -12,33 +12,47 @@
 import getopt
 import re
 import sys
-import urllib2
+
+# Python 2
+try:
+	import urllib2
+# Python 3
+except ImportError:
+	import urllib.request as urllib2
 
 _verbose = False
 _silent = False
 _dryrun = False
 
 def Help():
-	print '%s [-hnvV] [-o output_dir] [-f output_file] [url url2...]' % sys.argv[0]
-	print ''
-	print 'Video URL\'s can be added can be added to the commandline, or read from stdin'
-	print '  -o    Set output directory. Default is current directory.'
-	print '  -f    Set output filename, relative to -o. The default is the title of'
-	print '        the video. Use - for stdout.'
-	print "  -n    Don't actually download video, just show what would be done"
-	print '  -h    Show this help.'
-	print '  -v    Show version.'
-	print '  -V    Show verbose information.'
-	print '  -s    Silent. Don\'t show any informational messages'
-	print ''
+	print('%s [-hnvV] [-o output_dir] [-f output_file] [url url2...]' % sys.argv[0])
+	print('')
+	print('Video URL\'s can be added can be added to the commandline, or read from stdin')
+	print('  -o    Set output directory. Default is current directory.')
+	print('  -f    Set output filename, relative to -o. The default is the title of')
+	print('        the video. Use - for stdout.')
+	print("  -n    Don't actually download video, just show what would be done")
+	print('  -h    Show this help.')
+	print('  -v    Show version.')
+	print('  -V    Show verbose information.')
+	print('  -s    Silent. Don\'t show any informational messages')
+	print('')
 
 def Version():
-	print 'download-gemist 1.2, 2012-10-03'
-	print 'https://bitbucket.org/Carpetsmoker/download-gemist'
-	print ''
-	print 'Copyright (c) Martin Tournoij <martin@arp242.net>'
-	print 'Freely redistributable and modifiable under the terms of the MIT license'
-	print 'http://opensource.org/licenses/MIT'
+	print('download-gemist 1.2, 2012-10-03')
+	print('https://bitbucket.org/Carpetsmoker/download-gemist')
+	print('')
+	print('Copyright (c) Martin Tournoij <martin@arp242.net>')
+	print('Freely redistributable and modifiable under the terms of the MIT license')
+	print('http://opensource.org/licenses/MIT')
+
+def Error(msg):
+	"""
+	Print message to stderr, can't use print because of Python 2/3
+	incompatibility
+	"""
+
+	sys.stderr.write(msg + '\n')
 
 def OpenUrl(url):
 	"""
@@ -52,7 +66,7 @@ def OpenUrl(url):
 	page = urllib2.urlopen(req)
 
 	if _verbose:
-		print 'OpenUrl url: ' + url
+		print('OpenUrl url: ' + url)
 
 	return (page.info(), page.read())
 
@@ -68,7 +82,7 @@ def VideoRequest(url, cookie):
 	req = urllib2.Request(url, headers=headers)
 
 	if _verbose:
-		print 'DownloadVideo url: ' + url
+		print('DownloadVideo url: ' + url)
 
 	return urllib2.urlopen(req)
 
@@ -81,12 +95,12 @@ def DownloadVideo(url, outdir, filename):
 	# <meta content="http://embed.player.omroep.nl/fle/ugfl.swf?episodeID=14099311&amp;volume=100" property="og:video" />
 	episode = re.search('<meta content="http.*episodeID=(\d+)', data)
 	if not episode:
-		print >> sys.stderr, 'Error: Unable to find episodeId'
+		Error('Error: Unable to find episodeId')
 		sys.exit(1)
 
 	episode = episode.groups()[0]
 	if _verbose:
-		print 'Using episodeId ' + episode
+		print('Using episodeId ' + episode)
 
 	if not filename:
 		# <title>Andere tijden: De genezen homo - Uitzending Gemist</title>
@@ -100,7 +114,7 @@ def DownloadVideo(url, outdir, filename):
 	cookie = head.get('Set-Cookie').split(';')[0]
 
 	if _verbose:
-		print 'Using cookie' + cookie
+		print('Using cookie' + cookie)
 
 	# `std' seems to be the highest quality, `bb' slightly lower, `sb' a lot
 	# lower
@@ -110,11 +124,11 @@ def DownloadVideo(url, outdir, filename):
 	videos = re.findall('<source src="(.*)" type', data)
 
 	if not videos:
-		print >> sys.stderr, 'Error: Unable to find videos'
+		Error('Error: Unable to find videos')
 		sys.exit(1)
 
 	if _verbose:
-		print 'Found videos: ', videos
+		print('Found videos: ', videos)
 
 	download = None
 	for v in videos:
@@ -123,7 +137,7 @@ def DownloadVideo(url, outdir, filename):
 			break
 
 	if not _silent:
-		print "Saving to %s/%s" % (outdir, filename)
+		print("Saving to %s/%s" % (outdir, filename))
 
 	video = VideoRequest(download, cookie)
 	total = int(video.info().get('Content-Length')) / 1024 / 1024
@@ -150,13 +164,13 @@ def DownloadVideo(url, outdir, filename):
 			fp.close()
 
 	if not _silent:
-		print 'Ok!'
+		print('Ok!')
 
 if __name__ == '__main__':
 	try:
 		options, videos = getopt.getopt(sys.argv[1:], 'hvVsno:f:')
 	except getopt.GetoptError:
-		print >> sys.stderr, 'Error:', sys.exc_info()[1]
+		Error('Error:', sys.exc_info()[1])
 		Help()
 		sys.exit(1)
 
@@ -184,13 +198,13 @@ if __name__ == '__main__':
 		_silent = True
 
 	if len(videos) == 0:
-		print >> sys.stderr, 'Reading from stdin...'
+		Error('Reading from stdin...')
 		videos = sys.stdin.read().strip().split(' ')
 
 	for v in videos:
 		if v == '':
 			continue
 		if _verbose:
-			print 'Downloading ' + v
+			print('Downloading ' + v)
 
 		DownloadVideo(v, outdir, filename)

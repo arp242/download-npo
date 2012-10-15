@@ -1,4 +1,6 @@
-Download-gemist van download video's from the Dutch uitzending gemist site.
+Download-gemist downloads video's from the Dutch uitzending gemist site.
+
+Python is required. Tested with Python 2.7 and 3.2
 
 Included tools:
 
