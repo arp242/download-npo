@@ -1,0 +1,110 @@
+#!/usr/bin/env python
+#
+# Download file from the Dutch `Uitzending gemist' site.
+#
+# https://bitbucket.org/Carpetsmoker/download-gemist
+#
+# Copyright (c) 2012 Martin Tournoij <martin@arp242.net>
+# Freely redistributable and modifiable under the terms of the MIT license
+# http://opensource.org/licenses/MIT 
+#
+
+import getopt
+import re
+import sys
+import urllib2
+
+_verbose = False
+_silent = False
+_dryrun = False
+
+def Help():
+	print '%s [-hnvV] [-o output_dir] [url]' % sys.argv[0]
+
+def Version():
+	print 'download-gemist 1.2, 2012-10-03'
+	print 'https://bitbucket.org/Carpetsmoker/download-gemist'
+	print ''
+	print 'Copyright (c) Martin Tournoij <martin@arp242.net>'
+	print 'Freely redistributable and modifiable under the terms of the MIT license'
+	print 'http://opensource.org/licenses/MIT'
+
+def OpenUrl(url):
+	"""
+	Build request, fake headers & mandatory cookie
+	"""
+	headers = {
+		'User-Agent': 'Opera/9.80 (X11; FreeBSD 9.0-RELEASE amd64; U; en) Presto/2.10.289 Version/12.02',
+		'Cookie': 'site_cookie_consent=yes',
+	}
+	req = urllib2.Request(url, headers=headers)
+	page = urllib2.urlopen(req)
+
+	if _verbose:
+		print 'OpenUrl url: ' + url
+
+	return (page.info(), page.read())
+
+def ProcProgram(url, pages):
+	videos = []
+	for page in range(1, pages + 1):
+		head, data = OpenUrl('%s/afleveringen?page=%s' % (url, page))
+
+		for g in ProcPage(data):
+			epid, title, date, desc = g
+			title = re.sub('\(.*?\)', '', title).strip()
+			desc = desc.strip()
+
+			videos.append([
+				epid,
+				title,
+				'http://www.uitzendinggemist.nl/afleveringen/%s' % (epid),
+				date,
+				desc,
+			])
+
+	return videos
+
+def ProcPage(data):
+	#<a href="/afleveringen/1287960" class="episode active knav_link" title="Kabinet in crisis  (zo 9 sep 2012, 21:20)">Kabinet in crisis <img alt="888" class="tt888" src="//assets.www.uitzendinggemist.nl/assets/tt888.png" title="Deze aflevering is TT888 ondertiteld" /> <span class="date">(zo 9 sep 2012, 21:20)</span></a></h3>
+	
+	return re.findall('<a href="/afleveringen/(\d+?)" class="episode active knav_link" title="(.+?)">.+?<span class="date">\((.+?)\)</span>'
+		+ '.+?</h3>(.+?)</div>', data, re.MULTILINE | re.DOTALL)
+
+if __name__ == '__main__':
+	try:
+		options, program = getopt.getopt(sys.argv[1:], 'hvVsno:p:')
+	except getopt.GetoptError:
+		print >> sys.stderr, 'Error:', sys.exc_info()[1]
+		Help()
+		sys.exit(1)
+
+	pages = 1
+	outdir = '.'
+	for flag, arg in options:
+		if flag == '-h':
+			Help()
+			sys.exit(0)
+		elif flag == '-v':
+			Version()
+			sys.exit(0)
+		elif flag == '-V':
+			_verbose = True
+		elif flag == '-s':
+			_silent = True
+		elif flag == '-o':
+			outdir = arg
+		elif flag == '-n':
+			_dryrun = True
+		elif flag == '-p':
+			pages = int(arg)
+
+	if len(program) == 0:
+		print 'URL required'
+		Help()
+		sys.exit(1)
+
+	videos = ProcProgram(program[0], pages)
+
+	for v in videos:
+		print '|'.join(v)

@@ -16,14 +16,16 @@ import urllib2
 
 _verbose = False
 _silent = False
+_dryrun = False
 
 def Help():
-	print '%s [-hvV] [-o output_dir] [-f output_file] [url url2...]' % sys.argv[0]
+	print '%s [-hnvV] [-o output_dir] [-f output_file] [url url2...]' % sys.argv[0]
 	print ''
 	print 'Video URL\'s can be added can be added to the commandline, or read from stdin'
 	print '  -o    Set output directory. Default is current directory.'
 	print '  -f    Set output filename, relative to -o. The default is the title of'
 	print '        the video. Use - for stdout.'
+	print "  -n    Don't actually download video, just show what would be done"
 	print '  -h    Show this help.'
 	print '  -v    Show version.'
 	print '  -V    Show verbose information.'
@@ -31,17 +33,16 @@ def Help():
 	print ''
 
 def Version():
-	print 'download-gemist 1.1, 2012-10-03'
+	print 'download-gemist 1.2, 2012-10-03'
 	print 'https://bitbucket.org/Carpetsmoker/download-gemist'
 	print ''
 	print 'Copyright (c) Martin Tournoij <martin@arp242.net>'
 	print 'Freely redistributable and modifiable under the terms of the MIT license'
 	print 'http://opensource.org/licenses/MIT'
 
-
 def OpenUrl(url):
 	"""
-	Build request, fake headers
+	Build request, fake headers & mandatory cookie
 	"""
 	headers = {
 		'User-Agent': 'Opera/9.80 (X11; FreeBSD 9.0-RELEASE amd64; U; en) Presto/2.10.289 Version/12.02',
@@ -68,6 +69,7 @@ def VideoRequest(url, cookie):
 
 	if _verbose:
 		print 'DownloadVideo url: ' + url
+
 	return urllib2.urlopen(req)
 
 def DownloadVideo(url, outdir, filename):
@@ -127,31 +129,32 @@ def DownloadVideo(url, outdir, filename):
 	total = int(video.info().get('Content-Length')) / 1024 / 1024
 	i = 0
 
-	if filename == '-':
-		fp = sys.stdout
-	else:
-		fp = open('%s/%s' % (outdir, filename), 'wb+')
+	if not _dryrun:
+		if filename == '-':
+			fp = sys.stdout
+		else:
+			fp = open('%s/%s' % (outdir, filename), 'wb+')
 
-	while True:
-		data = video.read(8192)
-		if not data:
-			break
+		while True:
+			data = video.read(8192)
+			if not data:
+				break
 
-		if not _silent and i % 4 == 0:
-			sys.stdout.write('\r%s MiB of %s MiB total' % (i / 1024, total))
-			sys.stdout.flush()
-		fp.write(data)
-		i += 8
+			if not _silent and i % 4 == 0:
+				sys.stdout.write('\r%s MiB of %s MiB total' % (i / 1024, total))
+				sys.stdout.flush()
+			fp.write(data)
+			i += 8
 
-	if filename != '-':
-		fp.close()
+		if filename != '-':
+			fp.close()
 
 	if not _silent:
-		print '. Ok!'
+		print 'Ok!'
 
 if __name__ == '__main__':
 	try:
-		options, videos = getopt.getopt(sys.argv[1:], 'hvVso:f:')
+		options, videos = getopt.getopt(sys.argv[1:], 'hvVsno:f:')
 	except getopt.GetoptError:
 		print >> sys.stderr, 'Error:', sys.exc_info()[1]
 		Help()
@@ -174,19 +177,20 @@ if __name__ == '__main__':
 			outdir = arg
 		elif flag == '-f':
 			filename = arg
+		elif flag == '-n':
+			_dryrun = True
 
-	if _silent or filename == '-':
+	if filename == '-':
 		_silent = True
 
 	if len(videos) == 0:
+		print >> sys.stderr, 'Reading from stdin...'
 		videos = sys.stdin.read().strip().split(' ')
-		#print >> sys.stderr, 'Error: No video URL'
-		#Help()
-		#sys.exit(1)
 
 	for v in videos:
 		if v == '':
 			continue
 		if _verbose:
 			print 'Downloading ' + v
+
 		DownloadVideo(v, outdir, filename)
