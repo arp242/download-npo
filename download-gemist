@@ -9,6 +9,8 @@
 # http://opensource.org/licenses/MIT 
 #
 
+from __future__ import print_function
+
 import getopt
 import re
 import sys
@@ -152,6 +154,7 @@ def DownloadVideo(url, outdir, filename):
 		while True:
 			data = video.read(8192)
 			if not data:
+				print(' ',)
 				break
 
 			if not _silent and i % 4 == 0:
@@ -164,7 +167,7 @@ def DownloadVideo(url, outdir, filename):
 			fp.close()
 
 	if not _silent:
-		print('Ok!')
+		print('Ok!', end='')
 
 if __name__ == '__main__':
 	try:
@@ -208,3 +211,6 @@ if __name__ == '__main__':
 			print('Downloading ' + v)
 
 		DownloadVideo(v, outdir, filename)
+
+		if not _silent:
+			print('')

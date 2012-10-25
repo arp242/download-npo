@@ -9,6 +9,8 @@
 # http://opensource.org/licenses/MIT 
 #
 
+from __future__ import print_function
+
 import getopt
 import re
 import sys
@@ -65,7 +67,7 @@ def ProcProgram(url, pages):
 		head, data = OpenUrl('%s/afleveringen?page=%s' % (url, page))
 
 		for g in ProcPage(data):
-			epid, title, date, desc = g
+			epid, title, desc = g
 			title = re.sub('\(.*?\)', '', title).strip()
 			desc = desc.strip()
 
@@ -73,7 +75,6 @@ def ProcProgram(url, pages):
 				epid,
 				title,
 				'http://www.uitzendinggemist.nl/afleveringen/%s' % (epid),
-				date,
 				desc,
 			])
 
@@ -82,8 +83,8 @@ def ProcProgram(url, pages):
 def ProcPage(data):
 	#<a href="/afleveringen/1287960" class="episode active knav_link" title="Kabinet in crisis  (zo 9 sep 2012, 21:20)">Kabinet in crisis <img alt="888" class="tt888" src="//assets.www.uitzendinggemist.nl/assets/tt888.png" title="Deze aflevering is TT888 ondertiteld" /> <span class="date">(zo 9 sep 2012, 21:20)</span></a></h3>
 	
-	return re.findall('<a href="/afleveringen/(\d+?)" class="episode active knav_link" title="(.+?)">.+?<span class="date">\((.+?)\)</span>'
-		+ '.+?</h3>(.+?)</div>', data, re.MULTILINE | re.DOTALL)
+	#return re.findall('<a href="/afleveringen/(\d+?)" class="episode active knav_link" title="(.+?)">.+?<span class="date">\((.+?)\)</span>'
+	return re.findall('<a href="/afleveringen/(\d+?)" class="episode active knav_link" title="(.+?)">.+?</h3>(.+?)</div>', data, re.MULTILINE | re.DOTALL)
 
 if __name__ == '__main__':
 	try:
