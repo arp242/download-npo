@@ -49,7 +49,7 @@ def Help():
 	print('')
 
 def Version():
-	print('download-gemist 1.3, 2012-11-11')
+	print('download-gemist 1.2, 2012-11-11')
 	print('https://bitbucket.org/Carpetsmoker/download-gemist')
 	print('')
 	print('Copyright (c) Martin Tournoij <martin@arp242.net>')
