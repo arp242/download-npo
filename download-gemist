@@ -2,16 +2,16 @@
 #
 # Download file from the Dutch `Uitzending gemist' site.
 #
-# https://bitbucket.org/Carpetsmoker/download-gemist
+# http://code.arp242.net/download-gemist
 #
 # Copyright (c) 2012 Martin Tournoij <martin@arp242.net>
-# Freely redistributable and modifiable under the terms of the MIT license
-# http://opensource.org/licenses/MIT 
+# See below for full copyright
 #
 
 from __future__ import print_function
 
 import getopt
+import os
 import re
 import sys
 
@@ -25,23 +25,31 @@ except ImportError:
 _verbose = False
 _silent = False
 _dryrun = False
+_overwrite = False
+_safefilename = True
+_replacespace = True
 
 def Help():
-	print('%s [-hnvV] [-o output_dir] [-f output_file] [url url2...]' % sys.argv[0])
+	print('%s [-hnvVwn] [-o output_dir] [-f output_file] [url url2...]' % sys.argv[0])
 	print('')
 	print('Video URL\'s can be added can be added to the commandline, or read from stdin')
-	print('  -o    Set output directory. Default is current directory.')
+	print('  -o    Set output directory. Default is current directory')
 	print('  -f    Set output filename, relative to -o. The default is the title of')
-	print('        the video. Use - for stdout.')
+	print('        the video. Use - for stdout')
 	print("  -n    Don't actually download video, just show what would be done")
-	print('  -h    Show this help.')
-	print('  -v    Show version.')
-	print('  -V    Show verbose information.')
+	print('  -h    Show this help')
+	print('  -v    Show version')
+	print('  -V    Show verbose information')
 	print('  -s    Silent. Don\'t show any informational messages')
+	print('  -w    Overwrite exiting files (default is to skip if a file exists)')
+	print('  -c    By default, illegal FAT32/NTFSS charaters are trimmed and spaces are')
+	print('        replaced by underscores.')
+	print('        If you use -c once, no characters are trimmed except spaces')
+	print('        If you use -c twice, spaces are also kept')
 	print('')
 
 def Version():
-	print('download-gemist 1.2, 2012-10-03')
+	print('download-gemist 1.3, 2012-11-11')
 	print('https://bitbucket.org/Carpetsmoker/download-gemist')
 	print('')
 	print('Copyright (c) Martin Tournoij <martin@arp242.net>')
@@ -108,7 +116,15 @@ def DownloadVideo(url, outdir, filename):
 		# <title>Andere tijden: De genezen homo - Uitzending Gemist</title>
 		title = re.search('<title>(.+) - Uitzending Gemist</title>', data)
 		title = title.groups()[0]
-		filename = '%s-%s.mp4' % (title.strip().replace(':', '').replace(' ', '_'), episode)
+
+		filename = '%s-%s.mp4' % (title.strip(), episode)
+
+		if _safefilename:
+			unsafe = r'"/\\*?<>|:'
+			filename = ''.join([ f for f in filename if f not in unsafe ])
+
+		if _replacespace:
+			filename = filename.replace(' ', '_')
 
 	head, data = OpenUrl('http://www.uitzendinggemist.nl/player/' + episode)
 
@@ -141,6 +157,11 @@ def DownloadVideo(url, outdir, filename):
 	if not _silent:
 		print("Saving to %s/%s" % (outdir, filename))
 
+	if os.path.exists('%s/%s' % (outdir, filename)) and not _overwrite:
+		if not _silent:
+			print("Skipping because file already exists")
+		return
+
 	video = VideoRequest(download, cookie)
 	total = int(video.info().get('Content-Length')) / 1024 / 1024
 	i = 0
@@ -171,9 +192,9 @@ def DownloadVideo(url, outdir, filename):
 
 if __name__ == '__main__':
 	try:
-		options, videos = getopt.getopt(sys.argv[1:], 'hvVsno:f:')
+		options, videos = getopt.getopt(sys.argv[1:], 'hvVsnwco:f:')
 	except getopt.GetoptError:
-		Error('Error:', sys.exc_info()[1])
+		Error('Error: %s' % sys.exc_info()[1])
 		Help()
 		sys.exit(1)
 
@@ -196,6 +217,12 @@ if __name__ == '__main__':
 			filename = arg
 		elif flag == '-n':
 			_dryrun = True
+		elif flag == '-w':
+			_overwrite = True
+		elif flag == '-c' and not _safefilename:
+			_replacespace = False
+		elif flag == '-c':
+			_safefilename = False
 
 	if filename == '-':
 		_silent = True
@@ -214,3 +241,25 @@ if __name__ == '__main__':
 
 		if not _silent:
 			print('')
+
+# The MIT License (MIT)
+#
+# Copyright (c) 2012 Martin Tournoij
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to
+# deal in the Software without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+# IN THE SOFTWARE.
