@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 #
-# Download file from the Dutch `Uitzending gemist' site.
+# Download videos from the Dutch `Uitzending gemist' site.
 #
-# http://code.arp242.net/download-gemist
+# http://code.arp242.net/download-gemist/
 #
 # Copyright (c) 2012 Martin Tournoij <martin@arp242.net>
 # See below for full copyright
@@ -17,9 +17,11 @@ import sys
 # Python 2
 try:
 	import urllib2
+	from HTMLParser import HTMLParser
 # Python 3
 except ImportError:
 	import urllib.request as urllib2
+	from html.parser import HTMLParser
 
 _verbose = False
 _silent = False
@@ -32,8 +34,8 @@ def Help():
 	print('  -V    Show verbose information')
 
 def Version():
-	print('download-gemist 1.2, 2012-11-11')
-	print('https://bitbucket.org/Carpetsmoker/download-gemist')
+	print('download-gemist 1.3, 2013-01-22')
+	print('http://code.arp242.net/download-gemist/')
 	print('')
 	print('Copyright (c) Martin Tournoij <martin@arp242.net>')
 	print('Freely redistributable and modifiable under the terms of the MIT license')
@@ -70,8 +72,8 @@ def ProcProgram(url, pages):
 
 		for g in ProcPage(data):
 			epid, title, desc = g
-			title = re.sub('\(.*?\)', '', title).strip()
-			desc = desc.strip()
+			title = HTMLParser().unescape(re.sub('\(.*?\)', '', title)).strip()
+			desc = HTMLParser().unescape(desc).strip()
 
 			videos.append([
 				epid,
@@ -84,8 +86,8 @@ def ProcProgram(url, pages):
 
 def ProcPage(data):
 	#<a href="/afleveringen/1287960" class="episode active knav_link" title="Kabinet in crisis  (zo 9 sep 2012, 21:20)">Kabinet in crisis <img alt="888" class="tt888" src="//assets.www.uitzendinggemist.nl/assets/tt888.png" title="Deze aflevering is TT888 ondertiteld" /> <span class="date">(zo 9 sep 2012, 21:20)</span></a></h3>
-	
-	return re.findall('<li class="episode active knav" data-remote-id="(\d+?)" id="episode_\d+">.*?<a href="/afleveringen/\d+?" class="episode active knav_link" title="(.+?)">.+?</h3>(.+?)</div>', data, re.MULTILINE | re.DOTALL)
+
+	return re.findall('<li class="episode active knav".*?data-remote-id="\d+?" id="episode_(\d+)">.*?<a href="/afleveringen/\d+?" class="episode active knav_link" title="(.+?)">.+?</h3>(.+?)</div>', data, re.MULTILINE | re.DOTALL)
 
 if __name__ == '__main__':
 	try:
@@ -122,6 +124,7 @@ if __name__ == '__main__':
 
 	for v in videos:
 		print('|'.join(v))
+
 
 # The MIT License (MIT)
 #
