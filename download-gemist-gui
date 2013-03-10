@@ -1,0 +1,148 @@
+#!/usr/bin/env python
+# encoding:utf-8
+#
+# Download videos from the Dutch `Uitzending gemist' site.
+#
+# http://code.arp242.net/download-gemist/
+#
+# Copyright © 2012-2013 Martin Tournoij <martin@arp242.net>
+# See below for full copyright
+#
+
+from __future__ import print_function
+
+import subprocess
+import sys
+import time
+
+try:
+	import threading
+except ImportError:
+	import dummy_threading as threading
+
+try:
+	import Queue as queue
+except ImportError:
+	import queue
+
+try:
+	if sys.version_info[0] == 2:
+		import Tkinter as tk
+	else:
+		import tkinter as tk
+except ImportError:
+	print('Unable to import Tkinter')
+	sys.exit(1)
+
+_queue = queue.Queue()
+
+class GUI:
+	def __init__(self, root):
+		topframe = tk.Frame(root)
+
+		lbl = tk.Label(topframe,
+			text='URL naar programmapagina (bv.  http://www.uitzendinggemist.nl/programmas/215-andere-tijden)')
+
+		self.programinput = tk.Entry(topframe)
+		self.programinputbtn = tk.Button(topframe, text='Ok',
+			command=self.populate_eps)
+
+		topframe.pack(padx=10, pady=10)
+		lbl.pack(side=tk.TOP, fill=tk.X, expand=1)
+		self.programinput.pack(side=tk.LEFT, fill=tk.X, expand=1)
+		self.programinputbtn.pack(side=tk.LEFT)
+
+		self.epframe = tk.Frame(root)
+		self.epframe.pack()
+
+		self.btmframe = tk.Frame(root, padx=10, pady=10)
+
+		dlbutton = tk.Button(self.btmframe, command=self.download,
+			text='Download geselecteerd afleveringen')
+
+		dlbutton.pack(side=tk.LEFT)
+
+	def populate_eps(self):
+		self.programurl = self.programinput.get()
+
+		proc = subprocess.Popen(['./download-gemist-list', self.programurl], stdout=subprocess.PIPE)
+		out = proc.communicate()
+		proc.wait()
+
+		self.eps = {}
+		for line in out[0].split('\n')[:-1]:
+			line = line.split('|')
+			(epid, title, url, desc) = line
+			self.eps[epid] = {
+				'title': title,
+				'url': url,
+				'val': tk.BooleanVar(),
+			}
+
+			frame = tk.Frame(self.epframe, bd=1, relief=tk.SUNKEN)
+			cbox = tk.Checkbutton(frame, text='Download', variable=self.eps[epid]['val'])
+
+			lbltitle = tk.Label(frame, text=title)
+			lbldesc = tk.Label(frame, text=desc)
+
+			frame.pack(side=tk.TOP, fill=tk.X, expand=1)
+			cbox.pack(side=tk.TOP)
+			lbltitle.pack(side=tk.TOP)
+			lbldesc.pack(side=tk.TOP)
+			
+			self.btmframe.pack()
+
+	def download(self):
+		for epid, data in self.eps.iteritems():
+			if data['val'].get() is not True:
+				continue
+
+			_queue.put(data['url'])
+
+
+def download():
+	while True:
+		if not _queue.empty():
+			cmd = _queue.get()
+
+			if cmd == 'quit':
+				return
+
+			proc = subprocess.Popen(['./download-gemist', cmd])
+			proc.communicate()
+			proc.wait()
+		time.sleep(2)
+
+if __name__ == '__main__':
+	root = tk.Tk()
+	GUI(root)
+
+	thr = threading.Thread(target=download)
+	thr.start()
+
+	root.mainloop()
+
+	_queue.put('quit')
+
+
+# The MIT License (MIT)
+#
+# Copyright © 2012-2013 Martin Tournoij
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to
+# deal in the Software without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+# IN THE SOFTWARE.

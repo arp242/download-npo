@@ -83,7 +83,7 @@ def ProcProgram(url, pages):
 def ProcPage(data):
 	#<a href="/afleveringen/1287960" class="episode active knav_link" title="Kabinet in crisis  (zo 9 sep 2012, 21:20)">Kabinet in crisis <img alt="888" class="tt888" src="//assets.www.uitzendinggemist.nl/assets/tt888.png" title="Deze aflevering is TT888 ondertiteld" /> <span class="date">(zo 9 sep 2012, 21:20)</span></a></h3>
 
-	return re.findall('<li class="episode active knav".*?data-remote-id="\d+?" id="episode_(\d+)">.*?<a href="/afleveringen/\d+?" class="episode active knav_link" title="(.+?)">.+?</h3>(.+?)</div>', data, re.MULTILINE | re.DOTALL)
+	return re.findall('<li class="episode active".*?data-remote-id="\d+?" id="episode_(\d+)">.*?<a href="/afleveringen/\d+?" class="episode active knav_link" title="(.+?)">.+?</h3>(.+?)</div>', data, re.MULTILINE | re.DOTALL)
 
 if __name__ == '__main__':
 	try:

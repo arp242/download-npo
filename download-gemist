@@ -38,7 +38,7 @@ _termwidth = 76
 
 
 def Help():
-	print('%s [-hnvVwn] [-o output_dir] [-f output_file] [url url2...]' % sys.argv[0])
+	print('%s [-hnvVwn] [-o output_dir] [-f output_file] [url url2 ...]' % sys.argv[0])
 	print('')
 	print('Video URL\'s can be added can be added to the commandline, or read from stdin')
 	print('  -o    Set output directory. Default is current directory')
