@@ -2,12 +2,11 @@ Download-gemist downloads videos from the Dutch uitzending gemist site. The
 rest of the documentation is in Dutch.
 
 
-Installatie
-===========
-
-download-gemist download videos van de [uitzending gemist][1] site van de
+Download-gemist download videos van de [uitzending gemist][1] site van de
 publieke omroep.
 
+Installatie
+===========
 [Python][2] is nodig, het is getest met Python 2.7 en 3.3 op FreeBSD en
 Windows 7.
 
@@ -23,12 +22,12 @@ Voorbeeld:
 
     download-gemist http://www.uitzendinggemist.nl/afleveringen/1292817
 
-Zie `download-gemist -h' voor meer help en opties.
+Zie `download-gemist -h` voor meer help en opties.
 
 download-gemist-list
 --------------------
 Commandline tool om informatie op te halen van een programma pagina, dit kan
-je gebruiken om makkelijk de laatst /n/ videos te downloaden.
+je gebruiken om makkelijk de laatst *n* videos te downloaden.
 
 Dit download niks als zodanig, maar haalt alleen informatie op die je
 vervolgens makkelijk aan `download-gemist` kan voeren.
