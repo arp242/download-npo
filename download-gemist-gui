@@ -28,8 +28,10 @@ except ImportError:
 try:
 	if sys.version_info[0] == 2:
 		import Tkinter as tk
+		import ttk
 	else:
 		import tkinter as tk
+		import tkinter.ttk as ttk
 except ImportError:
 	print('Unable to import Tkinter')
 	sys.exit(1)
@@ -38,39 +40,65 @@ _queue = queue.Queue()
 
 class GUI:
 	def __init__(self, root):
-		topframe = tk.Frame(root)
+		root.columnconfigure(0, weight=1)
 
-		lbl = tk.Label(topframe,
+		rootframe = ttk.Frame(root, padding=5)
+		rootframe.grid(row=0, column=0, sticky=tk.E + tk.W)
+		rootframe.columnconfigure(0, weight=1)
+
+		# Top frame
+		topframe = ttk.LabelFrame(rootframe, text='Programma', padding=3)
+		topframe.columnconfigure(0, weight=1)
+
+		lbl = ttk.Label(topframe,
 			text='URL naar programmapagina (bv.  http://www.uitzendinggemist.nl/programmas/215-andere-tijden)')
 
-		self.programinput = tk.Entry(topframe)
-		self.programinputbtn = tk.Button(topframe, text='Ok',
+		self.programinput = ttk.Entry(topframe)
+		self.programinputbtn = ttk.Button(topframe, text='Ok',
 			command=self.populate_eps)
 
-		topframe.pack(padx=10, pady=10)
-		lbl.pack(side=tk.TOP, fill=tk.X, expand=1)
-		self.programinput.pack(side=tk.LEFT, fill=tk.X, expand=1)
-		self.programinputbtn.pack(side=tk.LEFT)
+		topframe.grid(column=0, row=0, sticky=tk.W + tk.E)
+		lbl.grid(row=0, column=0, sticky=tk.W, columnspan=2)
+		self.programinput.grid(row=1, column=0, sticky=tk.W + tk.E)
+		self.programinputbtn.grid(row=1, column=1)
 
-		self.epframe = tk.Frame(root)
-		self.epframe.pack()
+		topframe.columnconfigure(0, weight=1)
+		topframe.columnconfigure(1, weight=0)
 
-		self.btmframe = tk.Frame(root, padx=10, pady=10)
+		# Episode list
+		self.epframe = ttk.LabelFrame(rootframe, text='Afleveringen')
+		self.epframe.columnconfigure(0, weight=1)
+		self.epframe.grid(column=0, row=1, sticky=tk.E + tk.W, pady=10)
 
-		dlbutton = tk.Button(self.btmframe, command=self.download,
+		# Bottom
+		self.btmframe = ttk.Frame(rootframe)
+		self.btmframe.columnconfigure(0, weight=1)
+		self.btmframe.columnconfigure(1, weight=1)
+
+		qbtn = ttk.Button(self.btmframe, command=lambda: root.quit(),
+			text='Sluiten')
+		dlbtn = ttk.Button(self.btmframe, command=self.download,
 			text='Download geselecteerd afleveringen')
 
-		dlbutton.pack(side=tk.LEFT)
+		self.btmframe.grid(row=2, column=0, sticky=tk.W + tk.E)
+		qbtn.grid(row=0, column=0, sticky=tk.W)
+		dlbtn.grid(row=0, column=1, sticky=tk.E)
+
+		# XXX
+		if 'debug' in sys.argv:
+			self.programinput.insert(0, 'http://www.uitzendinggemist.nl/programmas/215-andere-tijden')
+			self.populate_eps()
 
 	def populate_eps(self):
 		self.programurl = self.programinput.get()
 
+		# TODO: blocks UI
 		proc = subprocess.Popen(['./download-gemist-list', self.programurl], stdout=subprocess.PIPE)
 		out = proc.communicate()
 		proc.wait()
 
 		self.eps = {}
-		for line in out[0].split('\n')[:-1]:
+		for i, line in enumerate(out[0].split('\n')[:-1]):
 			line = line.split('|')
 			(epid, title, url, desc) = line
 			self.eps[epid] = {
@@ -79,42 +107,54 @@ class GUI:
 				'val': tk.BooleanVar(),
 			}
 
-			frame = tk.Frame(self.epframe, bd=1, relief=tk.SUNKEN)
-			cbox = tk.Checkbutton(frame, text='Download', variable=self.eps[epid]['val'])
+			frame = ttk.Frame(self.epframe, padding=3)
+			frame.columnconfigure(0, weight=0)
+			frame.columnconfigure(1, weight=1)
 
-			lbltitle = tk.Label(frame, text=title)
-			lbldesc = tk.Label(frame, text=desc)
+			cbox = ttk.Checkbutton(frame, text='Download', variable=self.eps[epid]['val'])
+			lbltitle = ttk.Label(frame, text=title)
+			lbldesc = ttk.Label(frame, text=desc, wraplength=600, justify=tk.LEFT)
+			sep = ttk.Separator(frame)
 
-			frame.pack(side=tk.TOP, fill=tk.X, expand=1)
-			cbox.pack(side=tk.TOP)
-			lbltitle.pack(side=tk.TOP)
-			lbldesc.pack(side=tk.TOP)
-			
-			self.btmframe.pack()
+			frame.grid(row=i, column=0, sticky=tk.W + tk.E)
+			cbox.grid(row=0, column=0, sticky=tk.W)
+			lbltitle.grid(row=0, column=1, sticky=tk.W)
+			lbldesc.grid(row=1, column=1, sticky=tk.E + tk.W)
+			sep.grid(row=2, column=0, columnspan=2, sticky=tk.E + tk.W)
 
 	def download(self):
 		for epid, data in self.eps.iteritems():
 			if data['val'].get() is not True:
 				continue
 
-			_queue.put(data['url'])
-
+			_queue.put({
+				'cmd': 'video',
+				'url': data['url'],
+			})
 
 def download():
 	while True:
 		if not _queue.empty():
 			cmd = _queue.get()
 
-			if cmd == 'quit':
+			if cmd['cmd'] == 'quit':
 				return
+			elif cmd['cmd'] == 'video':
+				# TODO: Start this in background w/ lock
+				proc = subprocess.Popen(['./download-gemist', cmd['url']])
+				proc.communicate()
+				proc.wait()
+			elif cmd['cmd'] == 'list':
+				pass
 
-			proc = subprocess.Popen(['./download-gemist', cmd])
-			proc.communicate()
-			proc.wait()
-		time.sleep(2)
+		time.sleep(1)
 
 if __name__ == '__main__':
 	root = tk.Tk()
+	root.minsize(width=705, height=400)
+	root.title('Download-gemist')
+	root.bind('<Escape>', lambda a: root.quit())
+
 	GUI(root)
 
 	thr = threading.Thread(target=download)
@@ -122,7 +162,9 @@ if __name__ == '__main__':
 
 	root.mainloop()
 
-	_queue.put('quit')
+	_queue.put({
+		'cmd': 'quit'
+	})
 
 
 # The MIT License (MIT)
