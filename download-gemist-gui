@@ -3,7 +3,7 @@
 #
 # Download videos from the Dutch `Uitzending gemist' site.
 #
-# http://code.arp242.net/download-gemist/
+# http://code.arp242.net/download-gemist
 #
 # Copyright © 2012-2013 Martin Tournoij <martin@arp242.net>
 # See below for full copyright
@@ -11,7 +11,6 @@
 
 from __future__ import print_function
 
-import subprocess
 import sys
 import time
 
@@ -36,7 +35,10 @@ except ImportError:
 	print('Unable to import Tkinter')
 	sys.exit(1)
 
+import dgemist
+
 _queue = queue.Queue()
+
 
 class GUI:
 	def __init__(self, root):
@@ -51,9 +53,10 @@ class GUI:
 		topframe.columnconfigure(0, weight=1)
 
 		lbl = ttk.Label(topframe,
-			text='URL naar programmapagina (bv.  http://www.uitzendinggemist.nl/programmas/215-andere-tijden)')
+			text='URL naar programmapagina (bv. http://www.uitzendinggemist.nl/programmas/215-andere-tijden)')
 
 		self.programinput = ttk.Entry(topframe)
+		self.programinput.bind('<Return>', lambda ev: self.programinputbtn.invoke())
 		self.programinputbtn = ttk.Button(topframe, text='Ok',
 			command=self.populate_eps)
 
@@ -66,7 +69,7 @@ class GUI:
 		topframe.columnconfigure(1, weight=0)
 
 		# Episode list
-		self.epframe = ttk.LabelFrame(rootframe, text='Afleveringen')
+		self.epframe = ttk.LabelFrame(rootframe, text='Afleveringen', height=400)
 		self.epframe.columnconfigure(0, weight=1)
 		self.epframe.grid(column=0, row=1, sticky=tk.E + tk.W, pady=10)
 
@@ -77,12 +80,13 @@ class GUI:
 
 		qbtn = ttk.Button(self.btmframe, command=lambda: root.quit(),
 			text='Sluiten')
-		dlbtn = ttk.Button(self.btmframe, command=self.download,
+		self.dlbtn = ttk.Button(self.btmframe, command=self.download,
 			text='Download geselecteerd afleveringen')
+		self.dlbtn.config(state=tk.DISABLED)
 
 		self.btmframe.grid(row=2, column=0, sticky=tk.W + tk.E)
 		qbtn.grid(row=0, column=0, sticky=tk.W)
-		dlbtn.grid(row=0, column=1, sticky=tk.E)
+		self.dlbtn.grid(row=0, column=1, sticky=tk.E)
 
 		# XXX
 		if 'debug' in sys.argv:
@@ -93,14 +97,9 @@ class GUI:
 		self.programurl = self.programinput.get()
 
 		# TODO: blocks UI
-		proc = subprocess.Popen(['./download-gemist-list', self.programurl], stdout=subprocess.PIPE)
-		out = proc.communicate()
-		proc.wait()
-
 		self.eps = {}
-		for i, line in enumerate(out[0].split('\n')[:-1]):
-			line = line.split('|')
-			(epid, title, url, desc) = line
+		i = 0
+		for epid, title, url, desc in dgemist.GetListing(self.programurl):
 			self.eps[epid] = {
 				'title': title,
 				'url': url,
@@ -111,7 +110,8 @@ class GUI:
 			frame.columnconfigure(0, weight=0)
 			frame.columnconfigure(1, weight=1)
 
-			cbox = ttk.Checkbutton(frame, text='Download', variable=self.eps[epid]['val'])
+			cbox = ttk.Checkbutton(frame, text='Download',
+				variable=self.eps[epid]['val'])
 			lbltitle = ttk.Label(frame, text=title)
 			lbldesc = ttk.Label(frame, text=desc, wraplength=600, justify=tk.LEFT)
 			sep = ttk.Separator(frame)
@@ -121,6 +121,10 @@ class GUI:
 			lbltitle.grid(row=0, column=1, sticky=tk.W)
 			lbldesc.grid(row=1, column=1, sticky=tk.E + tk.W)
 			sep.grid(row=2, column=0, columnspan=2, sticky=tk.E + tk.W)
+
+			i += 1
+
+		self.dlbtn.config(state=tk.NORMAL)
 
 	def download(self):
 		for epid, data in self.eps.iteritems():
@@ -132,6 +136,7 @@ class GUI:
 				'url': data['url'],
 			})
 
+
 def download():
 	while True:
 		if not _queue.empty():
@@ -140,7 +145,8 @@ def download():
 			if cmd['cmd'] == 'quit':
 				return
 			elif cmd['cmd'] == 'video':
-				# TODO: Start this in background w/ lock
+				# TODO: progress bar, prevent downloading same ep twice
+				import subprocess
 				proc = subprocess.Popen(['./download-gemist', cmd['url']])
 				proc.communicate()
 				proc.wait()
@@ -149,22 +155,24 @@ def download():
 
 		time.sleep(1)
 
+
 if __name__ == '__main__':
 	root = tk.Tk()
-	root.minsize(width=705, height=400)
+	root.minsize(width=705, height=520)
 	root.title('Download-gemist')
-	root.bind('<Escape>', lambda a: root.quit())
+	root.bind('<Escape>', lambda ev: root.quit())
 
 	GUI(root)
 
 	thr = threading.Thread(target=download)
 	thr.start()
 
-	root.mainloop()
-
-	_queue.put({
-		'cmd': 'quit'
-	})
+	try:
+		root.mainloop()
+	finally:
+		_queue.put({
+			'cmd': 'quit'
+		})
 
 
 # The MIT License (MIT)

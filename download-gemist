@@ -3,7 +3,7 @@
 #
 # Download videos from the Dutch `Uitzending gemist' site.
 #
-# http://code.arp242.net/download-gemist/
+# http://code.arp242.net/download-gemist
 #
 # Copyright © 2012-2013 Martin Tournoij <martin@arp242.net>
 # See below for full copyright
@@ -12,21 +12,13 @@
 from __future__ import print_function
 
 import getopt
-import os
-import re
 import signal
 import subprocess
 import sys
 import time
+import os
 
-# Python 2
-try:
-	import urllib2
-	from HTMLParser import HTMLParser
-# Python 3
-except ImportError:
-	import urllib.request as urllib2
-	from html.parser import HTMLParser
+import dgemist
 
 _verbose = False
 _silent = False
@@ -34,198 +26,46 @@ _dryrun = False
 _overwrite = False
 _safefilename = True
 _replacespace = True
-_termwidth = 76
 
 
 def Help():
 	print('%s [-hnvVwn] [-o output_dir] [-f output_file] [url url2 ...]' % sys.argv[0])
 	print('')
-	print('Video URL\'s can be added can be added to the commandline, or read from stdin')
-	print('  -o    Set output directory. Default is current directory')
-	print('  -f    Set output filename, relative to -o. The default is the title of')
-	print('        the video. Use - for stdout')
-	print("  -n    Don't actually download video, just show what would be done")
-	print('  -h    Show this help')
-	print('  -v    Show version')
-	print('  -V    Show verbose information')
-	print('  -s    Silent. Don\'t show any informational messages')
-	print('  -w    Overwrite exiting files (default is to skip if a file exists)')
-	print('  -c    No characters are trimmed except spaces')
-	print('          - If you use -c twice, spaces are also kept')
-	print('          - The default is to remove all illegal FAT32/NTFS characters and')
-	print('            replace spaces by underscores')
+	print('Video URL kan vanaf de commandline opgegeven worden, of via stdin')
+	print('  -o    Zet output directory. Default is huidige directory')
+	print('  -f    Zet output file, relatief aan -o. Default is titel van de video.')
+	print('        Gebruik - voor stdout')
+	print("  -n    Download niks, laat zien wat we zouden doen")
+	print('  -h    Toon deze help')
+	print('  -v    Toon versie')
+	print('  -V    Print meer informatie naar het scherm')
+	print('  -s    Stil: Geef geen informatieve berichten (alleen errors)')
+	print('  -w    Overschrijf bestaande bestanden (default is om bestand over te slaan')
+	print('        als deze al bestaat')
+	print('  -c    Verwijder gene karakter in de bestandsnaam muv. spaties')
+	print('          - Als je -c 2x opgeeft, worden spaties ook behouden')
+	print('          - De default is om alle niet-geldige FAT32/NTFS karakters te')
+	print('            verwijderen en spaties te vervangen door underscores')
 	print('')
+
 
 def Version():
-	print('download-gemist 1.3, 2013-03-04')
-	print('http://code.arp242.net/download-gemist/')
-	print('')
-	print('Copyright © Martin Tournoij <martin@arp242.net>')
-	print('Freely redistributable and modifiable under the terms of the MIT license')
-	print('http://opensource.org/licenses/MIT')
+	print('download-gemist ' + dgemist.GetVersion())
+	print('http://code.arp242.net/download-gemist')
+
 
 def Error(msg):
-	"""
-	Print message to stderr, can't use print because of Python 2/3
-	incompatibility
-	"""
+	""" Print message to stderr, can't use print because of Python 2/3
+	incompatibility """
+	sys.stderr.write('Error: %s\n' % msg)
 
-	sys.stderr.write(msg + '\n')
 
-def OpenUrl(url):
-	""" Build request (fake headers, set mandatory cookie) """
-	headers = {
-		'User-Agent': 'Opera/9.80 (X11; FreeBSD 9.0-RELEASE amd64; U; en) Presto/2.10.289 Version/12.02',
-		'Cookie': 'site_cookie_consent=yes',
-	}
-	req = urllib2.Request(url, headers=headers)
-	page = urllib2.urlopen(req)
-
-	if _verbose:
-		print('OpenUrl url: ' + url)
-
-	return (page.info(), str(page.read()))
-
-def VideoRequest(url, cookie):
-	""" Build request to mp4 video page """
-	headers = {
-		'User-Agent': 'Opera/9.80 (X11; FreeBSD 9.0-RELEASE amd64; U; en) Presto/2.10.289 Version/12.02',
-		'Cookie': 'site_cookie_consent=yes;' + cookie,
-	}
-	req = urllib2.Request(url, headers=headers)
-
-	if _verbose:
-		print('DownloadVideo url: ' + url)
-
-	return urllib2.urlopen(req)
-
-def FindVideo(url, outdir, filename):
-	""" Find video to download """
-	head, data = OpenUrl(url)
-
-	# <meta content="http://embed.player.omroep.nl/fle/ugfl.swf?episodeID=14099311&amp;volume=100" property="og:video" />
-	episode = re.search('<meta content="http.*episodeID=(.*?)&amp;', data)
-
-	if not episode:
-		Error('Error: Unable to find episodeId')
-		sys.exit(1)
-
-	episode = episode.groups()[0]
-	if _verbose:
-		print('Using episodeId ' + episode)
-
-	if not filename:
-		# <title>Andere tijden: De genezen homo - Uitzending Gemist</title>
-		title = re.search('<title>(.+) - Uitzending Gemist</title>', data)
-		title = HTMLParser().unescape(title.groups()[0]).strip()
-
-		filename = '%s-%s.mp4' % (title, episode)
-
-		if _safefilename:
-			unsafe = r'"/\\*?<>|:'
-			filename = ''.join([ f for f in filename if f not in unsafe ])
-
-		if _replacespace:
-			filename = filename.replace(' ', '_')
-
-	head, data = OpenUrl('http://www.uitzendinggemist.nl/player/' + episode)
-	cookie = head.get('Set-Cookie').split(';')[0]
-
-	if _verbose:
-		print('Using cookie' + cookie)
-
-	# `std' seems to be the highest quality, `bb' lower, `sb' a lot lower
-	# <source src="/video_streams/NPS_1198670/h264_std?hash=6e6b0f9d328d5292c7336786a3e2cb77f8b0472e" type="video/mp4"></source>
-	# <source src="/video_streams/NPS_1198670/h264_bb?hash=6e6b0f9d328d5292c7336786a3e2cb77f8b0472e" type="video/mp4"></source>
-	# <source src="/video_streams/NPS_1198670/h264_sb?hash=6e6b0f9d328d5292c7336786a3e2cb77f8b0472e" type="video/mp4"></source>
-	videos = re.findall('<source src="(.*?)" type', data)
-
-	if not videos:
-		Error('Error: Unable to find videos')
-		sys.exit(1)
-
-	if _verbose:
-		print('Found videos: ', videos)
-
-	download = None
-	for v in videos:
-		if 'h264_std' in v:
-			download = 'http://www.uitzendinggemist.nl' + v
-			break
-
-	if os.path.exists('%s/%s' % (outdir, filename)) and not _overwrite:
-		if not _silent:
-			print("Skipping because file already exists")
-		return
-
-	video = VideoRequest(download, cookie)
-	if not _dryrun:
-		DownloadVideo(video, outdir, filename)
-
-def DownloadVideo(video, outdir, filename):
-	""" Actually download the video! """
-	global _termwidth
-
-	if filename == '-':
-		fp = sys.stdout
-	else:
-		fp = open('%s/%s' % (outdir, filename), 'wb+')
-
-	_termwidth = TermWidth()
-	if getattr(signal, 'SIGWINCH', None):
-		def updterm(sig, stack):
-			global _termwidth
-			_termwidth = TermWidth()
-		signal.signal(signal.SIGWINCH, updterm)
-
-	total = int(video.info().get('Content-Length'))
-	starttime = time.time()
-	title = filename
-	speed = i = remaining = ptime = 0
-	while True:
-		data = video.read(8192)
-		if not data:
-			print(' ',)
-			break
-
-		if not _silent:
-			curtime = time.time()
-			if curtime - starttime > 2:
-				speed = int(i / (curtime - starttime))
-				remaining = (total - i) / speed
-
-			if curtime >= ptime + 1:
-				line = '%(complete)3s%% of %(total)s, %(remaining)4s remaining at %(speed)4s/s' % ({
-					'total': HumanSize(total),
-					'complete': int(i / (total / 100)),
-					'speed': HumanSize(speed),
-					'remaining': HumanTime(remaining),
-				})
-
-				if len(filename) + len(line) > _termwidth:
-					# TODO: This gives a unicode error on Windows (BSD is fine)
-					#title = filename[:_termwidth - len(line) - 1] + u'…'
-					title = filename[:_termwidth - len(line) - 2] + u'..'
-				else:
-					title = filename
-				sys.stdout.write('\r%s%s' % (title, line))
-				sys.stdout.flush()
-				ptime = curtime
-
-		fp.write(data)
-		i += 8192
-
-	if filename != '-':
-		fp.close()
-
-	if not _silent:
-		print('Ok!', end='')
-
-def TermWidth():
+def GetTermWidth():
 	""" Try and get the terminal width, on Windows we always return 80 (Which is
 	the default of the cmd.exe prompt)
 	TODO: Get the Windows value. This is fixed in Python 3.3 with
-	os.get_terminal_size (http://bugs.python.org/issue13609) """
+	os.get_terminal_size (http://bugs.python.org/issue13609) ... Not trivial to
+	backport ... :-( """
 	if sys.platform == 'win32':
 		return 80
 
@@ -238,22 +78,50 @@ def TermWidth():
 	except OSError:
 		return 76
 
-def HumanSize(bytesize, np=False):
-	""" Return human-readable size of n bytes """
-	i = 0
-	while bytesize > 1024:
-		bytesize /= 1024.0
-		i += 1
 
-	return ('%.1f %s' if i > 1 else '%i %s') % (bytesize, ('b', 'KiB', 'MiB', 'GiB')[i])
+def DownloadVideo(video, outfile):
+	global termwidth
+	termwidth = GetTermWidth()
 
-def HumanTime(s):
-	""" Return human-readable size of n seconds """
-	if s > 3600:
-		return '%02ih%02im%02is' % (s / 3600, s / 60 % 60, s % 60)
-	if s > 60:
-		return '%02im%02is' % (s / 60, s % 60)
-	return '%02is' % s
+	# Update on terminal resize, if the OS supports it
+	if getattr(signal, 'SIGWINCH', None):
+		def updterm(sig, stack):
+			global termwidth
+			termwidth = GetTermWidth()
+		signal.signal(signal.SIGWINCH, updterm)
+
+	starttime = time.time()
+	ptime = remaining = 0
+	total = int(video.info().get('Content-Length'))
+	totalh = dgemist.HumanSize(total)
+	download = dgemist.DownloadVideo(video, outfile)
+	for completed, speed in download:
+		curtime = time.time()
+		if curtime - starttime > 2:
+			speed = int(completed / (curtime - starttime))
+			remaining = (total - completed) / speed
+
+		if curtime >= ptime + 1:
+			line = ('%(complete)3s%% van %(total)s, '
+				+ 'nog %(remaining)4s te gaan met %(speed)4s/s') % ({
+				'total': totalh,
+				'complete': int(completed / (total / 100)),
+				'speed': dgemist.HumanSize(speed),
+				'remaining': dgemist.HumanTime(remaining),
+			})
+
+			if len(filename) + len(line) > termwidth:
+				# TODO: This gives a unicode error on Windows (BSD is fine)
+				#title = filename[:termwidth - len(line) - 1] + u'…'
+				title = filename[:termwidth - len(line) - 2] + u'..'
+			else:
+				title = filename
+			sys.stdout.write('\r%s%s' % (title, line))
+			sys.stdout.flush()
+			ptime = curtime
+
+	print('Ok!', end='')
+
 
 if __name__ == '__main__':
 	try:
@@ -274,6 +142,7 @@ if __name__ == '__main__':
 			sys.exit(0)
 		elif flag == '-V':
 			_verbose = True
+			dgemist._verbose = True
 		elif flag == '-s':
 			_silent = True
 		elif flag == '-o':
@@ -293,7 +162,8 @@ if __name__ == '__main__':
 		_silent = True
 
 	if len(videos) == 0:
-		Error('Reading from stdin (use -h for help)...')
+		sys.stderr.write('Lezen van stdin (gebruik -h voor help)...')
+		sys.stderr.flush()
 		videos = sys.stdin.read().strip().split(' ')
 
 	for v in videos:
@@ -302,7 +172,36 @@ if __name__ == '__main__':
 		if _verbose:
 			print('Downloading ' + v)
 
-		FindVideo(v, outdir, filename)
+		try:
+			videourl, title, episode, cookie = dgemist.FindVideo(v)
+		except dgemist.DgemistError as e:
+			Error(e.message)
+			sys.exit(1)
+
+		if not filename:
+			filename = '%s-%s.mp4' % (title, episode)
+			if _safefilename:
+				unsafe = r'"/\\*?<>|:'
+				filename = ''.join([ f for f in filename if f not in unsafe ])
+			if _replacespace:
+				filename = filename.replace(' ', '_')
+
+		if filename != '-':
+			outfile = '%s/%s' % (outdir, filename)
+			if os.path.exists(outfile) and not _overwrite:
+				if not _silent:
+					print('Bestand overgeslagen omdat het al bestaat (-w voor overschrijven)')
+				continue
+		else:
+			outfile = '-'
+
+		video = dgemist.OpenUrl(videourl, cookie)
+		if not _dryrun:
+			if not _silent:
+				DownloadVideo(video, outfile)
+			else:
+				for a, b in dgemist.DownloadVideo(video, outfile):
+					pass
 
 		if not _silent:
 			print('')

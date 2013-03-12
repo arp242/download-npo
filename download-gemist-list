@@ -3,98 +3,50 @@
 #
 # Download videos from the Dutch `Uitzending gemist' site.
 #
-# http://code.arp242.net/download-gemist/
+# http://code.arp242.net/download-gemist
 #
-# Copyright © 2012 Martin Tournoij <martin@arp242.net>
+# Copyright © 2012-2013 Martin Tournoij <martin@arp242.net>
 # See below for full copyright
 #
 
 from __future__ import print_function
-
 import getopt
-import re
 import sys
 
-# Python 2
-try:
-	import urllib2
-	from HTMLParser import HTMLParser
-# Python 3
-except ImportError:
-	import urllib.request as urllib2
-	from html.parser import HTMLParser
+import dgemist
 
 _verbose = False
-_silent = False
+
 
 def Help():
-	print('%s [-hvV] [url]' % sys.argv[0])
+	print('%s [-phvV] [url]' % sys.argv[0])
 	print ('')
-	print('  -h    Show this help')
-	print('  -v    Show version')
-	print('  -V    Show verbose information')
+	print("  -p    Aantal pagina\'s, standaard 1")
+	print('  -h    Toon deze help')
+	print('  -v    Toon versie')
+	print('  -V    Print meer informatie naar het scherm')
+
 
 def Version():
-	print('download-gemist 1.3, 2013-03-04')
-	print('http://code.arp242.net/download-gemist/')
-	print('')
-	print('Copyright © Martin Tournoij <martin@arp242.net>')
-	print('Freely redistributable and modifiable under the terms of the MIT license')
-	print('http://opensource.org/licenses/MIT')
+	print('download-gemist ' + dgemist.GetVersion())
+	print('http://code.arp242.net/download-gemist')
+
 
 def Error(msg):
 	""" Print message to stderr, can't use print because of Python 2/3
 	incompatibility """
-	sys.stderr.write(msg + '\n')
+	sys.stderr.write('Error: %s\n' % msg)
 
-def OpenUrl(url):
-	""" Build request, fake headers & mandatory cookie """
-	headers = {
-		'User-Agent': 'Opera/9.80 (X11; FreeBSD 9.0-RELEASE amd64; U; en) Presto/2.10.289 Version/12.02',
-		'Cookie': 'site_cookie_consent=yes',
-	}
-	req = urllib2.Request(url, headers=headers)
-	page = urllib2.urlopen(req)
-
-	if _verbose:
-		print('OpenUrl url: ' + url)
-
-	return (page.info(), page.read())
-
-def ProcProgram(url, pages):
-	videos = []
-	for page in range(1, pages + 1):
-		head, data = OpenUrl('%s/afleveringen?page=%s' % (url, page))
-
-		for g in ProcPage(data):
-			epid, title, desc = g
-			title = HTMLParser().unescape(re.sub('\(.*?\)', '', title)).strip()
-			desc = HTMLParser().unescape(desc).strip()
-
-			videos.append([
-				epid,
-				title,
-				'http://www.uitzendinggemist.nl/afleveringen/%s' % (epid),
-				desc,
-			])
-
-	return videos
-
-def ProcPage(data):
-	#<a href="/afleveringen/1287960" class="episode active knav_link" title="Kabinet in crisis  (zo 9 sep 2012, 21:20)">Kabinet in crisis <img alt="888" class="tt888" src="//assets.www.uitzendinggemist.nl/assets/tt888.png" title="Deze aflevering is TT888 ondertiteld" /> <span class="date">(zo 9 sep 2012, 21:20)</span></a></h3>
-
-	return re.findall('<li class="episode active".*?data-remote-id="\d+?" id="episode_(\d+)">.*?<a href="/afleveringen/\d+?" class="episode active knav_link" title="(.+?)">.+?</h3>(.+?)</div>', data, re.MULTILINE | re.DOTALL)
 
 if __name__ == '__main__':
 	try:
-		options, program = getopt.getopt(sys.argv[1:], 'hvVsno:p:')
-	except getopt.GetoptError:
-		Error('Error:', sys.exc_info()[1])
+		options, program = getopt.getopt(sys.argv[1:], 'hvVp:')
+	except getopt.GetoptError as e:
+		Error(e.message)
 		Help()
 		sys.exit(1)
 
-	pages = 1
-	outdir = '.'
+	pages = 0
 	for flag, arg in options:
 		if flag == '-h':
 			Help()
@@ -104,27 +56,22 @@ if __name__ == '__main__':
 			sys.exit(0)
 		elif flag == '-V':
 			_verbose = True
-		elif flag == '-s':
-			_silent = True
-		elif flag == '-o':
-			outdir = arg
+			dgemist._verbose = True
 		elif flag == '-p':
 			pages = int(arg)
 
 	if len(program) == 0:
-		print('URL required')
-		Help()
-		sys.exit(1)
+		sys.stderr.write('Lezen van stdin (gebruik -h voor help)...')
+		sys.stderr.flush()
+		program = sys.stdin.read().strip().split(' ')
 
-	videos = ProcProgram(program[0], pages)
-
-	for v in videos:
+	for v in dgemist.GetListing(program[0], pages):
 		print('|'.join(v))
 
 
 # The MIT License (MIT)
 #
-# Copyright © 2012 Martin Tournoij
+# Copyright © 2012-2013 Martin Tournoij
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to

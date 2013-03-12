@@ -20,9 +20,8 @@ download-gemist
 ---------------
 Commandline tool om een uitzending te downloaden.
 
-Voorbeeld:
-
-    download-gemist http://www.uitzendinggemist.nl/afleveringen/1292817
+Voorbeeld:  
+`download-gemist http://www.uitzendinggemist.nl/afleveringen/1292817`
 
 Zie `download-gemist -h` voor meer help en opties.
 
@@ -34,9 +33,8 @@ je gebruiken om makkelijk de laatst *n* videos te downloaden.
 Dit download niks als zodanig, maar haalt alleen informatie op die je
 vervolgens makkelijk aan `download-gemist` kan voeren.
 
-Voorbeeld:
-
-    download-gemist-list http://www.uitzendinggemist.nl/programmas/215-andere-tijden | cut -d'|' -f3 | xargs | download-gemist
+Voorbeeld:  
+`download-gemist-list http://www.uitzendinggemist.nl/programmas/215-andere-tijden | cut -d'|' -f3 | xargs | download-gemist`
 
 Zie `download-gemist-list -h` voor meer opties.
 
@@ -56,6 +54,12 @@ aan het downloaden ben kan het soms even duren voordat ik dit zie (en oplos).
 Stuur even een mail naar [martin@arp242.net][3], vaak is dit een kleine
 aanpassing van 2 minuten.
 
+Kan ik ook een video streamen zonder het eerst op te slaan?
+-----------------------------------------------------------
+Uiteraard!
+
+`download-gemist -f - http://www.uitzendinggemist.nl/afleveringen/1330944 | mplayer -cache 4096 -cache-min 99 -`
+
 Is dit legaal?
 --------------
 Volgens de [algemene voorwaarden][4] van uitzending gemist:
@@ -74,7 +78,7 @@ Echter, volgens de [mediawet van 2008][5] (paragraaf 2.1):
 >
 >    [...]
 >
->      f. voor iedereen toegankelijk is.
+>    f. voor iedereen toegankelijk is.
 >
 > 3. Het programma-aanbod van de algemene programmakanalen van de landelijke,
 > 	 regionale en lokale publieke mediadiensten wordt via omroepzenders
@@ -85,10 +89,9 @@ Echter, volgens de [mediawet van 2008][5] (paragraaf 2.1):
 
 Aangezien het technisch niets uitmaakt of de plugins gedownload worden met dit
 scriptje of een browser (ze kunnen bij uitzending gemist nergens het verschil
-aan merken), en er ook geen advertenties zijn (en dus omzetverlies), lijkt het
-erop dat deze paragraaf uit de algemene voorwaarden niet helemaal in lijn met
-de mediawet is.
-
+aan merken), en er ook geen advertenties zijn (en dus geen omzetverlies),
+lijkt het erop dat deze paragraaf uit de algemene voorwaarden niet helemaal in
+lijn met de mediawet is.
 
 
 ChangeLog
@@ -96,8 +99,10 @@ ChangeLog
 Versie 1.4, nog niet gereleased
 -------------------------------
 - Voeg grafische interface toe
-- Hernoem `download-gemist-guide` naar `download-gemist-list`
+- **Hernoem `download-gemist-guide` naar `download-gemist-list`**
+- Gebruik nu overal Nederlands ipv. Engels of een mix van beide
 - Fix `download-gemist-list` voor huidige versie van de site
+- `download-gemist-list` leest nu ook van stdin
 
 Versie 1.3, 2013-03-05
 ----------------------
@@ -125,3 +130,5 @@ Versie 1.0, 2012-10-03
 [3]: mailto:martin@arp242.net
 [4]: http://www.publiekeomroep.nl/artikelen/algemene-voorwaarden-privacy
 [5]: http://www.st-ab.nl/wetten/1107_Mediawet_2008.htm
+[6]: http://www.mplayerhq.hu/
+[7]: http://www.videolan.org/
