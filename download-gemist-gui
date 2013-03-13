@@ -8,43 +8,51 @@
 # Copyright © 2012-2013 Martin Tournoij <martin@arp242.net>
 # See below for full copyright
 #
+# Een todo-lijstje:
+# - Programma's als favorieten opslaan
+# - Resize van window werkt niet altijd even goed
+# - Knop voor volgende pagina
+# - Betere error-feedback
+#
 
 from __future__ import print_function
 
+import os
 import sys
 import time
-
-try:
-	import threading
-except ImportError:
-	import dummy_threading as threading
-
-try:
-	import Queue as queue
-except ImportError:
-	import queue
 
 try:
 	if sys.version_info[0] == 2:
 		import Tkinter as tk
 		import ttk
+		import tkFileDialog as filedialog
+
+		try:
+			import thread
+		except ImportError:
+			import dummy_thread as thread
 	else:
 		import tkinter as tk
 		import tkinter.ttk as ttk
+		import tkinter.filedialog as filedialog
+
+		try:
+			import _thread as thread
+		except ImportError:
+			import _dummy_thread as thread
 except ImportError:
 	print('Unable to import Tkinter')
 	sys.exit(1)
 
 import dgemist
 
-_queue = queue.Queue()
-
 
 class GUI:
 	def __init__(self, root):
-		root.columnconfigure(0, weight=1)
+		self.root = root
+		self.root.columnconfigure(0, weight=1)
 
-		rootframe = ttk.Frame(root, padding=5)
+		rootframe = ttk.Frame(self.root, padding=5)
 		rootframe.grid(row=0, column=0, sticky=tk.E + tk.W)
 		rootframe.columnconfigure(0, weight=1)
 
@@ -53,7 +61,8 @@ class GUI:
 		topframe.columnconfigure(0, weight=1)
 
 		lbl = ttk.Label(topframe,
-			text='URL naar programmapagina (bv. http://www.uitzendinggemist.nl/programmas/215-andere-tijden)')
+			text=('URL naar programmapagina (bv. http://www.uitzendinggemist.nl/'
+				+ 'programmas/215-andere-tijden)'))
 
 		self.programinput = ttk.Entry(topframe)
 		self.programinput.bind('<Return>', lambda ev: self.programinputbtn.invoke())
@@ -78,9 +87,10 @@ class GUI:
 		self.btmframe.columnconfigure(0, weight=1)
 		self.btmframe.columnconfigure(1, weight=1)
 
-		qbtn = ttk.Button(self.btmframe, command=lambda: root.quit(),
+		qbtn = ttk.Button(self.btmframe, command=lambda: self.root.quit(),
 			text='Sluiten')
-		self.dlbtn = ttk.Button(self.btmframe, command=self.download,
+		self.dlbtn = ttk.Button(self.btmframe,
+				command=lambda: thread.start_new_thread(self.download, ()),
 			text='Download geselecteerd afleveringen')
 		self.dlbtn.config(state=tk.DISABLED)
 
@@ -88,16 +98,16 @@ class GUI:
 		qbtn.grid(row=0, column=0, sticky=tk.W)
 		self.dlbtn.grid(row=0, column=1, sticky=tk.E)
 
-		# XXX
 		if 'debug' in sys.argv:
-			self.programinput.insert(0, 'http://www.uitzendinggemist.nl/programmas/215-andere-tijden')
+			self.programinput.insert(0,
+				'http://www.uitzendinggemist.nl/programmas/215-andere-tijden')
 			self.populate_eps()
 
 	def populate_eps(self):
 		self.programurl = self.programinput.get()
 
-		# TODO: blocks UI
 		self.eps = {}
+		self.cboxes = []
 		i = 0
 		for epid, title, url, desc in dgemist.GetListing(self.programurl):
 			self.eps[epid] = {
@@ -122,39 +132,118 @@ class GUI:
 			lbldesc.grid(row=1, column=1, sticky=tk.E + tk.W)
 			sep.grid(row=2, column=0, columnspan=2, sticky=tk.E + tk.W)
 
+			self.cboxes.append(cbox)
+
 			i += 1
 
 		self.dlbtn.config(state=tk.NORMAL)
 
 	def download(self):
+		destdir = filedialog.askdirectory(initialdir=os.path.expanduser('~'),
+			parent=self.root, title='Selecteer map om bestanden op te slaan')
+
+		# Cancel button or window closed
+		if destdir == '':
+			return
+
+		self.dlbtn.config(state=tk.DISABLED)
+		for c in self.cboxes:
+			c.config(state=tk.DISABLED)
+
+		progwin = tk.Toplevel(self.root, takefocus=True)
+		progwin.transient(self.root)
+		progwin.title('download-gemist voortgang')
+		progwin.minsize(width=650, height=95)
+		progwin.columnconfigure(0, weight=1)
+
+		progframe = ttk.Frame(progwin, padding=5)
+		progframe.columnconfigure(0, weight=1)
+
+		self.progress = tk.IntVar()
+		self.progresslbl = tk.StringVar()
+
+		proglbl = tk.Label(progframe, textvariable=self.progresslbl)
+		progbar = ttk.Progressbar(progframe, length=300, variable=self.progress)
+
+		btnframe = ttk.Frame(progwin, padding=5)
+		btnframe.columnconfigure(0, weight=1)
+		cancelbtn = ttk.Button(btnframe, text='Annuleren',
+			command=progwin.destroy)
+
+		progframe.grid(row=0, column=0, sticky=tk.E + tk.W)
+		btnframe.grid(row=1, column=0, sticky=tk.E + tk.W)
+
+		proglbl.grid(row=0, column=0, sticky=tk.W + tk.E)
+		progbar.grid(row=1, column=0, sticky=tk.W + tk.E)
+		cancelbtn.grid(row=0, column=0, sticky=tk.E)
+
+		self.thr = None
+		progwin = None
 		for epid, data in self.eps.iteritems():
 			if data['val'].get() is not True:
 				continue
 
-			_queue.put({
-				'cmd': 'video',
-				'url': data['url'],
-			})
+			self.progress.set(0)
+			self.progresslbl.set('Starten van download...')
+			self.thr = thread.start_new_thread(self.BackgroundDownload,
+				(data['url'], destdir))
+
+			while self.thr is not None:
+				time.sleep(2)
+
+		thread.exit()
+
+	def BackgroundDownload(self, url, destdir):
+		""" Download videos in thread """
+		try:
+			videourl, title, epid, cookie = dgemist.FindVideo(url)
+			outfile = dgemist.MakeFilename(destdir, title, epid,
+				overwrite=True)
+		# TODO: popup messagebox, wait for Ok click
+		except dgemist.DgemistError as e:
+			Error(e.message)
+			thread.exit()
+
+		pcomplete = -1
+		starttime = time.time()
+		ptime = remaining = 0
+		for total, completed, speed in dgemist.DownloadVideo(videourl, cookie, outfile):
+			completepc = int(completed / (total / 100))
+			curtime = time.time()
+
+			try:
+				if completepc != pcomplete:
+					self.progress.set(completepc)
+					pcomplete = completepc
+
+				if curtime - starttime > 2:
+					speed = int(completed / (curtime - starttime))
+					remaining = (total - completed) / speed
+
+				if curtime >= ptime + 1:
+					remaining = (total - completed) / speed
+					line = ('%(complete)3s%% van %(total)s, '
+						+ 'nog %(remaining)4s te gaan met %(speed)4s/s') % ({
+						'total': dgemist.HumanSize(total),
+						'complete': completepc,
+						'speed': dgemist.HumanSize(speed),
+						'remaining': dgemist.HumanTime(remaining),
+					})
+					self.progresslbl.set('%s%s' % (title, line))
+					ptime = curtime
+
+			# Window destroyed
+			except tk.TclError:
+				thread.exit()
+
+		self.thr = None
+		thread.exit()
 
 
-def download():
-	while True:
-		if not _queue.empty():
-			cmd = _queue.get()
-
-			if cmd['cmd'] == 'quit':
-				return
-			elif cmd['cmd'] == 'video':
-				# TODO: progress bar, prevent downloading same ep twice
-				import subprocess
-				proc = subprocess.Popen(['./download-gemist', cmd['url']])
-				proc.communicate()
-				proc.wait()
-			elif cmd['cmd'] == 'list':
-				pass
-
-		time.sleep(1)
-
+def Error(msg):
+	""" Print message to stderr, can't use print because of Python 2/3
+	incompatibility """
+	sys.stderr.write('Error: %s\n' % msg)
 
 if __name__ == '__main__':
 	root = tk.Tk()
@@ -162,17 +251,15 @@ if __name__ == '__main__':
 	root.title('Download-gemist')
 	root.bind('<Escape>', lambda ev: root.quit())
 
-	GUI(root)
+	s = ttk.Style()
+	s.theme_use('clam')
 
-	thr = threading.Thread(target=download)
-	thr.start()
+	GUI(root)
 
 	try:
 		root.mainloop()
-	finally:
-		_queue.put({
-			'cmd': 'quit'
-		})
+	except KeyboardInterrupt:
+		pass
 
 
 # The MIT License (MIT)
@@ -189,10 +276,10 @@ if __name__ == '__main__':
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 #
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-# IN THE SOFTWARE.
+# The software is provided "as is", without warranty of any kind, express or
+# implied, including but not limited to the warranties of merchantability,
+# fitness for a particular purpose and noninfringement. In no event shall the
+# authors or copyright holders be liable for any claim, damages or other
+# liability, whether in an action of contract, tort or otherwise, arising
+# from, out of or in connection with the software or the use or other dealings
+# in the software.

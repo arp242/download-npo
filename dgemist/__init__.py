@@ -1,7 +1,15 @@
 # encoding:utf-8
+#
+# Download videos from the Dutch `Uitzending gemist' site.
+#
+# http://code.arp242.net/download-gemist
+#
+# Copyright © 2012-2013 Martin Tournoij <martin@arp242.net>
+# See below for full copyright
+#
 
 from __future__ import print_function
-
+import os
 import re
 import sys
 import time
@@ -145,9 +153,10 @@ def FindVideo(url):
 	return (download, title, episode, cookie)
 
 
-def DownloadVideo(video, outfile):
+def DownloadVideo(videourl, sesscookie, outfile, dryrun=False):
 	""" Download a video and save to outfile (can be - for stdout).
-	This is a generator, it yields (bytes_completed, avg_speed_bytes)
+	This is a generator
+	yields (total_bytes, bytes_completed, avg_speed_bytes)
 	"""
 
 	if outfile == '-':
@@ -155,9 +164,16 @@ def DownloadVideo(video, outfile):
 	else:
 		fp = open(outfile, 'wb+')
 
+	video = OpenUrl(videourl, sesscookie)
+
 	total = int(video.info().get('Content-Length'))
+	totalh = HumanSize(total)
 	starttime = time.time()
 	speed = i = ptime = 0
+
+	if dryrun:
+		return
+
 	while True:
 		data = video.read(8192)
 		i += 8192
@@ -169,7 +185,52 @@ def DownloadVideo(video, outfile):
 		curtime = time.time()
 		if curtime - starttime > 2:
 			speed = int(i / (curtime - starttime))
-		yield (i, speed)
+		yield (total, i, speed)
 
 	if fp != sys.stdout:
 		fp.close()
+
+
+def MakeFilename(outdir, title, episode, safe=True, nospace=True,
+	overwrite=False):
+	""" Make a filename from the page title """
+
+	if title == '-':
+		return '-'
+
+	filename = '%s-%s.mp4' % (title, episode)
+	if safe:
+		unsafe = r'"/\\*?<>|:'
+		filename = ''.join([ f for f in filename if f not in unsafe ])
+	if nospace:
+		filename = filename.replace(' ', '_')
+
+	outfile = '%s/%s' % (outdir, filename)
+	if os.path.exists(outfile) and not overwrite:
+			raise DgemistError('Bestand overgeslagen omdat het al bestaat, '
+				+ 'Gebruik -w voor overschrijven)')
+
+	return outfile
+
+
+# The MIT License (MIT)
+#
+# Copyright © 2012-2013 Martin Tournoij
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to
+# deal in the Software without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# The software is provided "as is", without warranty of any kind, express or
+# implied, including but not limited to the warranties of merchantability,
+# fitness for a particular purpose and noninfringement. In no event shall the
+# authors or copyright holders be liable for any claim, damages or other
+# liability, whether in an action of contract, tort or otherwise, arising
+# from, out of or in connection with the software or the use or other dealings
+# in the software.

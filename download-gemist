@@ -79,7 +79,7 @@ def GetTermWidth():
 		return 76
 
 
-def DownloadVideo(video, outfile):
+def DownloadVideo(videourl, sesscookie, outfile):
 	global termwidth
 	termwidth = GetTermWidth()
 
@@ -90,12 +90,11 @@ def DownloadVideo(video, outfile):
 			termwidth = GetTermWidth()
 		signal.signal(signal.SIGWINCH, updterm)
 
+	filename = os.path.basename(outfile)
 	starttime = time.time()
 	ptime = remaining = 0
-	total = int(video.info().get('Content-Length'))
-	totalh = dgemist.HumanSize(total)
-	download = dgemist.DownloadVideo(video, outfile)
-	for completed, speed in download:
+	download = dgemist.DownloadVideo(videourl, sesscookie, outfile, _dryrun)
+	for total, completed, speed in download:
 		curtime = time.time()
 		if curtime - starttime > 2:
 			speed = int(completed / (curtime - starttime))
@@ -104,7 +103,7 @@ def DownloadVideo(video, outfile):
 		if curtime >= ptime + 1:
 			line = ('%(complete)3s%% van %(total)s, '
 				+ 'nog %(remaining)4s te gaan met %(speed)4s/s') % ({
-				'total': totalh,
+				'total': dgemist.HumanSize(total),
 				'complete': int(completed / (total / 100)),
 				'speed': dgemist.HumanSize(speed),
 				'remaining': dgemist.HumanTime(remaining),
@@ -121,6 +120,32 @@ def DownloadVideo(video, outfile):
 			ptime = curtime
 
 	print('Ok!', end='')
+
+
+def Download(videos, filename, outdir):
+	for v in videos:
+		if v == '':
+			continue
+		if _verbose:
+			print('Downloading ' + v)
+
+		try:
+			videourl, title, episode, sesscookie = dgemist.FindVideo(v)
+
+			outfile = filename = dgemist.MakeFilename(outdir, filename or title,
+				episode, _safefilename, _replacespace, _overwrite)
+		except dgemist.DgemistError as e:
+			Error(e.message)
+			continue
+
+		if not _silent:
+			DownloadVideo(videourl, sesscookie, outfile)
+		else:
+			for a in dgemist.DownloadVideo(videourl, sesscookie, outfile):
+				pass
+
+		if not _silent:
+			print('')
 
 
 if __name__ == '__main__':
@@ -166,45 +191,10 @@ if __name__ == '__main__':
 		sys.stderr.flush()
 		videos = sys.stdin.read().strip().split(' ')
 
-	for v in videos:
-		if v == '':
-			continue
-		if _verbose:
-			print('Downloading ' + v)
-
-		try:
-			videourl, title, episode, cookie = dgemist.FindVideo(v)
-		except dgemist.DgemistError as e:
-			Error(e.message)
-			sys.exit(1)
-
-		if not filename:
-			filename = '%s-%s.mp4' % (title, episode)
-			if _safefilename:
-				unsafe = r'"/\\*?<>|:'
-				filename = ''.join([ f for f in filename if f not in unsafe ])
-			if _replacespace:
-				filename = filename.replace(' ', '_')
-
-		if filename != '-':
-			outfile = '%s/%s' % (outdir, filename)
-			if os.path.exists(outfile) and not _overwrite:
-				if not _silent:
-					print('Bestand overgeslagen omdat het al bestaat (-w voor overschrijven)')
-				continue
-		else:
-			outfile = '-'
-
-		video = dgemist.OpenUrl(videourl, cookie)
-		if not _dryrun:
-			if not _silent:
-				DownloadVideo(video, outfile)
-			else:
-				for a, b in dgemist.DownloadVideo(video, outfile):
-					pass
-
-		if not _silent:
-			print('')
+	try:
+		Download(videos, filename, outdir)
+	except KeyboardInterrupt:
+		print('')
 
 
 # The MIT License (MIT)
@@ -221,10 +211,10 @@ if __name__ == '__main__':
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 #
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-# IN THE SOFTWARE.
+# The software is provided "as is", without warranty of any kind, express or
+# implied, including but not limited to the warranties of merchantability,
+# fitness for a particular purpose and noninfringement. In no event shall the
+# authors or copyright holders be liable for any claim, damages or other
+# liability, whether in an action of contract, tort or otherwise, arising
+# from, out of or in connection with the software or the use or other dealings
+# in the software.

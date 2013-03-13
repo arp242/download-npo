@@ -7,10 +7,11 @@ publieke omroep.
 
 Installatie
 ===========
-[Python][2] is nodig, het is getest met Python 2.7 en 3.3 op FreeBSD en
-Windows 7, maar zou ook moeten werken op andere platforms zoals Linux of
-MacOS X. Tenzij je de grafische interface wilt gebruiken heb je verder niks
-meer nodig.
+Voor Windows kun is [de installer][d-win] het makkelijkst.
+
+Voor UNIX en Linux kan je [de source][d-unix] downloaden, [Python][2] is
+nodig, voor de grafische interface is ook Tkinter nodig (deel van Python maar
+soms een aparte package).
 
 Gebruik
 =======
@@ -98,8 +99,9 @@ ChangeLog
 =========
 Versie 1.4, nog niet gereleased
 -------------------------------
-- Voeg grafische interface toe
+- Voeg grafische interface toe (`download-gemist-gui`)
 - **Hernoem `download-gemist-guide` naar `download-gemist-list`**
+- `setup.py` script, Windows installer
 - Gebruik nu overal Nederlands ipv. Engels of een mix van beide
 - Fix `download-gemist-list` voor huidige versie van de site
 - `download-gemist-list` leest nu ook van stdin
@@ -125,10 +127,12 @@ Versie 1.0, 2012-10-03
 ----------------------
 - Eerste release
 
+
+
 [1]: http://www.uitzendinggemist.nl/
 [2]: http://python.org/
 [3]: mailto:martin@arp242.net
 [4]: http://www.publiekeomroep.nl/artikelen/algemene-voorwaarden-privacy
 [5]: http://www.st-ab.nl/wetten/1107_Mediawet_2008.htm
-[6]: http://www.mplayerhq.hu/
-[7]: http://www.videolan.org/
+[d-win]: https://bitbucket.org/Carpetsmoker/download-gemist/downloads
+[d-unix]: https://bitbucket.org/Carpetsmoker/download-gemist/downloads
