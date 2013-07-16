@@ -38,7 +38,7 @@ def OpenUrl(url, cookie=''):
 	headers = {
 		'User-Agent': ('Opera/9.80 (X11; FreeBSD 9.1-RELEASE amd64)'
 			+ 'Presto/2.12.388 Version/12.11'),
-		'Cookie': 'site_cookie_consent=yes;' + cookie,
+		'Cookie': 'npo_cc=30' + cookie,
 	}
 	req = urllib2.Request(url, headers=headers)
 	page = urllib2.urlopen(req)
