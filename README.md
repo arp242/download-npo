@@ -1,5 +1,5 @@
-Download-gemist downloads videos from the Dutch uitzending gemist site. The
-rest of the documentation is in Dutch.
+**Download-gemist downloads videos from the Dutch uitzending gemist site. The
+rest of the documentation is in Dutch.**
 
 
 Download-gemist download videos van de [uitzending gemist][1] site van de
@@ -9,9 +9,9 @@ Installatie
 ===========
 Voor Windows kun is [de installer][d-win] het makkelijkst.
 
-Voor UNIX en Linux kan je [de source][d-unix] downloaden, [Python][2] is
-nodig, voor de grafische interface is ook Tkinter nodig (deel van Python maar
-soms een aparte package).
+Voor BSD/Linux/UNIX kan je [de source][d-unix] downloaden, [Python][2] is nodig
+(Python 2 & 3 werken beiden), voor de grafische interface is ook Tkinter nodig
+(deel van Python maar soms een aparte package).
 
 Gebruik
 =======
@@ -31,8 +31,8 @@ download-gemist-list
 Commandline tool om informatie op te halen van een programma pagina, dit kan
 je gebruiken om makkelijk de laatst *n* videos te downloaden.
 
-Dit download niks als zodanig, maar haalt alleen informatie op die je
-vervolgens makkelijk aan `download-gemist` kan voeren.
+Dit download niks als zodanig, maar haalt alleen informatie op die je vervolgens
+aan `download-gemist` kan voeren.
 
 Voorbeeld:  
 `download-gemist-list http://www.uitzendinggemist.nl/programmas/215-andere-tijden | cut -d'|' -f3 | xargs | download-gemist`
@@ -42,7 +42,7 @@ Zie `download-gemist-list -h` voor meer opties.
 download-gemist-gui
 -------------------
 Grafische frontend, hiervoor is Tkinter nodig (vaak standaard geïnstalleerd
-met Python).
+met Python). Dit werkt nog niet geheel optimaal (`TODO').
 
 FAQ
 ===
@@ -51,7 +51,7 @@ Help! Het werkt niet!
 ---------------------
 In het grootste deel van de gevallen komt dit omdat er iets kleins is
 veranderd op de uitzending gemist site. Aangezien ik niet alle dagen videos
-aan het downloaden ben kan het soms even duren voordat ik dit zie (en oplos).
+aan het downloaden ben kan het soms even duren voordat ik dit zie (& fix).
 Stuur even een mail naar [martin@arp242.net][3], vaak is dit een kleine
 aanpassing van 2 minuten.
 

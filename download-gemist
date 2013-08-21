@@ -186,7 +186,12 @@ if __name__ == '__main__':
 	if len(videos) == 0:
 		sys.stderr.write('Lezen van stdin (gebruik -h voor help)...')
 		sys.stderr.flush()
-		videos = sys.stdin.read().strip().split(' ')
+
+		try :
+			videos = sys.stdin.read().strip().split(' ')
+		except KeyboardInterrupt:
+			print('')
+			sys.exit(0)
 
 	try:
 		Download(videos, filename, outdir)

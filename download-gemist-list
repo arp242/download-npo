@@ -62,7 +62,11 @@ if __name__ == '__main__':
 	if len(program) == 0:
 		sys.stderr.write('Lezen van stdin (gebruik -h voor help)...')
 		sys.stderr.flush()
-		program = sys.stdin.read().strip().split(' ')
+		try:
+			program = sys.stdin.read().strip().split(' ')
+		except KeyboardInterrupt:
+			print('')
+			sys.exit(0)
 
 	for v in dgemist.GetListing(program[0], pages):
 		print('|'.join(v))
