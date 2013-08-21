@@ -7,7 +7,7 @@ publieke omroep.
 
 Installatie
 ===========
-Voor Windows kun is [de installer][d-win] het makkelijkst.
+Voor Windows is [de installer][d-win] het makkelijkst.
 
 Voor BSD/Linux/UNIX kan je [de source][d-unix] downloaden, [Python][2] is nodig
 (Python 2 & 3 werken beiden), voor de grafische interface is ook Tkinter nodig
