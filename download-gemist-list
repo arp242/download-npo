@@ -10,20 +10,19 @@
 #
 
 from __future__ import print_function
-import getopt
-import sys
-
+import getopt, sys
 import dgemist
+
 
 _verbose = False
 
 
 def Help():
 	print('%s [-phvV] [url]' % sys.argv[0])
-	print ('')
-	print("  -p    Aantal pagina\'s, standaard 1")
+	print('')
 	print('  -h    Toon deze help')
 	print('  -v    Toon versie')
+	print("  -p    Aantal pagina\'s, standaard 1")
 	print('  -V    Print meer informatie naar het scherm')
 
 

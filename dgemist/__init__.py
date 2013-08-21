@@ -9,10 +9,7 @@
 #
 
 from __future__ import print_function
-import os
-import re
-import sys
-import time
+import os, re, sys, time, json
 
 if sys.version_info[0] < 3:
 	import urllib2
@@ -35,23 +32,22 @@ def OpenUrl(url, cookie=''):
 	""" Build request, fake headers & mandatory cookie
 	Returns urllib2.urlopen (file-like object) """
 
+	if _verbose:
+		print('OpenUrl url: ' + url)
+
 	headers = {
-		'User-Agent': ('Opera/9.80 (X11; FreeBSD 9.1-RELEASE amd64)'
-			+ 'Presto/2.12.388 Version/12.11'),
-		'Cookie': 'npo_cc=30' + cookie,
+		'User-Agent': 'Opera/9.80 (X11; FreeBSD 9.1-RELEASE-p3 amd64) Presto/2.12.388 Version/12.15',
+		'Cookie': 'npo_cc=30; ' + cookie,
 	}
 	req = urllib2.Request(url, headers=headers)
 	page = urllib2.urlopen(req)
-
-	if _verbose:
-		print('OpenUrl url: ' + url)
 
 	return urllib2.urlopen(req)
 
 
 def GetVersion():
 	""" Get version string """
-	return '1.4, 2013-03-11'
+	return '1.4, 2013-08-22'
 
 
 def CheckUpdate():
@@ -88,8 +84,9 @@ def GetListing(url, pages=0):
 	videos = []
 	for page in range(1, pages + 2):
 		data = OpenUrl('%s/afleveringen?page=%s' % (url, page)).read()
+		if sys.version_info.major > 2: data = data.decode()
 
-		matches = re.findall('<li class="episode active".*?data-remote-id="\d+?"'
+		matches = re.findall('<li class="episode active knav".*?data-remote-id="\d+?"'
 			+ ' id="episode_(\d+)">.*?<a href="/afleveringen/\d+?" '
 			+ 'class="episode active knav_link" title="(.+?)">.+?</h3>(.+?)</div>',
 			data, re.MULTILINE | re.DOTALL)
@@ -105,52 +102,48 @@ def GetListing(url, pages=0):
 
 def FindVideo(url):
 	""" Find video to download
-	Returns (downloadurl, pagetitle, epid, cookie)
+	Returns (downloadurl, pagetitle, playerId, cookie)
 	The cookie is a session cookie, which is required when downloading the video
 	"""
 
 	data = OpenUrl(url).read()
+	if sys.version_info.major > 2: data = data.decode()
 
-	# <meta content="http://embed.player.omroep.nl/fle/ugfl.swf?episodeID=14099311&amp;volume=100" property="og:video" />
 	try:
-		episode = re.search('<meta content="http.*episodeID=(.*?)&amp;',
-			data).groups()[0]
+		playerId = re.search('data-player-id="(.*?)"', data).groups()[0]
 	except AttributeError:
-		raise DgemistError('Unable to find episodeId')
+		raise DgemistError('Kan playerId niet vinden')
 
-	if _verbose:
-		print('Using episodeId ' + episode)
+	if _verbose: print('Using playerId ' + playerId)
 
-	# <title>Andere tijden: De genezen homo - Uitzending Gemist</title>
+	jsdata = OpenUrl('http://ida.omroep.nl/npoplayer/npoplayer-min.js').read()[-200:]
+	if sys.version_info.major > 2: jsdata = jsdata.decode()
+	try:
+		token = re.search('token = "(.*?)"', jsdata).groups()[0]
+	except AttributeError:
+		raise DgemistError('Kan token niet vinden')
+
+	if _verbose: print('Using token ' + token)
+
 	title = re.search('<title>(.+) - Uitzending Gemist</title>', data)
 	title = HTMLParser().unescape(title.groups()[0]).strip()
 
-	req = OpenUrl('http://www.uitzendinggemist.nl/player/' + episode)
-	cookie = req.info().get('Set-Cookie').split(';')[0]
-	data = req.read()
+	jsondata = OpenUrl('&'.join([
+		'http://ida.omroep.nl/odiplus/?prid=%s' % playerId,
+		'puboptions=adaptive,h264_bb,h264_sb,h264_std,wmv_bb,wmv_sb,wvc1_std',
+		'adaptive=no',
+		'part=1',
+		'token=%s' % token,
+		'callback=jQuery182022468003216732735_1377114929273',
+		'_=%s303' % time.time(),
+	])).read()
 
-	if _verbose:
-		print('Using cookie' + cookie)
+	if sys.version_info.major > 2: jsondata = jsondata.decode()
+	jsondata = re.sub('^[\w\d]+\(', '', jsondata[:-1])
+	download = json.loads(jsondata)['streams'][0]
+	cookie = ''
 
-	# `std' seems to be the highest quality, `bb' lower, `sb' a lot lower
-	# <source src="/video_streams/NPS_1198670/h264_std?hash=6e6b0f9d328d5292c7336786a3e2cb77f8b0472e" type="video/mp4"></source>
-	# <source src="/video_streams/NPS_1198670/h264_bb?hash=6e6b0f9d328d5292c7336786a3e2cb77f8b0472e" type="video/mp4"></source>
-	# <source src="/video_streams/NPS_1198670/h264_sb?hash=6e6b0f9d328d5292c7336786a3e2cb77f8b0472e" type="video/mp4"></source>
-	videos = re.findall('<source src="(.*?)" type', data)
-
-	if not videos:
-		raise DgemistError('Unable to find videos')
-
-	if _verbose:
-		print('Found videos: ', videos)
-
-	download = None
-	for v in videos:
-		if 'h264_std' in v:
-			download = 'http://www.uitzendinggemist.nl' + v
-			break
-
-	return (download, title, episode, cookie)
+	return (download, title, playerId, cookie)
 
 
 def DownloadVideo(videourl, sesscookie, outfile, dryrun=False):
@@ -191,14 +184,13 @@ def DownloadVideo(videourl, sesscookie, outfile, dryrun=False):
 		fp.close()
 
 
-def MakeFilename(outdir, title, episode, safe=True, nospace=True,
-	overwrite=False):
+def MakeFilename(outdir, title, playerId, safe=True, nospace=True, overwrite=False):
 	""" Make a filename from the page title """
 
 	if title == '-':
 		return '-'
 
-	filename = '%s-%s.mp4' % (title, episode)
+	filename = '%s-%s.mp4' % (title, playerId)
 	if safe:
 		unsafe = r'"/\\*?<>|:'
 		filename = ''.join([ f for f in filename if f not in unsafe ])

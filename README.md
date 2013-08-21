@@ -97,14 +97,18 @@ lijn met de mediawet is.
 
 ChangeLog
 =========
-Versie 1.4, nog niet gereleased
+Versie 1.5, nog niet gereleased
 -------------------------------
 - Voeg grafische interface toe (`download-gemist-gui`)
+- Windows installer
+
+Versie 1.4, 2013-08-22
+----------------------
+- Fix voor huidige versie van de site
 - **Hernoem `download-gemist-guide` naar `download-gemist-list`**
-- `setup.py` script, Windows installer
 - Gebruik nu overal Nederlands ipv. Engels of een mix van beide
-- Fix `download-gemist-list` voor huidige versie van de site
 - `download-gemist-list` leest nu ook van stdin
+- `setup.py` script
 
 Versie 1.3, 2013-03-05
 ----------------------

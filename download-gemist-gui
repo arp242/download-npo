@@ -16,30 +16,29 @@
 #
 
 from __future__ import print_function
-
-import os
-import sys
-import time
+import os, sys, time
 
 try:
-	if sys.version_info[0] == 2:
-		import Tkinter as tk
-		import ttk
-		import tkFileDialog as filedialog
-
-		try:
-			import thread
-		except ImportError:
-			import dummy_thread as thread
-	else:
+	if sys.version_info.major > 2:
 		import tkinter as tk
 		import tkinter.ttk as ttk
 		import tkinter.filedialog as filedialog
+		import queue
 
 		try:
 			import _thread as thread
 		except ImportError:
 			import _dummy_thread as thread
+	else:
+		import Tkinter as tk
+		import ttk
+		import tkFileDialog as filedialog
+		import Queue as queue
+
+		try:
+			import thread
+		except ImportError:
+			import dummy_thread as thread
 except ImportError:
 	print('Unable to import Tkinter')
 	sys.exit(1)
@@ -49,25 +48,24 @@ import dgemist
 
 class GUI:
 	def __init__(self, root):
+		self.queue = queue.Queue()
 		self.root = root
 		self.root.columnconfigure(0, weight=1)
 
-		rootframe = ttk.Frame(self.root, padding=5)
-		rootframe.grid(row=0, column=0, sticky=tk.E + tk.W)
-		rootframe.columnconfigure(0, weight=1)
+		self.rootframe = ttk.Frame(self.root, padding=5)
+		self.rootframe.grid(row=0, column=0, sticky=tk.E + tk.W)
+		self.rootframe.columnconfigure(0, weight=1)
 
 		# Top frame
-		topframe = ttk.LabelFrame(rootframe, text='Programma', padding=3)
+		topframe = ttk.LabelFrame(self.rootframe, text='Programma', padding=3)
 		topframe.columnconfigure(0, weight=1)
 
-		lbl = ttk.Label(topframe,
-			text=('URL naar programmapagina (bv. http://www.uitzendinggemist.nl/'
-				+ 'programmas/215-andere-tijden)'))
+		lbl = ttk.Label(topframe, text=('URL naar aflevering- of programma-pagina'))
 
 		self.programinput = ttk.Entry(topframe)
 		self.programinput.bind('<Return>', lambda ev: self.programinputbtn.invoke())
-		self.programinputbtn = ttk.Button(topframe, text='Ok',
-			command=self.populate_eps)
+		self.programinputbtn = ttk.Button(topframe, text='Okay',
+			command=self.click_download)
 
 		topframe.grid(column=0, row=0, sticky=tk.W + tk.E)
 		lbl.grid(row=0, column=0, sticky=tk.W, columnspan=2)
@@ -77,34 +75,42 @@ class GUI:
 		topframe.columnconfigure(0, weight=1)
 		topframe.columnconfigure(1, weight=0)
 
-		# Episode list
-		self.epframe = ttk.LabelFrame(rootframe, text='Afleveringen', height=400)
-		self.epframe.columnconfigure(0, weight=1)
-		self.epframe.grid(column=0, row=1, sticky=tk.E + tk.W, pady=10)
-
 		# Bottom
-		self.btmframe = ttk.Frame(rootframe)
+		self.btmframe = ttk.Frame(self.rootframe, padding=5)
 		self.btmframe.columnconfigure(0, weight=1)
 		self.btmframe.columnconfigure(1, weight=1)
 
 		qbtn = ttk.Button(self.btmframe, command=lambda: self.root.quit(),
 			text='Sluiten')
-		self.dlbtn = ttk.Button(self.btmframe,
-				command=lambda: thread.start_new_thread(self.download, ()),
-			text='Download geselecteerd afleveringen')
-		self.dlbtn.config(state=tk.DISABLED)
 
 		self.btmframe.grid(row=2, column=0, sticky=tk.W + tk.E)
-		qbtn.grid(row=0, column=0, sticky=tk.W)
-		self.dlbtn.grid(row=0, column=1, sticky=tk.E)
+		qbtn.grid(row=0, column=2, sticky=tk.W)
 
-		if 'debug' in sys.argv:
+		if 'debug1' in sys.argv:
 			self.programinput.insert(0,
 				'http://www.uitzendinggemist.nl/programmas/215-andere-tijden')
+			self.click_download()
+		if 'debug2' in sys.argv:
+			self.programinput.insert(0,
+				'http://www.uitzendinggemist.nl/afleveringen/1346967')
+			self.click_download()
+
+
+	def click_download(self):
+		self.programurl = self.programinput.get().strip()
+
+		if self.programurl == '': return
+
+		if 'programmas' in self.programurl:
 			self.populate_eps()
+		else:
+			self.download_single(self.programurl)
+
 
 	def populate_eps(self):
-		self.programurl = self.programinput.get()
+		self.epframe = ttk.LabelFrame(self.rootframe, text='Afleveringen', height=400)
+		self.epframe.columnconfigure(0, weight=1)
+		self.epframe.grid(column=0, row=1, sticky=tk.E + tk.W, pady=10)
 
 		self.eps = {}
 		self.cboxes = []
@@ -136,27 +142,54 @@ class GUI:
 
 			i += 1
 
+		self.dlbtn = ttk.Button(self.epframe,
+				command=lambda: thread.start_new_thread(self.download_listing, ()),
+			text='Download geselecteerd afleveringen')
+		self.dlbtn.config(state=tk.DISABLED)
+		self.dlbtn.grid(row=i + 1, column=0, sticky=tk.E)
 		self.dlbtn.config(state=tk.NORMAL)
 
-	def download(self):
+
+	def download_listing(self):
 		destdir = filedialog.askdirectory(initialdir=os.path.expanduser('~'),
 			parent=self.root, title='Selecteer map om bestanden op te slaan')
 
 		# Cancel button or window closed
-		if destdir == '':
-			return
+		if destdir == '': return
 
 		self.dlbtn.config(state=tk.DISABLED)
-		for c in self.cboxes:
-			c.config(state=tk.DISABLED)
+		for c in self.cboxes: c.config(state=tk.DISABLED)
 
-		progwin = tk.Toplevel(self.root, takefocus=True)
-		progwin.transient(self.root)
-		progwin.title('download-gemist voortgang')
-		progwin.minsize(width=650, height=95)
-		progwin.columnconfigure(0, weight=1)
+		for epid, data in self.eps.iteritems():
+			if data['val'].get() is not True: continue
 
-		progframe = ttk.Frame(progwin, padding=5)
+			self.download(destdir, data['url'])
+
+			while self.thr:
+				time.sleep(0.5)
+
+
+	def download_single(self, url):
+		destdir = filedialog.askdirectory(initialdir=os.path.expanduser('~'),
+			parent=self.root, title='Selecteer map om bestanden op te slaan')
+
+		# Cancel button or window closed
+		if destdir == '': return
+
+		self.download(destdir, url)
+
+
+	def download(self, destdir, url):
+		self.progwin = tk.Toplevel(self.root, takefocus=True)
+		self.progwin.transient(self.root)
+		self.progwin.title('download-gemist voortgang')
+		self.progwin.minsize(width=650, height=95)
+		self.progwin.columnconfigure(0, weight=1)
+		
+		self.programinput.configure(state=tk.DISABLED)
+		self.programinputbtn.configure(state=tk.DISABLED)
+
+		progframe = ttk.Frame(self.progwin, padding=5)
 		progframe.columnconfigure(0, weight=1)
 
 		self.progress = tk.IntVar()
@@ -165,10 +198,10 @@ class GUI:
 		proglbl = tk.Label(progframe, textvariable=self.progresslbl)
 		progbar = ttk.Progressbar(progframe, length=300, variable=self.progress)
 
-		btnframe = ttk.Frame(progwin, padding=5)
+		btnframe = ttk.Frame(self.progwin, padding=5)
 		btnframe.columnconfigure(0, weight=1)
 		cancelbtn = ttk.Button(btnframe, text='Annuleren',
-			command=progwin.destroy)
+			command=self.progwin.destroy)
 
 		progframe.grid(row=0, column=0, sticky=tk.E + tk.W)
 		btnframe.grid(row=1, column=0, sticky=tk.E + tk.W)
@@ -178,20 +211,35 @@ class GUI:
 		cancelbtn.grid(row=0, column=0, sticky=tk.E)
 
 		self.thr = None
-		progwin = None
-		for epid, data in self.eps.iteritems():
-			if data['val'].get() is not True:
-				continue
+		self.cancel_download = False
 
-			self.progress.set(0)
-			self.progresslbl.set('Starten van download...')
-			self.thr = thread.start_new_thread(self.BackgroundDownload,
-				(data['url'], destdir))
+		self.progress.set(0)
+		self.progresslbl.set('Starten van download...')
 
-			while self.thr is not None:
-				time.sleep(2)
+		self.thr = thread.start_new_thread(self.BackgroundDownload,
+			(url, destdir))
 
-		thread.exit()
+		self.update_prog()
+
+
+	def update_prog(self):
+		try:
+			self.progwin.state()
+		except tk.TclError:
+			self.programinput.configure(state=tk.NORMAL)
+			self.programinputbtn.configure(state=tk.NORMAL)
+			if self.thr: self.cancel_download = True
+			self.thr = None
+			return
+
+		try:
+			while True:
+				self.queue.get_nowait()()
+		except queue.Empty:
+			pass
+
+		self.root.after(100, self.update_prog)
+
 
 	def BackgroundDownload(self, url, destdir):
 		""" Download videos in thread """
@@ -202,41 +250,52 @@ class GUI:
 		# TODO: popup messagebox, wait for Ok click
 		except dgemist.DgemistError as e:
 			Error(e.message)
+			self.queue.put(lambda: self.progwin.destroy())
+			thread.exit()
+
+		if 'debug' in sys.argv:
+			self.queue.put(lambda: self.progresslbl.set('Debug %s' % url))
+			time.sleep(5)
+			self.queue.put(lambda: self.progwin.destroy())
 			thread.exit()
 
 		pcomplete = -1
 		starttime = time.time()
 		ptime = remaining = 0
 		for total, completed, speed in dgemist.DownloadVideo(videourl, cookie, outfile):
+			if self.cancel_download:
+				self.queue.put(lambda: self.progwin.destroy())
+				thread.exit()
 			completepc = int(completed / (total / 100))
 			curtime = time.time()
 
-			try:
-				if completepc != pcomplete:
-					self.progress.set(completepc)
-					pcomplete = completepc
+			if completepc != pcomplete:
+				self.queue.put(lambda: self.progress.set(completepc))
+				pcomplete = completepc
 
-				if curtime - starttime > 2:
-					speed = int(completed / (curtime - starttime))
+			if curtime - starttime > 2:
+				speed = int(completed / (curtime - starttime))
+				if speed == 0:
+					remaining = 100
+				else:
 					remaining = (total - completed) / speed
 
-				if curtime >= ptime + 1:
+			if curtime >= ptime + 1:
+				if speed == 0:
+					remaining = 100
+				else:
 					remaining = (total - completed) / speed
-					line = ('%(complete)3s%% van %(total)s, '
-						+ 'nog %(remaining)4s te gaan met %(speed)4s/s') % ({
-						'total': dgemist.HumanSize(total),
-						'complete': completepc,
-						'speed': dgemist.HumanSize(speed),
-						'remaining': dgemist.HumanTime(remaining),
-					})
-					self.progresslbl.set('%s%s' % (title, line))
-					ptime = curtime
+				line = ('%(complete)3s%% van %(total)s, '
+					+ 'nog %(remaining)4s te gaan met %(speed)4s/s') % ({
+					'total': dgemist.HumanSize(total),
+					'complete': completepc,
+					'speed': dgemist.HumanSize(speed),
+					'remaining': dgemist.HumanTime(remaining),
+				})
+				self.queue.put(lambda: self.progresslbl.set('%s%s' % (title, line)))
+				ptime = curtime
 
-			# Window destroyed
-			except tk.TclError:
-				thread.exit()
-
-		self.thr = None
+		self.queue.put(lambda: self.progwin.destroy())
 		thread.exit()
 
 
@@ -246,8 +305,9 @@ def Error(msg):
 	sys.stderr.write('Error: %s\n' % msg)
 
 if __name__ == '__main__':
+	print('Experimenteel...')
 	root = tk.Tk()
-	root.minsize(width=705, height=520)
+	root.minsize(width=705, height=120)
 	root.title('Download-gemist')
 	root.bind('<Escape>', lambda ev: root.quit())
 
