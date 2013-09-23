@@ -116,7 +116,7 @@ def FindVideo(url):
 
 	if _verbose: print('Using playerId ' + playerId)
 
-	jsdata = OpenUrl('http://ida.omroep.nl/npoplayer/npoplayer-min.js').read()[-200:]
+	jsdata = OpenUrl('http://ida.omroep.nl/npoplayer/i.js').read()[-200:]
 	if sys.version_info.major > 2: jsdata = jsdata.decode()
 	try:
 		token = re.search('token = "(.*?)"', jsdata).groups()[0]

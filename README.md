@@ -102,6 +102,10 @@ Versie 1.5, nog niet gereleased
 - Voeg grafische interface toe (`download-gemist-gui`)
 - Windows installer
 
+Versie 1.4.1, 2013-09-23
+------------------------
+- Fix voor huidige versie van de site
+
 Versie 1.4, 2013-08-22
 ----------------------
 - Fix voor huidige versie van de site
