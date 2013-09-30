@@ -52,8 +52,8 @@ Help! Het werkt niet!
 In het grootste deel van de gevallen komt dit omdat er iets kleins is
 veranderd op de uitzending gemist site. Aangezien ik niet alle dagen videos
 aan het downloaden ben kan het soms even duren voordat ik dit zie (& fix).
-Stuur even een mail naar [martin@arp242.net][3], vaak is dit een kleine
-aanpassing van 2 minuten.
+Stuur even een mail naar [martin@arp242.net][3] met de URL die je gebruikt, vaak
+is dit een kleine aanpassing van 2 minuten.
 
 Kan ik ook een video streamen zonder het eerst op te slaan?
 -----------------------------------------------------------
@@ -101,6 +101,10 @@ Versie 1.5, nog niet gereleased
 -------------------------------
 - Voeg grafische interface toe (`download-gemist-gui`)
 - Windows installer
+
+Versie 1.4.2, 2013-10-01
+------------------------
+- Fix voor huidige versie van de site
 
 Versie 1.4.1, 2013-09-23
 ------------------------

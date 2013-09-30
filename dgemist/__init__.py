@@ -86,7 +86,7 @@ def GetListing(url, pages=0):
 		data = OpenUrl('%s/afleveringen?page=%s' % (url, page)).read()
 		if sys.version_info.major > 2: data = data.decode()
 
-		matches = re.findall('<li class="episode active knav".*?data-remote-id="\d+?"'
+		matches = re.findall('<li class="episode active".*?data-remote-id="\d+?"'
 			+ ' id="episode_(\d+)">.*?<a href="/afleveringen/\d+?" '
 			+ 'class="episode active knav_link" title="(.+?)">.+?</h3>(.+?)</div>',
 			data, re.MULTILINE | re.DOTALL)
