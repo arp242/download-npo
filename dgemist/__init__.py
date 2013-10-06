@@ -6,10 +6,11 @@
 #
 # Copyright © 2012-2013 Martin Tournoij <martin@arp242.net>
 # See below for full copyright
-#
+
 
 from __future__ import print_function
 import os, re, sys, time, json
+
 
 if sys.version_info[0] < 3:
 	import urllib2
@@ -47,7 +48,7 @@ def OpenUrl(url, cookie=''):
 
 def GetVersion():
 	""" Get version string """
-	return '1.4, 2013-08-22'
+	return '1.5, 2013-10-08'
 
 
 def CheckUpdate():
@@ -82,14 +83,20 @@ def GetListing(url, pages=0):
 	Returns list with (epid, title, url, description) """
 
 	videos = []
-	for page in range(1, pages + 2):
-		data = OpenUrl('%s/afleveringen?page=%s' % (url, page)).read()
-		if sys.version_info.major > 2: data = data.decode()
+	for page in range(1, pages + 1):
 
-		matches = re.findall('<li class="episode active".*?data-remote-id="\d+?"'
-			+ ' id="episode_(\d+)">.*?<a href="/afleveringen/\d+?" '
-			+ 'class="episode active knav_link" title="(.+?)">.+?</h3>(.+?)</div>',
-			data, re.MULTILINE | re.DOTALL)
+		if 'programmas' in url:
+			data = OpenUrl('%s/afleveringen?page=%s' % (url, page)).read().decode('utf-8')
+			matches = re.findall('<li class="episode active".*?data-remote-id="\d+?"'
+				+ ' id="episode_(\d+)">.*?<a href="/afleveringen/\d+?" '
+				+ 'class="episode active knav_link" title="(.+?)">.+?</h3>(.+?)</div>',
+				data, re.MULTILINE | re.DOTALL)
+		elif 'weekarchief' in url:
+			data = OpenUrl('%s?page=%s' % (url, page)).read().decode('utf-8')
+			matches = re.findall('<h2><a href="/afleveringen/(\d+?)".*?title="(.*?)".*?<div class="description">(.*?)</div>',
+					data, re.MULTILINE | re.DOTALL)
+		else:
+			raise DGemistError('Geen geldige pagina')
 
 		for epid, title, desc in matches:
 			videos.append((epid,
@@ -154,7 +161,7 @@ def DownloadVideo(videourl, sesscookie, outfile, dryrun=False):
 
 	if outfile == '-':
 		fp = sys.stdout
-	else:
+	elif not dryrun:
 		fp = open(outfile, 'wb+')
 
 	video = OpenUrl(videourl, sesscookie)

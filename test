@@ -1,0 +1,46 @@
+#!/bin/sh
+#
+
+
+echo -n "Testing download-gemist-list "
+listpages="\
+programmas/215-andere-tijden
+programmas/2617-de-rekenkamer
+weekarchief/gisteren"
+IFS="
+"
+for p in $listpages; do
+	p=http://www.uitzendinggemist.nl/$p
+	if [ $(python2 download-gemist-list $p | wc -l | tr -d ' ') -lt 3 ]; then
+		echo "*** Error -> python2 download-gemist-list $p ***"
+	else
+		echo -n "."
+	fi
+
+	if [ $(python3 download-gemist-list $p | wc -l | tr -d ' ') -lt 3 ]; then
+		echo "*** Error -> python3 download-gemist-list $p ***"
+	else
+		echo -n "."
+	fi
+done
+echo ""
+
+
+echo -n "Testing download-gemist "
+videopages="1346967 1361652"
+IFS=" "
+for p in $videopages; do
+	p=http://www.uitzendinggemist.nl/afleveringen/$p
+	if [ "$(python2 download-gemist -n $p)" != "Okay!" ]; then
+		echo "*** Error -> python2 download-gemist -n $p ***"
+	else
+		echo -n "."
+	fi
+
+	if [ "$(python3 download-gemist -n $p)" != "Okay!" ]; then
+		echo " ***Error -> python3 download-gemist -n $p ***"
+	else
+		echo -n "."
+	fi
+done
+echo ""

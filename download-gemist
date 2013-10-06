@@ -59,7 +59,10 @@ def GetTermWidth():
 
 	# Python 3.3 and newer
 	if getattr(os, 'get_terminal_size', None) != None:
-		return os.get_terminal_size().columns
+		try:
+			return os.get_terminal_size().columns
+		except OSError:
+			return 80
 
 	# No reliable/easy way on Windows in 3.2 and older
 	if sys.platform == 'win32':
@@ -85,6 +88,7 @@ def DownloadVideo(videourl, sesscookie, outfile):
 			global termwidth
 			termwidth = GetTermWidth()
 		signal.signal(signal.SIGWINCH, updterm)
+
 
 	filename = os.path.basename(outfile)
 	starttime = time.time()
@@ -118,7 +122,7 @@ def DownloadVideo(videourl, sesscookie, outfile):
 			sys.stdout.flush()
 			ptime = curtime
 
-	print('Ok!', end='')
+	print('\nOkay!')
 
 
 def Download(videos, filename, outdir):
@@ -140,9 +144,6 @@ def Download(videos, filename, outdir):
 		else:
 			for a in dgemist.DownloadVideo(videourl, sesscookie, outfile):
 				pass
-
-		if not _silent:
-			print('')
 
 
 if __name__ == '__main__':

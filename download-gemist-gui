@@ -142,8 +142,7 @@ class GUI:
 
 			i += 1
 
-		self.dlbtn = ttk.Button(self.epframe,
-				command=lambda: thread.start_new_thread(self.download_listing, ()),
+		self.dlbtn = ttk.Button(self.epframe, command=self.download_listing,
 			text='Download geselecteerd afleveringen')
 		self.dlbtn.config(state=tk.DISABLED)
 		self.dlbtn.grid(row=i + 1, column=0, sticky=tk.E)
@@ -162,11 +161,7 @@ class GUI:
 
 		for epid, data in self.eps.iteritems():
 			if data['val'].get() is not True: continue
-
 			self.download(destdir, data['url'])
-
-			while self.thr:
-				time.sleep(0.5)
 
 
 	def download_single(self, url):

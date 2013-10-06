@@ -45,7 +45,7 @@ if __name__ == '__main__':
 		Help()
 		sys.exit(1)
 
-	pages = 0
+	pages = 1
 	for flag, arg in options:
 		if flag == '-h':
 			Help()
@@ -69,7 +69,10 @@ if __name__ == '__main__':
 			sys.exit(0)
 
 	for v in dgemist.GetListing(program[0], pages):
-		print('|'.join(v))
+		if sys.version_info.major > 2:
+			print(u'|'.join(v))
+		else:
+			print(u'|'.join(v).encode('utf-8'))
 
 
 # The MIT License (MIT)

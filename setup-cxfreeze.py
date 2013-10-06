@@ -1,9 +1,6 @@
-
-import glob
-import os
-import shutil
-
+import glob, os, shutil, sys
 from cx_Freeze import setup, Executable
+
 
 setup(
 	name = 'download-gemist',
