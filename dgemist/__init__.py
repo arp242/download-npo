@@ -147,9 +147,14 @@ def FindVideo(url):
 
 	if sys.version_info.major > 2: jsondata = jsondata.decode()
 	jsondata = re.sub('^[\w\d]+\(', '', jsondata[:-1])
-	download = json.loads(jsondata)['streams'][0]
-	cookie = ''
+	stream = json.loads(jsondata)['streams'][0]
 
+	jsondata = OpenUrl(stream).read()
+	if sys.version_info.major > 2: jsondata = jsondata.decode()
+	jsondata = re.sub('^.*?\(', '', jsondata[:-2])
+	download = json.loads(jsondata)['url']
+
+	cookie = ''
 	return (download, title, playerId, cookie)
 
 

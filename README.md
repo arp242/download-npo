@@ -114,6 +114,11 @@ Versie 1.6, nog niet gereleased
 - Windows installer
 
 
+Versie 1.5.1, 2013-10-09
+------------------------
+- Fix voor huidige versie van de site
+
+
 Versie 1.5, 2013-10-06
 ----------------------
 - `download-gemist-list` werkt nu ook bij `/weekarchief/` pagina’s
