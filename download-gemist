@@ -133,8 +133,9 @@ def Download(videos, filename, outdir):
 		try:
 			videourl, title, playerId, sesscookie = dgemist.FindVideo(v)
 
-			outfile = filename = dgemist.MakeFilename(outdir, filename or title,
+			outfile = dgemist.MakeFilename(outdir, filename or title,
 				playerId, _safefilename, _replacespace, _overwrite)
+			if _verbose: print('Saving to %s' % outfile)
 		except dgemist.DgemistError as e:
 			Error(e.message)
 			continue
