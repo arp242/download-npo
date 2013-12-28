@@ -4,7 +4,7 @@ from cx_Freeze import setup, Executable
 
 setup(
 	name = 'download-gemist',
-	version = '1.4',
+	version = '1.6',
 	author = 'Martin Tournoij',
 	author_email = 'martin@arp242.net',
 	url = 'http://code.arp242.net/download-gemist',
@@ -18,11 +18,6 @@ setup(
 	executables = [
 		Executable(
 			script = 'download-gemist',
-			compress = True,
-			#icon = './data/icons/icon.ico',
-		),
-		Executable(
-			script = 'download-gemist-list',
 			compress = True,
 			#icon = './data/icons/icon.ico',
 		),

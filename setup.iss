@@ -34,7 +34,6 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "Z:\code\download-gemist\dist_win32\download-gemist-gui.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Z:\code\download-gemist\dist_win32\download-gemist.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\code\download-gemist\dist_win32\download-gemist-list.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Z:\code\download-gemist\dist_win32\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 

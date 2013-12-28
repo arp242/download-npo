@@ -44,7 +44,7 @@ def Help():
 
 
 def Version():
-	print('download-gemist ' + dgemist.GetVersion())
+	print('download-gemist ' + ', '.join(dgemist.GetVersion()))
 	print('http://code.arp242.net/download-gemist')
 
 
@@ -75,25 +75,26 @@ def GetTermWidth():
 			raise OSError
 		return int(out[0])
 	except OSError:
-		return 76
+		return 80
 
 
-def DownloadVideo(videourl, sesscookie, outfile):
-	global termwidth
+def DownloadVideo(site, videourl, outfile):
+	global termwidth, termwidthchanged
 	termwidth = GetTermWidth()
+	termwidthchanged = False
 
 	# Update on terminal resize, if the OS supports it
 	if getattr(signal, 'SIGWINCH', None):
 		def updterm(sig, stack):
-			global termwidth
+			global termwidth, termwidthchanged
 			termwidth = GetTermWidth()
+			termwidthchanged = True
 		signal.signal(signal.SIGWINCH, updterm)
-
 
 	filename = os.path.basename(outfile)
 	starttime = time.time()
 	ptime = remaining = 0
-	download = dgemist.DownloadVideo(videourl, sesscookie, outfile, _dryrun)
+	download = site.DownloadVideo(videourl, outfile, _dryrun)
 	for total, completed, speed in download:
 		curtime = time.time()
 		if curtime - starttime > 2:
@@ -104,13 +105,17 @@ def DownloadVideo(videourl, sesscookie, outfile):
 				remaining = (total - completed) / speed
 
 		if curtime >= ptime + 1:
-			line = ('%(complete)3s%% van %(total)s, '
+			line = ('%(complete)3s%% van %(total)s; '
 				+ 'nog %(remaining)4s te gaan met %(speed)4s/s') % ({
 				'total': dgemist.HumanSize(total),
 				'complete': int(completed / (total / 100)),
 				'speed': dgemist.HumanSize(speed),
 				'remaining': dgemist.HumanTime(remaining),
 			})
+
+			if termwidthchanged:
+				termwidthchanged = False
+				print('')
 
 			if len(filename) + len(line) > termwidth:
 				# TODO: This gives a unicode error on Windows (BSD is fine)
@@ -131,7 +136,8 @@ def Download(videos, filename, outdir):
 		if _verbose: print('Downloading ' + v)
 
 		try:
-			videourl, title, playerId, sesscookie = dgemist.FindVideo(v)
+			site = dgemist.MatchSite(v)
+			videourl, title, playerId = site.FindVideo(v)
 
 			outfile = dgemist.MakeFilename(outdir, filename or title,
 				playerId, _safefilename, _replacespace, _overwrite)
@@ -141,9 +147,9 @@ def Download(videos, filename, outdir):
 			continue
 
 		if not _silent:
-			DownloadVideo(videourl, sesscookie, outfile)
+			DownloadVideo(site, videourl, outfile)
 		else:
-			for a in dgemist.DownloadVideo(videourl, sesscookie, outfile):
+			for a in site.DownloadVideo(videourl, outfile):
 				pass
 
 
@@ -184,6 +190,11 @@ if __name__ == '__main__':
 
 	if filename == '-':
 		_silent = True
+
+	v = dgemist.CheckUpdate()
+	if v is not None and not _silent:
+		print('Waarschuwing: De laatste versie is %s, je gebruikt nu versie %s' % (
+			v, dgemist.GetVersion()[0]))
 
 	if len(videos) == 0:
 		sys.stderr.write('Lezen van stdin (gebruik -h voor help)...')

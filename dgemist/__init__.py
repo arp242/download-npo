@@ -9,195 +9,93 @@
 
 
 from __future__ import print_function
-import os, re, sys, time, json
+import os, re, sys
 
+import dgemist.sites
 
 if sys.version_info[0] < 3:
 	import urllib2
-	from HTMLParser import HTMLParser
 else:
 	import urllib.request as urllib2
-	from html.parser import HTMLParser
 
-__all__ = ['OpenUrl', 'GetVersion', 'CheckUpdate', 'HumanSize', 'HumanTime',
-	'GetListing', 'FindVideo', 'DownloadVideo']
+__all__ = ['GetVersion', 'CheckUpdate', 'HumanSize', 'HumanTime',]
 
 _verbose = False
 
 
-class DgemistError(Exception):
-	pass
+class DgemistError(Exception): pass
 
 
-def OpenUrl(url, cookie=''):
-	""" Build request, fake headers & mandatory cookie
-	Returns urllib2.urlopen (file-like object) """
-
-	if _verbose:
-		print('OpenUrl url: ' + url)
-
-	headers = {
-		'User-Agent': 'Opera/9.80 (X11; FreeBSD 9.1-RELEASE-p3 amd64) Presto/2.12.388 Version/12.15',
-		'Cookie': 'npo_cc=30; ' + cookie,
-	}
-	req = urllib2.Request(url, headers=headers)
-	page = urllib2.urlopen(req)
-
-	return urllib2.urlopen(req)
+def Verbose():
+	return _verbose
 
 
 def GetVersion():
-	""" Get version string """
-	return '1.5, 2013-10-08'
+	""" Get (version, release date), both as string """
+	return ('1.5.1', '2013-12-28')
 
 
 def CheckUpdate():
 	""" Check if there's a newer version
-	returns None or new version string """
-	# TODO
+	returns None or new version string
+	
+	>>> CheckUpdate() is None
+	True
+	"""
+	
+	page = urllib2.urlopen('http://code.arp242.net/download-gemist/downloads').read().decode('utf-8')
+	versions = re.findall('download-gemist-([0-9.]*?)\.tar\.gz', page)
+	versions.sort()
+	latest = versions.pop()
+
+	return (latest if latest != GetVersion()[0] else None)
 
 
-def HumanSize(bytesize, np=False):
+def HumanSize(bytesize, p=1):
 	""" Return human-readable string of n bytes
-	Use np to always return a whole number """
+	Use p to set the precision
+
+	>>> HumanSize(42424242)
+	'40,5 MiB'
+
+	>>> HumanSize(42424242, 0)
+	'40 MiB'
+
+	>>> HumanSize(1024**3, 2)
+	'1024,00 MiB'
+	"""
+
 	i = 0
 	while bytesize > 1024:
 		bytesize /= 1024.0
 		i += 1
 
-	return ('%.1f %s' if i > 1 else '%i %s') % (bytesize,
-		('b', 'KiB', 'MiB', 'GiB')[i])
+	bytesize = (('%.' + str(p) + 'f') % bytesize).replace('.', ',')
+	return '%s %s' % (bytesize, ('b', 'KiB', 'MiB', 'GiB')[i])
 
 
 def HumanTime(s):
-	""" Return human-readable string of n seconds """
+	""" Return human-readable string of n seconds
+	
+	>>> HumanTime(42)
+	'42s'
+
+	>>> HumanTime(32490)
+	'9h01m30s'
+	"""
+
 	if s > 3600:
-		return '%02ih%02im%02is' % (s / 3600, s / 60 % 60, s % 60)
+		return '%ih%02im%02is' % (s / 3600, s / 60 % 60, s % 60)
 	if s > 60:
-		return '%02im%02is' % (s / 60, s % 60)
+		return '%im%02is' % (s / 60, s % 60)
 	return '%02is' % s
 
 
-def GetListing(url, pages=0):
-	""" Get program listing starting from URL, we fetch the current page + pages
-	Returns list with (epid, title, url, description) """
-
-	videos = []
-	for page in range(1, pages + 1):
-
-		if 'programmas' in url:
-			data = OpenUrl('%s/afleveringen?page=%s' % (url, page)).read().decode('utf-8')
-			matches = re.findall('<li class="episode active".*?data-remote-id="\d+?"'
-				+ ' id="episode_(\d+)">.*?<a href="/afleveringen/\d+?" '
-				+ 'class="episode active knav_link" title="(.+?)">.+?</h3>(.+?)</div>',
-				data, re.MULTILINE | re.DOTALL)
-		elif 'weekarchief' in url:
-			data = OpenUrl('%s?page=%s' % (url, page)).read().decode('utf-8')
-			matches = re.findall('<h2><a href="/afleveringen/(\d+?)".*?title="(.*?)".*?<div class="description">(.*?)</div>',
-					data, re.MULTILINE | re.DOTALL)
-		else:
-			raise DGemistError('Geen geldige pagina')
-
-		for epid, title, desc in matches:
-			videos.append((epid,
-				HTMLParser().unescape(re.sub('\(.*?\)', '', title)).strip(),
-				'http://www.uitzendinggemist.nl/afleveringen/%s' % (epid),
-				HTMLParser().unescape(desc).strip()))
-
-	return videos
-
-
-def FindVideo(url):
-	""" Find video to download
-	Returns (downloadurl, pagetitle, playerId, cookie)
-	The cookie is a session cookie, which is required when downloading the video
-	"""
-
-	data = OpenUrl(url).read()
-	if sys.version_info.major > 2: data = data.decode()
-
-	try:
-		playerId = re.search('data-player-id="(.*?)"', data).groups()[0]
-	except AttributeError:
-		raise DgemistError('Kan playerId niet vinden')
-
-	if _verbose: print('Using playerId ' + playerId)
-
-	jsdata = OpenUrl('http://ida.omroep.nl/npoplayer/i.js').read()[-200:]
-	if sys.version_info.major > 2: jsdata = jsdata.decode()
-	try:
-		token = re.search('token = "(.*?)"', jsdata).groups()[0]
-	except AttributeError:
-		raise DgemistError('Kan token niet vinden')
-
-	if _verbose: print('Using token ' + token)
-
-	title = re.search('<title>(.+) - Uitzending Gemist</title>', data)
-	title = HTMLParser().unescape(title.groups()[0]).strip()
-
-	jsondata = OpenUrl('&'.join([
-		'http://ida.omroep.nl/odiplus/?prid=%s' % playerId,
-		'puboptions=adaptive,h264_bb,h264_sb,h264_std,wmv_bb,wmv_sb,wvc1_std',
-		'adaptive=no',
-		'part=1',
-		'token=%s' % token,
-		'callback=jQuery182022468003216732735_1377114929273',
-		'_=%s303' % time.time(),
-	])).read()
-
-	if sys.version_info.major > 2: jsondata = jsondata.decode()
-	jsondata = re.sub('^[\w\d]+\(', '', jsondata[:-1])
-	stream = json.loads(jsondata)['streams'][0]
-
-	jsondata = OpenUrl(stream).read()
-	if sys.version_info.major > 2: jsondata = jsondata.decode()
-	jsondata = re.sub('^.*?\(', '', jsondata[:-2])
-	download = json.loads(jsondata)['url']
-
-	cookie = ''
-	return (download, title, playerId, cookie)
-
-
-def DownloadVideo(videourl, sesscookie, outfile, dryrun=False):
-	""" Download a video and save to outfile (can be - for stdout).
-	This is a generator
-	yields (total_bytes, bytes_completed, avg_speed_bytes)
-	"""
-
-	if outfile == '-':
-		fp = sys.stdout
-	elif not dryrun:
-		fp = open(outfile, 'wb+')
-
-	video = OpenUrl(videourl, sesscookie)
-
-	total = int(video.info().get('Content-Length'))
-	totalh = HumanSize(total)
-	starttime = time.time()
-	speed = i = ptime = 0
-
-	if dryrun:
-		return
-
-	while True:
-		data = video.read(8192)
-		i += 8192
-		if not data:
-			break
-
-		fp.write(data)
-
-		curtime = time.time()
-		if curtime - starttime > 2:
-			speed = int(i / (curtime - starttime))
-		yield (total, i, speed)
-
-	if fp != sys.stdout:
-		fp.close()
-
-
 def MakeFilename(outdir, title, playerId, safe=True, nospace=True, overwrite=False):
-	""" Make a filename from the page title """
+	""" Make a filename from the page title
+	
+	TODO: doctest
+	"""
 
 	if title == '-':
 		return '-'
@@ -215,6 +113,22 @@ def MakeFilename(outdir, title, playerId, safe=True, nospace=True, overwrite=Fal
 				+ 'Gebruik -w voor overschrijven)')
 
 	return outfile
+
+
+def MatchSite(url):
+	""" Return a Site object based from url """
+
+	url = url.replace('http://', '').replace('https://', '')
+
+	sites = dgemist.sites.sites
+	for s in dgemist.sites.sites:
+		clss = getattr(dgemist.sites, s)
+		if re.match(clss.match, url):
+			if _verbose: print('Using site class %s' % clss)
+			return clss()
+
+	raise DgemistError("Kan geen site vinden voor de URL `%s'" % url)
+
 
 
 # The MIT License (MIT)

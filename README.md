@@ -3,7 +3,9 @@ rest of the documentation is in Dutch.**
 
 
 Download-gemist download videos van de [uitzending gemist][1] site van de
-publieke omroep.
+publieke omroep. In principe zouden alle sites die gebruik maken van de zogeten
+'NPOPlayer' moeten werken, zoals bv. npo.nl, ncrv.nl, enz. (Al zijn deze niet
+allemaal getest).
 
 
 Installatie
@@ -17,12 +19,8 @@ Voor BSD/Linux/UNIX kan je [de source][d-unix] downloaden, [Python][2] is nodig
 
 Gebruik
 =======
-download-gemist komt met 3 programma’s:
-
-
-download-gemist
----------------
-Commandline tool om een uitzending te downloaden.
+download-gemist is een commandline-tool, er is ook een grafische frontend
+`download-gemist-gui`
 
 Voorbeeld:  
 `download-gemist http://www.uitzendinggemist.nl/afleveringen/1292817`
@@ -30,29 +28,8 @@ Voorbeeld:
 Zie `download-gemist -h` voor meer help en opties.
 
 
-download-gemist-list
---------------------
-Commandline tool om informatie op te halen van een programma pagina, dit kan
-je gebruiken om makkelijk de laatst *n* videos te downloaden.
-
-Dit download niks als zodanig, maar haalt alleen informatie op die je vervolgens
-aan `download-gemist` kan voeren.
-
-Voorbeeld:  
-`download-gemist-list http://www.uitzendinggemist.nl/programmas/215-andere-tijden | cut -d'|' -f3 | xargs | download-gemist`
-
-Zie `download-gemist-list -h` voor meer opties.
-
-
-download-gemist-gui
--------------------
-Grafische frontend, hiervoor is Tkinter nodig (vaak standaard geïnstalleerd
-met Python). Dit werkt nog niet geheel optimaal (‘TODO’).
-
-
 FAQ
 ===
-
 
 Help! Het werkt niet! PANIEK!
 -----------------------------
@@ -107,11 +84,14 @@ lijn met de mediawet is.
 ChangeLog
 =========
 
-
 Versie 1.6, nog niet gereleased
 -------------------------------
+- Werkt ook op andere sites met de NPOPlayer
+- Betere bestandsnamen
 - Voeg grafische interface toe (`download-gemist-gui`)
 - Windows installer
+- `download-gemist-list` verwijderd; zo heel nuttig is het niet, en kost toch
+  continue tijd om te onderhouden
 
 
 Versie 1.5.1, 2013-10-09

@@ -1,6 +1,14 @@
 #!/bin/sh
 #
 
+echo "Python 2 doctests"
+#python2 dgemist/__init__.py
+echo
+
+echo "Python 3 doctests"
+#python3 dgemist/__init__.py
+echo
+
 
 echo -n "Testing download-gemist-list "
 listpages="\
@@ -27,10 +35,12 @@ echo ""
 
 
 echo -n "Testing download-gemist "
-videopages="1346967 1361652"
+videopages="\
+http://www.uitzendinggemist.nl/afleveringen/1346967
+http://deslimstemens.ncrv.nl/ncrvgemist/27-12-2013/slimste-mens
+http://www.npo.nl/vredesmacht-onder-vuur/22-12-2013/NPS_1218718"
 IFS=" "
 for p in $videopages; do
-	p=http://www.uitzendinggemist.nl/afleveringen/$p
 	if [ "$(python2 download-gemist -n $p)" != "Okay!" ]; then
 		echo "*** Error -> python2 download-gemist -n $p ***"
 	else
