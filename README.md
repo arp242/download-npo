@@ -159,4 +159,4 @@ Versie 1.0, 2012-10-03
 [4]: http://www.publiekeomroep.nl/artikelen/algemene-voorwaarden-privacy
 [5]: http://www.st-ab.nl/wetten/1107_Mediawet_2008.htm
 [d-win]: https://bitbucket.org/Carpetsmoker/download-gemist/downloads/download-gemist-setup-1.6.exe
-[d-unix]: https://bitbucket.org/Carpetsmoker/download-gemist/downloads/download-gemist-1.6.tar.gz
+[d-unix]: https://bitbucket.org/Carpetsmoker/download-gemist/get/version-1.6.tar.gz
