@@ -84,9 +84,10 @@ lijn met de mediawet is.
 ChangeLog
 =========
 
-Versie 1.6, nog niet gereleased
+Versie 1.6, 2013-12-28
 -------------------------------
-- Werkt ook op andere sites met de NPOPlayer
+- Geef waarschuwing als je een oudere versie gebruikt
+- Werkt ook op andere sites met de NPOPlayer (npo.nl, ncrv.nl, etc.)
 - Betere bestandsnamen
 - Voeg grafische interface toe (`download-gemist-gui`)
 - Windows installer
@@ -157,5 +158,5 @@ Versie 1.0, 2012-10-03
 [3]: mailto:martin@arp242.net
 [4]: http://www.publiekeomroep.nl/artikelen/algemene-voorwaarden-privacy
 [5]: http://www.st-ab.nl/wetten/1107_Mediawet_2008.htm
-[d-win]: https://bitbucket.org/Carpetsmoker/download-gemist/downloads
-[d-unix]: https://bitbucket.org/Carpetsmoker/download-gemist/downloads
+[d-win]: https://bitbucket.org/Carpetsmoker/download-gemist/downloads/download-gemist-setup-1.6.exe
+[d-unix]: https://bitbucket.org/Carpetsmoker/download-gemist/downloads/download-gemist-1.6.tar.gz

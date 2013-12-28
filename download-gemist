@@ -193,7 +193,7 @@ if __name__ == '__main__':
 
 	v = dgemist.CheckUpdate()
 	if v is not None and not _silent:
-		print('Waarschuwing: De laatste versie is %s, je gebruikt nu versie %s' % (
+		Error('Waarschuwing: De laatste versie is %s, je gebruikt nu versie %s' % (
 			v, dgemist.GetVersion()[0]))
 
 	if len(videos) == 0:
