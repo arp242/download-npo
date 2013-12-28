@@ -43,12 +43,16 @@ def CheckUpdate():
 	True
 	"""
 	
-	page = urllib2.urlopen('http://code.arp242.net/download-gemist/downloads').read().decode('utf-8')
-	versions = re.findall('download-gemist-([0-9.]*?)\.tar\.gz', page)
-	versions.sort()
-	latest = versions.pop()
+	try:
+		page = urllib2.urlopen('http://code.arp242.net/download-gemist/downloads').read().decode('utf-8')
+		versions = re.findall('<td class="name">version-([0-9.]*?)</td>', page)
+		versions.sort()
+		latest = versions.pop()
 
-	return (latest if latest != GetVersion()[0] else None)
+		return (latest if latest != GetVersion()[0] else None)
+	# Never fail
+	except:
+		return None
 
 
 def HumanSize(bytesize, p=1):
