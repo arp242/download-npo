@@ -86,6 +86,7 @@ class GUI:
 		self.progressframe.columnconfigure(0, weight=1)
 		self.progressframe.grid(row=1, column=0, sticky=tk.W + tk.E)
 
+		self.root.update()
 		self.setsize()
 
 		v = dgemist.CheckUpdate()
@@ -239,13 +240,11 @@ class GUI:
 
 	
 	def setsize(self):
-		self.root.update()
 		self.root.minsize(width=500, height=root.winfo_height())
 
 
 if __name__ == '__main__':
 	root = tk.Tk()
-	#root.minsize(width=705, height=170)
 	root.title('Download-gemist %s, %s (Esc om te sluiten)' %
 		dgemist.GetVersion())
 	root.bind('<Escape>', lambda ev: root.quit())

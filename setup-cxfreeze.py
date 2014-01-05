@@ -41,3 +41,13 @@ for (destdir, files) in filelist:
 	
 	for f in files:
 		shutil.copy2(f, destdir)
+
+remove = [
+	'tcl/encoding',
+	'tcl/tzdata',
+	'tcl/msgs',
+	'tk/demos',
+	'tk/images',
+	'tk/msgs',
+]
+for f in remove: shutil.rmtree('dist_win32/%s' % f)
