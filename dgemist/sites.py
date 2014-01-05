@@ -109,7 +109,10 @@ class NPOPlayer(Site):
 
 		# TODO: Allow user formatting
 		meta = self.Meta(playerId)
-		title = '%s %s' % (meta['serie']['serie_titel'], meta['aflevering_titel'], )
+		if meta.get('serie') is not None:
+			title = '%s %s' % (meta['serie']['serie_titel'], meta['aflevering_titel'], )
+		else:
+			title = '%s' % meta['titel']
 
 		jsondata = self.OpenUrl('&'.join([
 			'http://ida.omroep.nl/odiplus/?prid=%s' % playerId,
@@ -159,7 +162,7 @@ class NPO(NPOPlayer):
 
 # The MIT License (MIT)
 #
-# Copyright © 2012-2013 Martin Tournoij
+# Copyright © 2012-2014 Martin Tournoij
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to

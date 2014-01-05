@@ -4,7 +4,7 @@
 #
 # http://code.arp242.net/download-gemist
 #
-# Copyright © 2012-2013 Martin Tournoij <martin@arp242.net>
+# Copyright © 2012-2014 Martin Tournoij <martin@arp242.net>
 # See below for full copyright
 
 
@@ -32,7 +32,7 @@ def Verbose():
 
 def GetVersion():
 	""" Get (version, release date), both as string """
-	return ('1.6', '2013-12-28')
+	return ('1.6.1', '2014-01-05')
 
 
 def CheckUpdate():
@@ -52,6 +52,7 @@ def CheckUpdate():
 		return (latest if latest != GetVersion()[0] else None)
 	# Never fail
 	except:
+		if _verbose: print('CheckUpdate() failed\n%s' % sys.exc_info()[1])
 		return None
 
 
@@ -137,7 +138,7 @@ def MatchSite(url):
 
 # The MIT License (MIT)
 #
-# Copyright © 2012-2013 Martin Tournoij
+# Copyright © 2012-2014 Martin Tournoij
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to

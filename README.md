@@ -4,7 +4,7 @@ rest of the documentation is in Dutch.**
 
 Download-gemist download videos van de [uitzending gemist][1] site van de
 publieke omroep. In principe zouden alle sites die gebruik maken van de zogeten
-'NPOPlayer' moeten werken, zoals bv. npo.nl, ncrv.nl, enz. (Al zijn deze niet
+“NPOPlayer” moeten werken, zoals bv. npo.nl, ncrv.nl, enz. (al zijn deze niet
 allemaal getest).
 
 
@@ -84,8 +84,15 @@ lijn met de mediawet is.
 ChangeLog
 =========
 
+Versie 1.6.1, 2014-01-05
+------------------------
+- Bugfix: Uitzendingen die niet bij een serie horen gaven een error
+- Iets betere errors in de GUI
+- Aantal kleine verbeteringen
+
+
 Versie 1.6, 2013-12-28
--------------------------------
+----------------------
 - Geef waarschuwing als je een oudere versie gebruikt
 - Werkt ook op andere sites met de NPOPlayer (npo.nl, ncrv.nl, etc.)
 - Betere bestandsnamen
@@ -158,5 +165,5 @@ Versie 1.0, 2012-10-03
 [3]: mailto:martin@arp242.net
 [4]: http://www.publiekeomroep.nl/artikelen/algemene-voorwaarden-privacy
 [5]: http://www.st-ab.nl/wetten/1107_Mediawet_2008.htm
-[d-win]: https://bitbucket.org/Carpetsmoker/download-gemist/downloads/download-gemist-setup-1.6.exe
-[d-unix]: https://bitbucket.org/Carpetsmoker/download-gemist/get/version-1.6.tar.gz
+[d-win]: https://bitbucket.org/Carpetsmoker/download-gemist/downloads/download-gemist-setup-1.6.1.exe
+[d-unix]: https://bitbucket.org/Carpetsmoker/download-gemist/get/version-1.6.1.tar.gz

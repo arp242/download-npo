@@ -5,12 +5,12 @@
 #
 # http://code.arp242.net/download-gemist
 #
-# Copyright © 2012-2013 Martin Tournoij <martin@arp242.net>
+# Copyright © 2012-2014 Martin Tournoij <martin@arp242.net>
 # See below for full copyright
 #
 
 from __future__ import print_function
-import os, sys, time, re
+import os, sys, time, re, traceback
 
 if sys.version_info.major > 2:
 	import tkinter as tk
@@ -67,7 +67,7 @@ class GUI:
 			command=self.click_download)
 
 		topframe.grid(column=0, row=0, sticky=tk.W + tk.E)
-		lbl = ttk.Label(topframe, text=("URL('s) naar afleveringpagina, meerdere URL's scheiden door spatie of enter"))
+		lbl = ttk.Label(topframe, text=("URL('s) naar afleveringpagina, meerdere URL's scheiden door witruimte (spaties en/of enter)"))
 		lbl.grid(row=0, column=0, sticky=tk.W, columnspan=2)
 
 		self.programinput.grid(row=1, column=0, sticky=tk.W + tk.E)
@@ -85,6 +85,8 @@ class GUI:
 		self.progressframe = ttk.Frame(self.rootframe)
 		self.progressframe.columnconfigure(0, weight=1)
 		self.progressframe.grid(row=1, column=0, sticky=tk.W + tk.E)
+
+		self.setsize()
 
 		v = dgemist.CheckUpdate()
 		if v is not None:
@@ -124,10 +126,6 @@ class GUI:
 
 		def getmeta():
 			for i, u in enumerate(self.urls):
-				site = dgemist.MatchSite(u)
-				videourl, title, playerId = site.FindVideo(u)
-				meta = site.Meta(playerId)
-
 				v = tk.IntVar()
 				v.set(0)
 				self.progress.append(v)
@@ -136,14 +134,36 @@ class GUI:
 				v.set('Wachten...')
 				self.progresslbl.append(v)
 
-				lbl = tk.Label(self.progressframe, text='%s - %s ' % (meta['serie']['serie_titel'],
-					meta['aflevering_titel']))
-				lbl.grid(row=i, column=0, sticky=tk.W)
+				try:
+					site = dgemist.MatchSite(u)
+					videourl, title, playerId = site.FindVideo(u)
+					meta = site.Meta(playerId)
 
-				lbl = tk.Label(self.progressframe, textvariable=self.progresslbl[i])
-				lbl.grid(row=i, column=1, sticky=tk.E)
+					if meta.get('serie') is not None:
+						lbl = tk.Label(self.progressframe, text='%s - %s ' % (meta['serie']['serie_titel'],
+							meta['aflevering_titel']))
+					else:
+						lbl = tk.Label(self.progressframe, text='%s' % meta['titel'])
 
-				self.queue.put(f(i))
+					lbl.grid(row=i, column=0, sticky=tk.W)
+
+					lbl = tk.Label(self.progressframe, textvariable=self.progresslbl[i])
+					lbl.grid(row=i, column=1, sticky=tk.E)
+
+					self.queue.put(f(i))
+				except Exception as exc:
+					lbl = tk.Label(self.progressframe, text='%s' % u)
+					lbl.grid(row=i, column=0, sticky=tk.W)
+
+					lbl = tk.Label(self.progressframe, text='Fout')
+					lbl.grid(row=i, column=1, sticky=tk.E)
+					
+					self._downloading += 1
+
+					messagebox.showwarning('Fout', 'Fout in getmeta():\n%s' % (
+						''.join(traceback.format_exception(*sys.exc_info()))))
+			self.setsize()
+			thread.exit()
 
 		self.queue.put(lambda: thread.start_new_thread(getmeta, ()))
 		self.runqueue()
@@ -154,13 +174,15 @@ class GUI:
 			while True:
 				self.queue.get_nowait()()
 		except queue.Empty:
-			if self._downloading > len(self.urls):
+			if self._downloading >= len(self.urls):
 				self.programinput.configure(state=tk.NORMAL)
 				self.destdirinput.configure(state=tk.NORMAL)
 				self.startbtn.configure(state=tk.NORMAL)
 				self.selectdirbtn.configure(state=tk.NORMAL)
+				self.urls = []
 
 		self.root.after(100, self.runqueue)
+
 
 	def BackgroundDownload(self, i):
 		""" Download videos in thread """
@@ -215,10 +237,15 @@ class GUI:
 		self._downloading += 1
 		thread.exit()
 
+	
+	def setsize(self):
+		self.root.update()
+		self.root.minsize(width=500, height=root.winfo_height())
+
 
 if __name__ == '__main__':
 	root = tk.Tk()
-	root.minsize(width=705, height=70)
+	#root.minsize(width=705, height=170)
 	root.title('Download-gemist %s, %s (Esc om te sluiten)' %
 		dgemist.GetVersion())
 	root.bind('<Escape>', lambda ev: root.quit())
@@ -236,7 +263,7 @@ if __name__ == '__main__':
 
 # The MIT License (MIT)
 #
-# Copyright © 2012-2013 Martin Tournoij
+# Copyright © 2012-2014 Martin Tournoij
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to
