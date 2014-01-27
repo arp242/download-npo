@@ -32,7 +32,7 @@ def Help():
 	print('  -f    Zet output file, relatief aan -o. Default is titel van de video.')
 	print('        Gebruik - voor stdout')
 	print("  -n    Download niks, laat zien wat we zouden doen")
-	print('  -V    Print meer informatie naar het scherm')
+	print('  -V    Print meer informatie naar het scherm. Gebruik -V twee keer voor nog meer info')
 	print('  -s    Stil: geef geen informatieve berichten (alleen errors)')
 	print('  -w    Overschrijf bestaande bestanden (default is om bestand over te slaan')
 	print('        als deze al bestaat)')
@@ -58,21 +58,19 @@ def GetTermWidth():
 	""" Try and get the terminal width """
 
 	# Python 3.3 and newer
-	if getattr(os, 'get_terminal_size', None) != None:
+	if getattr(os, 'get_terminal_size', None) is not None:
 		try:
 			return os.get_terminal_size().columns
 		except OSError:
 			return 80
 
 	# No reliable/easy way on Windows in 3.2 and older
-	if sys.platform == 'win32':
-		return 80
+	if sys.platform == 'win32': return 80
 
 	try:
 		proc = subprocess.Popen(['tput cols'], shell=True, stdout=subprocess.PIPE)
 		out = proc.communicate()
-		if proc.wait() != 0:
-			raise OSError
+		if proc.wait() != 0: raise OSError
 		return int(out[0])
 	except OSError:
 		return 80
@@ -142,8 +140,8 @@ def Download(videos, filename, outdir):
 			outfile = dgemist.MakeFilename(outdir, filename or title,
 				playerId, _safefilename, _replacespace, _overwrite)
 			if _verbose: print('Saving to %s' % outfile)
-		except dgemist.DgemistError as e:
-			Error(e.message)
+		except dgemist.DgemistError as exc:
+			Error(exc)
 			continue
 
 		if not _silent:
@@ -171,8 +169,12 @@ if __name__ == '__main__':
 			Version()
 			sys.exit(0)
 		elif flag == '-V':
-			_verbose = True
-			dgemist._verbose = True
+			if _verbose:
+				_verbose = 2
+				dgemist._verbose = 2
+			else:
+				_verbose = 1
+				dgemist._verbose = 1
 		elif flag == '-s':
 			_silent = True
 		elif flag == '-o':

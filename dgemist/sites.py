@@ -9,7 +9,8 @@ else:
 
 import dgemist
 
-# These Classes are matched to the URL. First match wins.
+# These Classes are matched to the URL (using the match property). First match
+# wins.
 sites = [
 	'UitzendingGemist',
 	'NPO',
@@ -18,24 +19,41 @@ sites = [
 
 
 class Site():
-	# matched against the URL with http(s):// removed
+	# matched against the URL (w/o protocol)
 	match = None
 
+	# Meta info about this broadcast
 	_meta = {}
 
 	def OpenUrl(self, url):
-		""" Returns urllib2.urlopen (file-like object) """
-
 		if dgemist.Verbose(): print('OpenUrl url: ' + url)
 
 		headers = {
 			'User-Agent': 'Opera/9.80 (X11; FreeBSD 9.1-RELEASE-p3 amd64) Presto/2.12.388 Version/12.15',
-			'Cookie': 'npo_cc=30;',
 		}
 		req = urllib2.Request(url, headers=headers)
 		page = urllib2.urlopen(req)
 
 		return urllib2.urlopen(req)
+
+
+	def GetPage(self, url):
+		data = self.OpenUrl(url).read()
+		if sys.version_info.major > 2: data = data.decode()
+
+		return data.strip()
+
+
+	def GetJSON(self, url):
+		data = re.sub(r'^[\w\d\?]+\(', r'',  self.GetPage(url))
+		data = re.sub('[\);/epc\s]*$', '', data)
+		data = json.loads(data)
+
+		if dgemist.Verbose() >= 2:
+			import pprint
+			pprint.pprint(data)
+
+		return data
 
 
 	def DownloadVideo(self, url, outfile, dryrun=False):
@@ -72,8 +90,8 @@ class Site():
 		if fp != sys.stdout: fp.close()
 
 
-	def FindVideo(self, url): raise DgemistError('Not implemented')
-	def Meta(self, url): raise DgemistError('Not implemented')
+	def FindVideo(self, url): raise dgemist.DgemistError('Not implemented')
+	def Meta(self, url): raise dgemist.DgemistError('Not implemented')
 
 
 class NPOPlayer(Site):
@@ -88,74 +106,59 @@ class NPOPlayer(Site):
 		""" Find video to download
 		Returns (downloadurl, pagetitle, playerId)"""
 
-		data = self.OpenUrl(url).read()
-		if sys.version_info.major > 2: data = data.decode()
-
 		try:
-			playerId = re.search(self._playerid_regex, data).groups()[0]
+			playerId = re.search(self._playerid_regex, self.GetPage(url)).groups()[0]
 		except AttributeError:
-			raise DgemistError('Kan playerId niet vinden')
-
+			raise dgemist.DgemistError('Kan playerId niet vinden')
 		if dgemist.Verbose(): print('Using playerId ' + playerId)
 
-		jsdata = self.OpenUrl('http://ida.omroep.nl/npoplayer/i.js').read()[-200:]
-		if sys.version_info.major > 2: jsdata = jsdata.decode()
 		try:
-			token = re.search('token = "(.*?)"', jsdata).groups()[0]
+			token = re.search('token = "(.*?)"',
+				self.GetPage('http://ida.omroep.nl/npoplayer/i.js')).groups()[0]
 		except AttributeError:
-			raise DgemistError('Kan token niet vinden')
-
+			raise dgemist.DgemistError('Kan token niet vinden')
 		if dgemist.Verbose(): print('Using token ' + token)
 
-		# TODO: Allow user formatting
-		meta = self.Meta(playerId)
-		if meta.get('serie') is not None:
-			title = '%s %s' % (meta['serie']['serie_titel'], meta['aflevering_titel'], )
-		else:
-			title = '%s' % meta['titel']
-
-		jsondata = self.OpenUrl('&'.join([
+		streams = self.GetJSON('&'.join([
 			'http://ida.omroep.nl/odiplus/?prid=%s' % playerId,
 			'puboptions=adaptive,h264_bb,h264_sb,h264_std,wmv_bb,wmv_sb,wvc1_std',
 			'adaptive=no',
 			'part=1',
 			'token=%s' % token,
-			'callback=jQuery182022468003216732735_1377114929273',
-			'_=%s303' % time.time(),
-		])).read()
+			'callback=cb',
+			'_=%s' % time.time(),
+		]))
 
-		if sys.version_info.major > 2: jsondata = jsondata.decode()
-		jsondata = re.sub('^[\w\d]+\(', '', jsondata[:-1])
-		stream = json.loads(jsondata)['streams'][0]
+		# TODO: Allow selecting of streams (ie. quality)
+		stream = self.GetJSON(streams['streams'][0])
 
-		jsondata = self.OpenUrl(stream).read()
-		if sys.version_info.major > 2: jsondata = jsondata.decode()
-		jsondata = re.sub('^.*?\(', '', jsondata[:-2])
-		download = json.loads(jsondata)['url']
+		if stream.get('errorstring'):
+			raise dgemist.DgemistError("Foutmelding van site: `%s'" % stream['errorstring'])
 
-		return (download, title, playerId)
+		return (stream['url'], self.Meta(playerId).get('title'), playerId)
 
 
 	def Meta(self, playerId):
 		if self._meta.get(playerId) is None:
-			meta = self.OpenUrl('http://e.omroep.nl/metadata/aflevering/%s?callback=cb&_=%s' % (
-				playerId, time.time())).read()
+			meta = self.GetJSON('http://e.omroep.nl/metadata/aflevering/%s?callback=cb&_=%s' % (
+				playerId, time.time()))
 
-			if sys.version_info.major > 2: meta = meta.decode()
-			meta = json.loads(re.sub('^[\w\d]+\(', '', meta[:-8]))
+			if meta.get('serie') is not None:
+				meta['title'] = '%s %s' % (meta['serie']['serie_titel'], meta['aflevering_titel'])
+			else:
+				meta['title'] = '%s' % meta['titel']
 			self._meta[playerId] = meta
+
 		return self._meta[playerId]
 
 
 class UitzendingGemist(NPOPlayer):
 	match = '^(www\.)?uitzendinggemist.nl'
-
 	_playerid_regex = 'data-player-id="(.*?)"'
 
 
 class NPO(NPOPlayer):
 	match = '(www\.)?npo.nl'
-
 	_playerid_regex = 'data-prid="(.*?)"'
 
 
