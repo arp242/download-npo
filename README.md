@@ -13,12 +13,12 @@ Installatie
 Voor Windows is [de installer][d-win] het makkelijkst.
 
 Voor BSD/Linux/UNIX kan je [de source][d-unix] downloaden, [Python][2] is nodig
-(Python 2 & 3 werken beiden), voor de grafische interface is ook Tkinter nodig
-(deel van Python maar soms een aparte package).
+(Python 2.7 & 3.3 zijn getest), voor de grafische interface is ook `Tkinter`
+nodig (deel van Python maar soms een aparte package).
 
 Als je oudere Silverlight/Windows media player uitzendingen wilt downloaden heb
-je [libmms][libmms] nodig. Dit werkt vooralsnog alleen POSIX (ie. niet-Windows)
-systemen.
+je [libmms][libmms] nodig. Dit werkt vooralsnog alleen op POSIX (ie.
+niet-Windows) systemen.
 
 
 Gebruik
@@ -40,8 +40,9 @@ Help! Het werkt niet! PANIEK!
 In het grootste deel van de gevallen komt dit omdat er iets kleins is
 veranderd op de uitzending gemist site. Aangezien ik niet alle dagen videos
 aan het downloaden ben kan het soms even duren voordat ik dit zie (& fix).
-Stuur even een mail naar [martin@arp242.net][3] met de URL die je gebruikt, vaak
-is dit een kleine aanpassing van 2 minuten.
+Stuur even een mail naar [martin@arp242.net][3] met de URL die je gebruik en de
+volledige output van het commando (vaak is dit een kleine aanpassing van enkele
+minuten).
 
 
 Kan ik ook een video streamen zonder het eerst op te slaan?
@@ -54,8 +55,8 @@ Uiteraard!
 ChangeLog
 =========
 
-Versie 1.7, TODO
-----------------
+Laatste source
+--------------
 - Ondersteun ook oudere (MMS/ASF) uitzendingen.
 
 
