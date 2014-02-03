@@ -192,8 +192,8 @@ class GUI:
 
 		site = dgemist.MatchSite(self.urls[i])
 		try:
-			videourl, title, epid = site.FindVideo(self.urls[i])
-			outfile = dgemist.MakeFilename(self.destdir.get(), title, epid,
+			videourl, title, epid, ext = site.FindVideo(self.urls[i])
+			outfile = dgemist.MakeFilename(self.destdir.get(), title, ext, epid,
 				overwrite=True)
 		except dgemist.DgemistError as e:
 			messagebox.messagebox('Fout', e.message)
@@ -224,13 +224,20 @@ class GUI:
 					remaining = 100
 				else:
 					remaining = (total - completed) / speed
-				line = ('%(complete)3s%% van %(total)s; '
-					+ 'nog %(remaining)4s te gaan met %(speed)4s/s') % ({
-					'total': dgemist.HumanSize(total),
-					'complete': completepc,
-					'speed': dgemist.HumanSize(speed),
-					'remaining': dgemist.HumanTime(remaining),
-				})
+
+				if total < 0:
+					line = '  %(completed)s van onbekende groote met %(speed)4s/s' % ({
+						'completed': dgemist.HumanSize(completed),
+						'speed': dgemist.HumanSize(speed),
+					})
+				else:
+					line = ('%(complete)3s%% van %(total)s; '
+						+ 'nog %(remaining)4s te gaan met %(speed)4s/s') % ({
+						'total': dgemist.HumanSize(total),
+						'complete': completepc,
+						'speed': dgemist.HumanSize(speed),
+						'remaining': dgemist.HumanTime(remaining),
+					})
 				self.queue.put(lambda: self.progresslbl[i].set(line))
 				ptime = curtime
 
@@ -240,7 +247,7 @@ class GUI:
 
 	
 	def setsize(self):
-		self.root.minsize(width=500, height=root.winfo_height())
+		self.root.minsize(width=666, height=root.winfo_height())
 
 
 if __name__ == '__main__':

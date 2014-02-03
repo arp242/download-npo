@@ -96,16 +96,15 @@ def HumanTime(s):
 	return '%02is' % s
 
 
-def MakeFilename(outdir, title, playerId, safe=True, nospace=True, overwrite=False):
+def MakeFilename(outdir, title, ext, playerId, safe=True, nospace=True, overwrite=False):
 	""" Make a filename from the page title
 	
 	TODO: doctest
 	"""
 
-	if title == '-':
-		return '-'
+	if title == '-': return '-'
 
-	filename = '%s-%s.mp4' % (title, playerId)
+	filename = '%s-%s.%s' % (title, playerId, ext)
 	if safe:
 		unsafe = r'"/\\*?<>|:'
 		filename = ''.join([ f for f in filename if f not in unsafe ])

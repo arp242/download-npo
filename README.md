@@ -16,6 +16,10 @@ Voor BSD/Linux/UNIX kan je [de source][d-unix] downloaden, [Python][2] is nodig
 (Python 2 & 3 werken beiden), voor de grafische interface is ook Tkinter nodig
 (deel van Python maar soms een aparte package).
 
+Als je oudere Silverlight/Windows media player uitzendingen wilt downloaden heb
+je [libmms][libmms] nodig. Dit werkt vooralsnog alleen POSIX (ie. niet-Windows)
+systemen.
+
 
 Gebruik
 =======
@@ -47,42 +51,13 @@ Uiteraard!
 `download-gemist -f - http://www.uitzendinggemist.nl/afleveringen/1330944 | mplayer -cache 4096 -cache-min 99 -`
 
 
-Is dit legaal?
---------------
-Volgens de [algemene voorwaarden][4] van uitzending gemist:
-
-> De Content mag uitsluitend door middel van normaal browserbezoek worden
-> geraadpleegd via de pagina’s van de publieke omroepwebsites, de
-> Omroepplayers of andere door de publieke omroep aangeboden diensten. Het is
-> niet toegestaan de Content op geautomatiseerde wijze te (laten) raadplegen
-> en/of analyseren bijvoorbeeld via scripts, spiders en of bots.
-
-Echter, volgens de [mediawet van 2008][5] (paragraaf 2.1):
-
-> 2. 2. Publieke mediadiensten voldoen aan democratische, sociale en culturele
->    behoeften van de Nederlandse samenleving door het aanbieden van
->    media-aanbod dat:
->
->    [...]
->
->    f. voor iedereen toegankelijk is.
->
-> 3. Het programma-aanbod van de algemene programmakanalen van de landelijke,
-> 	 regionale en lokale publieke mediadiensten wordt via omroepzenders
-> 	 verspreid naar alle huishoudens in het verzorgingsgebied waarvoor de
-> 	 programma’s zijn bestemd zonder dat zij voor de ontvangst andere kosten
-> 	 moeten betalen dan de kosten van aanschaf en gebruik van technische
-> 	 voorzieningen die de ontvangst mogelijk maken.
-
-Aangezien het technisch niets uitmaakt of de plugins gedownload worden met dit
-scriptje of een browser (ze kunnen bij uitzending gemist nergens het verschil
-aan merken), en er ook geen advertenties zijn (en dus geen omzetverlies),
-lijkt het erop dat deze paragraaf uit de algemene voorwaarden niet helemaal in
-lijn met de mediawet is.
-
-
 ChangeLog
 =========
+
+Versie 1.7, TODO
+----------------
+- Ondersteun ook oudere (MMS/ASF) uitzendingen.
+
 
 Versie 1.6.1, 2014-01-05
 ------------------------
@@ -167,3 +142,4 @@ Versie 1.0, 2012-10-03
 [5]: http://www.st-ab.nl/wetten/1107_Mediawet_2008.htm
 [d-win]: https://bitbucket.org/Carpetsmoker/download-gemist/downloads/download-gemist-setup-1.6.1.exe
 [d-unix]: https://bitbucket.org/Carpetsmoker/download-gemist/get/version-1.6.1.tar.gz
+[libmms]: http://sourceforge.net/projects/libmms/

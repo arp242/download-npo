@@ -103,13 +103,19 @@ def DownloadVideo(site, videourl, outfile):
 				remaining = (total - completed) / speed
 
 		if curtime >= ptime + 1:
-			line = ('%(complete)3s%% van %(total)s; '
-				+ 'nog %(remaining)4s te gaan met %(speed)4s/s') % ({
-				'total': dgemist.HumanSize(total),
-				'complete': int(completed / (total / 100)),
-				'speed': dgemist.HumanSize(speed),
-				'remaining': dgemist.HumanTime(remaining),
-			})
+			if total < 0:
+				line = '  %(completed)s van onbekende groote met %(speed)4s/s' % ({
+					'completed': dgemist.HumanSize(completed),
+					'speed': dgemist.HumanSize(speed),
+				})
+			else:
+				line = ('%(complete)3s%% van %(total)s; '
+					+ 'nog %(remaining)4s te gaan met %(speed)4s/s') % ({
+					'total': dgemist.HumanSize(total),
+					'complete': int(completed / (total / 100)),
+					'speed': dgemist.HumanSize(speed),
+					'remaining': dgemist.HumanTime(remaining),
+				})
 
 			if termwidthchanged:
 				termwidthchanged = False
@@ -135,9 +141,9 @@ def Download(videos, filename, outdir):
 
 		try:
 			site = dgemist.MatchSite(v)
-			videourl, title, playerId = site.FindVideo(v)
+			videourl, title, playerId, ext = site.FindVideo(v)
 
-			outfile = dgemist.MakeFilename(outdir, filename or title,
+			outfile = dgemist.MakeFilename(outdir, filename or title, ext,
 				playerId, _safefilename, _replacespace, _overwrite)
 			if _verbose: print('Saving to %s' % outfile)
 		except dgemist.DgemistError as exc:

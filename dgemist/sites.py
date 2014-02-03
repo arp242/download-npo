@@ -17,7 +17,6 @@ sites = [
 	'NPOPlayer',
 ]
 
-
 class Site():
 	# matched against the URL (w/o protocol)
 	match = None
@@ -36,6 +35,10 @@ class Site():
 
 		return urllib2.urlopen(req)
 
+
+	def OpenMMS(self, url):
+		import dgemist.mms
+		return dgemist.mms.MMS(url)
 
 	def GetPage(self, url):
 		data = self.OpenUrl(url).read()
@@ -56,7 +59,7 @@ class Site():
 		return data
 
 
-	def DownloadVideo(self, url, outfile, dryrun=False):
+	def DownloadVideo(self, video, outfile, dryrun=False):
 		""" Download a video and save to outfile (can be - for stdout).
 
 		This is a generator
@@ -65,7 +68,7 @@ class Site():
 		if outfile == '-': fp = sys.stdout
 		elif not dryrun: fp = open(outfile, 'wb+')
 
-		video = self.OpenUrl(url)
+		#video = self.OpenUrl(url)
 
 		total = int(video.info().get('Content-Length'))
 		totalh = dgemist.HumanSize(total)
@@ -77,8 +80,7 @@ class Site():
 		while True:
 			data = video.read(8192)
 			i += 8192
-			if not data:
-				break
+			if data == None: break
 
 			fp.write(data)
 
@@ -119,6 +121,10 @@ class NPOPlayer(Site):
 			raise dgemist.DgemistError('Kan token niet vinden')
 		if dgemist.Verbose(): print('Using token ' + token)
 
+		meta = self.Meta(playerId)
+		if meta.get('streams') and meta['streams'][0]['formaat'] == 'wmv':
+			return self.FindVideo_MMS(playerId)
+
 		streams = self.GetJSON('&'.join([
 			'http://ida.omroep.nl/odiplus/?prid=%s' % playerId,
 			'puboptions=adaptive,h264_bb,h264_sb,h264_std,wmv_bb,wmv_sb,wvc1_std',
@@ -135,7 +141,20 @@ class NPOPlayer(Site):
 		if stream.get('errorstring'):
 			raise dgemist.DgemistError("Foutmelding van site: `%s'" % stream['errorstring'])
 
-		return (stream['url'], self.Meta(playerId).get('title'), playerId)
+		return (self.OpenUrl(stream['url']), meta.get('title'), playerId, 'mp4')
+
+
+	def FindVideo_MMS(self, playerId):
+		""" Old MMS format """
+
+		if dgemist.Verbose(): print('Gebruik FindVideo_MMS')
+
+		meta = self.Meta(playerId)
+		stream = self.GetPage(meta['streams'][0]['url'])
+		stream = re.search(r'"(mms://.*?)"', stream).groups()[0]
+		if dgemist.Verbose(): print('MMS stream: %s' % stream)
+
+		return (self.OpenMMS(stream), meta.get('title'), playerId, 'wmv')
 
 
 	def Meta(self, playerId):
