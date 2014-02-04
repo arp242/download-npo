@@ -196,8 +196,13 @@ if __name__ == '__main__':
 		elif flag == '-c':
 			_safefilename = False
 
-	if filename == '-':
-		_silent = True
+	if filename == '-': _silent = True
+	if not os.path.exists(outdir):
+		Error("Output directory `%s' bestaat niet" % outdir)
+		sys.exit(1)
+	if not os.path.isdir(outdir):
+		Error("Output directory `%s' bestaat maar is geen directory" % outdir)
+		sys.exit(1)
 
 	v = dgemist.CheckUpdate()
 	if v is not None and not _silent:

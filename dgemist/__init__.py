@@ -9,7 +9,7 @@
 
 
 from __future__ import print_function
-import os, re, sys
+import os, re, sys, unicodedata, locale
 
 import dgemist.sites
 
@@ -104,16 +104,20 @@ def MakeFilename(outdir, title, ext, playerId, safe=True, nospace=True, overwrit
 
 	if title == '-': return '-'
 
-	filename = '%s-%s.%s' % (title, playerId, ext)
+	filename = u'%s-%s.%s' % (title, playerId, ext)
 	if safe:
 		unsafe = r'"/\\*?<>|:'
 		filename = ''.join([ f for f in filename if f not in unsafe ])
 	if nospace:
 		filename = filename.replace(' ', '_')
 
-	outfile = '%s/%s' % (outdir, filename)
+	outfile = u'%s/%s' % (outdir, filename)
+	# TODO: This is not the best way to do this
+	if locale.getpreferredencoding() != 'UTF-8':
+		outfile = unicodedata.normalize('NFKD', outfile).encode('ascii', 'ignore')
+
 	if os.path.exists(outfile) and not overwrite:
-			raise DgemistError('Bestand overgeslagen omdat het al bestaat, '
+			raise DgemistError("Bestand `%s' overgeslagen omdat het al bestaat, " % outfile
 				+ 'Gebruik -w voor overschrijven)')
 
 	return outfile
