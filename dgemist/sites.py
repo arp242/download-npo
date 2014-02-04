@@ -80,7 +80,7 @@ class Site():
 		while True:
 			data = video.read(8192)
 			i += 8192
-			if data == None: break
+			if not data: break;
 
 			fp.write(data)
 
