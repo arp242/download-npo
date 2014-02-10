@@ -1,0 +1,248 @@
+#!/usr/bin/env python
+# encoding:utf-8
+#
+# Download videos from the Dutch `Uitzending gemist' site.
+#
+# http://code.arp242.net/download-gemist
+#
+# Copyright © 2012-2014 Martin Tournoij <martin@arp242.net>
+# See below for full copyright
+#
+
+from __future__ import print_function
+import getopt, signal, subprocess, sys, time, os
+import dgemist
+
+
+_verbose = False
+_silent = False
+_dryrun = False
+_overwrite = False
+_safefilename = True
+_replacespace = True
+
+
+def Help():
+	print('%s [-hnvVwn] [-o output_dir] [-f output_file] [url url2 ...]' % sys.argv[0])
+	print('')
+	print('Video URL kan vanaf de commandline opgegeven worden, of via stdin')
+	print('  -h    Toon deze help')
+	print('  -v    Toon versie')
+	print('  -o    Zet output directory. Default is huidige directory')
+	print('  -f    Zet output file, relatief aan -o. Default is titel van de video.')
+	print('        Gebruik - voor stdout')
+	print("  -n    Download niks, laat zien wat we zouden doen")
+	print('  -V    Print meer informatie naar het scherm. Gebruik -V twee keer voor nog meer info')
+	print('  -s    Stil: geef geen informatieve berichten (alleen errors)')
+	print('  -w    Overschrijf bestaande bestanden (default is om bestand over te slaan')
+	print('        als deze al bestaat)')
+	print('  -c    Verwijder geen karakters in de bestandsnaam muv. spaties')
+	print('          - Als je -c 2x opgeeft, worden spaties ook behouden')
+	print('          - De default is om alle niet-geldige FAT32/NTFS karakters te')
+	print('            verwijderen en spaties te vervangen door underscores')
+	print('')
+
+
+def Version():
+	print('download-gemist ' + ', '.join(dgemist.GetVersion()))
+	print('http://code.arp242.net/download-gemist')
+
+
+def Error(msg):
+	""" Print message to stderr, can't use print because of Python 2/3
+	incompatibility """
+	sys.stderr.write('Error: %s\n' % msg)
+
+
+def GetTermWidth():
+	""" Try and get the terminal width """
+
+	# Python 3.3 and newer
+	if getattr(os, 'get_terminal_size', None) is not None:
+		try:
+			return os.get_terminal_size().columns
+		except OSError:
+			return 80
+
+	# No reliable/easy way on Windows in 3.2 and older
+	if sys.platform == 'win32': return 80
+
+	try:
+		proc = subprocess.Popen(['tput cols'], shell=True, stdout=subprocess.PIPE)
+		out = proc.communicate()
+		if proc.wait() != 0: raise OSError
+		return int(out[0])
+	except OSError:
+		return 80
+
+
+def DownloadVideo(site, videourl, outfile):
+	global termwidth, termwidthchanged
+	termwidth = GetTermWidth()
+	termwidthchanged = False
+
+	# Update on terminal resize, if the OS supports it
+	if getattr(signal, 'SIGWINCH', None):
+		def updterm(sig, stack):
+			global termwidth, termwidthchanged
+			termwidth = GetTermWidth()
+			termwidthchanged = True
+		signal.signal(signal.SIGWINCH, updterm)
+
+	filename = os.path.basename(outfile)
+	starttime = time.time()
+	ptime = remaining = 0
+	download = site.DownloadVideo(videourl, outfile, _dryrun)
+	for total, completed, speed in download:
+		curtime = time.time()
+		if curtime - starttime > 2:
+			speed = int(completed / (curtime - starttime))
+			if speed == 0:
+				remaining = 0
+			else:
+				remaining = (total - completed) / speed
+
+		if curtime >= ptime + 1:
+			if total < 0:
+				line = '  %(completed)s van onbekende groote met %(speed)4s/s' % ({
+					'completed': dgemist.HumanSize(completed),
+					'speed': dgemist.HumanSize(speed),
+				})
+			else:
+				line = ('%(complete)3s%% van %(total)s; '
+					+ 'nog %(remaining)4s te gaan met %(speed)4s/s') % ({
+					'total': dgemist.HumanSize(total),
+					'complete': int(completed / (total / 100)),
+					'speed': dgemist.HumanSize(speed),
+					'remaining': dgemist.HumanTime(remaining),
+				})
+
+			if termwidthchanged:
+				termwidthchanged = False
+				print('')
+
+			if len(filename) + len(line) > termwidth:
+				# TODO: This gives a unicode error on Windows (BSD is fine)
+				#title = filename[:termwidth - len(line) - 1] + u'…'
+				title = filename[:termwidth - len(line) - 2] + u'..'
+			else:
+				title = filename
+			sys.stdout.write('\r%s%s' % (title, line))
+			sys.stdout.flush()
+			ptime = curtime
+
+	print('\nOkay!')
+
+
+def Download(videos, filename, outdir):
+	for v in videos:
+		if v == '': continue
+		if _verbose: print('Downloading ' + v)
+
+		try:
+			site = dgemist.MatchSite(v)
+			videourl, title, playerId, ext = site.FindVideo(v)
+
+			outfile = dgemist.MakeFilename(outdir, filename or title, ext,
+				playerId, _safefilename, _replacespace, _overwrite)
+			if _verbose: print('Saving to %s' % outfile)
+		except dgemist.DgemistError as exc:
+			Error(exc)
+			continue
+
+		if not _silent:
+			DownloadVideo(site, videourl, outfile)
+		else:
+			for a in site.DownloadVideo(videourl, outfile):
+				pass
+
+
+if __name__ == '__main__':
+	try:
+		options, videos = getopt.getopt(sys.argv[1:], 'hvVsnwco:f:')
+	except getopt.GetoptError:
+		Error('Error: %s' % sys.exc_info()[1])
+		Help()
+		sys.exit(1)
+
+	outdir = '.'
+	filename = None
+	for flag, arg in options:
+		if flag == '-h':
+			Help()
+			sys.exit(0)
+		elif flag == '-v':
+			Version()
+			sys.exit(0)
+		elif flag == '-V':
+			if _verbose:
+				_verbose = 2
+				dgemist._verbose = 2
+			else:
+				_verbose = 1
+				dgemist._verbose = 1
+		elif flag == '-s':
+			_silent = True
+		elif flag == '-o':
+			outdir = arg
+		elif flag == '-f':
+			filename = arg
+		elif flag == '-n':
+			_dryrun = True
+		elif flag == '-w':
+			_overwrite = True
+		elif flag == '-c' and not _safefilename:
+			_replacespace = False
+		elif flag == '-c':
+			_safefilename = False
+
+	if filename == '-': _silent = True
+	if not os.path.exists(outdir):
+		Error("Output directory `%s' bestaat niet" % outdir)
+		sys.exit(1)
+	if not os.path.isdir(outdir):
+		Error("Output directory `%s' bestaat maar is geen directory" % outdir)
+		sys.exit(1)
+
+	v = dgemist.CheckUpdate()
+	if v is not None and not _silent:
+		Error('Waarschuwing: De laatste versie is %s, je gebruikt nu versie %s' % (
+			v, dgemist.GetVersion()[0]))
+
+	if len(videos) == 0:
+		sys.stderr.write('Lezen van stdin (gebruik -h voor help)...')
+		sys.stderr.flush()
+
+		try :
+			videos = sys.stdin.read().strip().split(' ')
+		except KeyboardInterrupt:
+			print('')
+			sys.exit(0)
+
+	try:
+		Download(videos, filename, outdir)
+	except KeyboardInterrupt:
+		print('')
+
+
+# The MIT License (MIT)
+#
+# Copyright © 2012-2014 Martin Tournoij
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to
+# deal in the Software without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# The software is provided "as is", without warranty of any kind, express or
+# implied, including but not limited to the warranties of merchantability,
+# fitness for a particular purpose and noninfringement. In no event shall the
+# authors or copyright holders be liable for any claim, damages or other
+# liability, whether in an action of contract, tort or otherwise, arising
+# from, out of or in connection with the software or the use or other dealings
+# in the software.

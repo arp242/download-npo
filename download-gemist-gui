@@ -1,0 +1,290 @@
+#!/usr/bin/env python
+# encoding:utf-8
+#
+# Download videos from the Dutch `Uitzending gemist' site.
+#
+# http://code.arp242.net/download-gemist
+#
+# Copyright © 2012-2014 Martin Tournoij <martin@arp242.net>
+# See below for full copyright
+#
+
+from __future__ import print_function
+import os, sys, time, re, traceback
+
+if sys.version_info.major > 2:
+	import tkinter as tk
+	import tkinter.ttk as ttk
+	import tkinter.filedialog as filedialog
+	import tkinter.messagebox as messagebox
+	import queue
+
+	try:
+		import _thread as thread
+	except ImportError:
+		import _dummy_thread as thread
+else:
+	import Tkinter as tk
+	import ttk
+	import tkFileDialog as filedialog
+	import tkMessageBox as messagebox
+	import Queue as queue
+
+	try:
+		import thread
+	except ImportError:
+		import dummy_thread as thread
+
+import dgemist
+
+
+class GUI:
+	def __init__(self, root):
+		self.queue = queue.Queue()
+		self._downloading = 0
+
+		self.root = root
+		self.root.columnconfigure(0, weight=1)
+
+		self.rootframe = ttk.Frame(self.root, padding=5)
+		self.rootframe.grid(row=0, column=0, sticky=tk.E + tk.W)
+		self.rootframe.columnconfigure(0, weight=1)
+
+		topframe = ttk.Frame(self.rootframe)
+
+		self.programinput = tk.Text(topframe, height=3)
+		#self.programinput.bind('<Return>', lambda ev: self.startbtn.invoke())
+
+		self.destdir = tk.StringVar()
+		self.destdir.set(os.path.expanduser('~'))
+		self.destdirinput = tk.Entry(topframe, textvariable=self.destdir)
+		#self.destdirinput.bind('<Return>', lambda ev: self.startbtn.invoke())
+		self.selectdirbtn = tk.Button(topframe, text='Selecteer', command=lambda: self.destdir.set(
+			filedialog.askdirectory(initialdir=self.destdir.get(),
+				parent=self.root, title='Selecteer map om bestanden op te slaan')))
+
+		self.startbtn = ttk.Button(topframe, text='Start',
+			command=self.click_download)
+
+		topframe.grid(column=0, row=0, sticky=tk.W + tk.E)
+		lbl = ttk.Label(topframe, text=("URL('s) naar afleveringpagina, meerdere URL's scheiden door witruimte (spaties en/of enter)"))
+		lbl.grid(row=0, column=0, sticky=tk.W, columnspan=2)
+
+		self.programinput.grid(row=1, column=0, sticky=tk.W + tk.E)
+
+		lbl = ttk.Label(topframe, text=("Map om bestanden op te slaan"))
+		lbl.grid(row=2, column=0, sticky=tk.W, columnspan=2)
+		self.destdirinput.grid(row=3, column=0, sticky=tk.W + tk.E)
+		self.selectdirbtn.grid(row=3, column=1, sticky=tk.E)
+
+		self.startbtn.grid(row=4, column=0, sticky=tk.W)
+
+		topframe.columnconfigure(0, weight=1)
+		topframe.columnconfigure(1, weight=0)
+
+		self.progressframe = ttk.Frame(self.rootframe)
+		self.progressframe.columnconfigure(0, weight=1)
+		self.progressframe.grid(row=1, column=0, sticky=tk.W + tk.E)
+
+		self.root.update()
+		self.setsize()
+
+		v = dgemist.CheckUpdate()
+		if v is not None:
+			messagebox.showwarning('download-gemist',
+				'Waarschuwing: De laatste versie is %s, je gebruikt nu versie %s' % (
+					v, dgemist.GetVersion()[0]))
+
+		if 'debug1' in sys.argv:
+			self.programinput.insert(tk.END,
+				'http://www.uitzendinggemist.nl/afleveringen/1346967')
+			self.click_download()
+		if 'debug2' in sys.argv:
+			self.programinput.insert(tk.END,
+				'http://www.uitzendinggemist.nl/afleveringen/1346967 http://www.uitzendinggemist.nl/afleveringen/1386448')
+			self.click_download()
+
+
+	def click_download(self):
+		v = self.programinput.get(1.0, tk.END).strip()
+		if v == '' or self.destdir.get() == '': return
+
+		self.urls = re.split('\s+', v)
+
+		self.start_download()
+
+
+	def start_download(self):
+		self.programinput.configure(state=tk.DISABLED)
+		self.startbtn.configure(state=tk.DISABLED)
+		self.destdirinput.configure(state=tk.DISABLED)
+		self.selectdirbtn.configure(state=tk.DISABLED)
+
+		self.progress = []
+		self.progresslbl = []
+
+		def f(i): return lambda: thread.start_new_thread(self.BackgroundDownload, (i,))
+
+		def getmeta():
+			for i, u in enumerate(self.urls):
+				v = tk.IntVar()
+				v.set(0)
+				self.progress.append(v)
+
+				v = tk.StringVar()
+				v.set('Wachten...')
+				self.progresslbl.append(v)
+
+				try:
+					site = dgemist.MatchSite(u)
+					videourl, title, playerId = site.FindVideo(u)
+					meta = site.Meta(playerId)
+
+					if meta.get('serie') is not None:
+						lbl = tk.Label(self.progressframe, text='%s - %s ' % (meta['serie']['serie_titel'],
+							meta['aflevering_titel']))
+					else:
+						lbl = tk.Label(self.progressframe, text='%s' % meta['titel'])
+
+					lbl.grid(row=i, column=0, sticky=tk.W)
+
+					lbl = tk.Label(self.progressframe, textvariable=self.progresslbl[i])
+					lbl.grid(row=i, column=1, sticky=tk.E)
+
+					self.queue.put(f(i))
+				except Exception as exc:
+					lbl = tk.Label(self.progressframe, text='%s' % u)
+					lbl.grid(row=i, column=0, sticky=tk.W)
+
+					lbl = tk.Label(self.progressframe, text='Fout')
+					lbl.grid(row=i, column=1, sticky=tk.E)
+					
+					self._downloading += 1
+
+					messagebox.showwarning('Fout', 'Fout in getmeta():\n%s' % (
+						''.join(traceback.format_exception(*sys.exc_info()))))
+			self.setsize()
+			thread.exit()
+
+		self.queue.put(lambda: thread.start_new_thread(getmeta, ()))
+		self.runqueue()
+
+
+	def runqueue(self):
+		try:
+			while True:
+				self.queue.get_nowait()()
+		except queue.Empty:
+			if self._downloading >= len(self.urls):
+				self.programinput.configure(state=tk.NORMAL)
+				self.destdirinput.configure(state=tk.NORMAL)
+				self.startbtn.configure(state=tk.NORMAL)
+				self.selectdirbtn.configure(state=tk.NORMAL)
+				self.urls = []
+
+		self.root.after(100, self.runqueue)
+
+
+	def BackgroundDownload(self, i):
+		""" Download videos in thread """
+
+		while self._downloading != i: time.sleep(1)
+
+		site = dgemist.MatchSite(self.urls[i])
+		try:
+			videourl, title, epid, ext = site.FindVideo(self.urls[i])
+			outfile = dgemist.MakeFilename(self.destdir.get(), title, ext, epid,
+				overwrite=True)
+		except dgemist.DgemistError as e:
+			messagebox.messagebox('Fout', e.message)
+			self.queue.put(lambda: self.progresslbl[i].set('Fout'))
+			self._downloading += 1
+			thread.exit()
+
+		pcomplete = -1
+		starttime = time.time()
+		ptime = remaining = 0
+		for total, completed, speed in site.DownloadVideo(videourl, outfile):
+			completepc = int(completed / (total / 100))
+			curtime = time.time()
+
+			if completepc != pcomplete:
+				self.queue.put(lambda: self.progress[i].set(completepc))
+				pcomplete = completepc
+
+			if curtime - starttime > 2:
+				speed = int(completed / (curtime - starttime))
+				if speed == 0:
+					remaining = 100
+				else:
+					remaining = (total - completed) / speed
+
+			if curtime >= ptime + 1:
+				if speed == 0:
+					remaining = 100
+				else:
+					remaining = (total - completed) / speed
+
+				if total < 0:
+					line = '  %(completed)s van onbekende groote met %(speed)4s/s' % ({
+						'completed': dgemist.HumanSize(completed),
+						'speed': dgemist.HumanSize(speed),
+					})
+				else:
+					line = ('%(complete)3s%% van %(total)s; '
+						+ 'nog %(remaining)4s te gaan met %(speed)4s/s') % ({
+						'total': dgemist.HumanSize(total),
+						'complete': completepc,
+						'speed': dgemist.HumanSize(speed),
+						'remaining': dgemist.HumanTime(remaining),
+					})
+				self.queue.put(lambda: self.progresslbl[i].set(line))
+				ptime = curtime
+
+		self.queue.put(lambda: self.progresslbl[i].set('Klaar'))
+		self._downloading += 1
+		thread.exit()
+
+	
+	def setsize(self):
+		self.root.minsize(width=666, height=root.winfo_height())
+
+
+if __name__ == '__main__':
+	root = tk.Tk()
+	root.title('Download-gemist %s, %s (Esc om te sluiten)' %
+		dgemist.GetVersion())
+	root.bind('<Escape>', lambda ev: root.quit())
+
+	s = ttk.Style()
+	s.theme_use('clam')
+
+	GUI(root)
+
+	try:
+		root.mainloop()
+	except KeyboardInterrupt:
+		pass
+
+
+# The MIT License (MIT)
+#
+# Copyright © 2012-2014 Martin Tournoij
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to
+# deal in the Software without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# The software is provided "as is", without warranty of any kind, express or
+# implied, including but not limited to the warranties of merchantability,
+# fitness for a particular purpose and noninfringement. In no event shall the
+# authors or copyright holders be liable for any claim, damages or other
+# liability, whether in an action of contract, tort or otherwise, arising
+# from, out of or in connection with the software or the use or other dealings
+# in the software.
