@@ -5,7 +5,7 @@ from distutils.core import setup
 
 setup(
 	name = 'download-gemist',
-	version = '1.6.1',
+	version = '1.6.2',
 	author = 'Martin Tournoij',
 	author_email = 'martin@arp242.net',
 	url = 'http://code.arp242.net/download-gemist',
