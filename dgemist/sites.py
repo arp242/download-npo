@@ -29,6 +29,7 @@ class Site():
 
 		headers = {
 			'User-Agent': 'Opera/9.80 (X11; FreeBSD 9.1-RELEASE-p3 amd64) Presto/2.12.388 Version/12.15',
+			'Cookie': 'npo_cc=30; npo_cc_meta=1.0.5:0',
 		}
 		req = urllib2.Request(url, headers=headers)
 		page = urllib2.urlopen(req)
@@ -126,7 +127,7 @@ class NPOPlayer(Site):
 			return self.FindVideo_MMS(playerId)
 
 		streams = self.GetJSON('&'.join([
-			'http://ida.omroep.nl/odiplus/?prid=%s' % playerId,
+			'http://ida.omroep.nl/odi/?prid=%s' % playerId,
 			'puboptions=adaptive,h264_bb,h264_sb,h264_std,wmv_bb,wmv_sb,wvc1_std',
 			'adaptive=no',
 			'part=1',

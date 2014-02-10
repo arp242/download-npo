@@ -60,6 +60,11 @@ Laatste source
 - Ondersteun ook oudere (MMS/ASF) uitzendingen.
 
 
+Versie 1.6.2, 2014-02-10
+------------------------
+- Fix voor huidige versie van de site
+
+
 Versie 1.6.1, 2014-01-05
 ------------------------
 - Bugfix: Uitzendingen die niet bij een serie horen gaven een error
