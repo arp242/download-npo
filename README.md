@@ -55,14 +55,15 @@ Uiteraard!
 ChangeLog
 =========
 
-Laatste source
---------------
-- Ondersteun ook oudere (MMS/ASF) uitzendingen.
+Versie 1.6.3, 2014-02-18
+------------------------
+- Fixes in release, Windows-build van 1.6.2 was fubar
 
 
 Versie 1.6.2, 2014-02-10
 ------------------------
 - Fix voor huidige versie van de site
+- Ondersteun ook oudere (MMS/ASF) uitzendingen
 
 
 Versie 1.6.1, 2014-01-05
@@ -146,6 +147,6 @@ Versie 1.0, 2012-10-03
 [3]: mailto:martin@arp242.net
 [4]: http://www.publiekeomroep.nl/artikelen/algemene-voorwaarden-privacy
 [5]: http://www.st-ab.nl/wetten/1107_Mediawet_2008.htm
-[d-win]: https://bitbucket.org/Carpetsmoker/download-gemist/downloads/download-gemist-setup-1.6.1.exe
-[d-unix]: https://bitbucket.org/Carpetsmoker/download-gemist/get/version-1.6.1.tar.gz
+[d-win]: https://bitbucket.org/Carpetsmoker/download-gemist/downloads/download-gemist-setup-1.6.3.exe
+[d-unix]: https://bitbucket.org/Carpetsmoker/download-gemist/downloads/download-gemist-1.6.3.tar.gz
 [libmms]: http://sourceforge.net/projects/libmms/

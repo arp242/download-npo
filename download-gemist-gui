@@ -137,7 +137,7 @@ class GUI:
 
 				try:
 					site = dgemist.MatchSite(u)
-					videourl, title, playerId = site.FindVideo(u)
+					videourl, title, playerId, ext = site.FindVideo(u)
 					meta = site.Meta(playerId)
 
 					if meta.get('serie') is not None:

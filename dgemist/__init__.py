@@ -32,7 +32,7 @@ def Verbose():
 
 def GetVersion():
 	""" Get (version, release date), both as string """
-	return ('1.6.2', '2014-02-10')
+	return ('1.6.3', '2014-02-18')
 
 
 def CheckUpdate():
@@ -98,7 +98,7 @@ def HumanTime(s):
 
 def MakeFilename(outdir, title, ext, playerId, safe=True, nospace=True, overwrite=False):
 	""" Make a filename from the page title
-	
+
 	TODO: doctest
 	"""
 
@@ -114,7 +114,7 @@ def MakeFilename(outdir, title, ext, playerId, safe=True, nospace=True, overwrit
 	outfile = u'%s/%s' % (outdir, filename)
 	# TODO: This is not the best way to do this
 	if locale.getpreferredencoding() != 'UTF-8':
-		outfile = unicodedata.normalize('NFKD', outfile).encode('ascii', 'ignore')
+		outfile = unicodedata.normalize('NFKD', outfile).encode('ascii', 'ignore').decode()
 
 	if os.path.exists(outfile) and not overwrite:
 			raise DgemistError("Bestand `%s' overgeslagen omdat het al bestaat, " % outfile

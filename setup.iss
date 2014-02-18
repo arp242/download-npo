@@ -19,6 +19,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 OutputBaseFilename=download-gemist-setup
+SetupIconFile=Z:\code\download-gemist\icon.ico
 Compression=lzma
 SolidCompression=yes
 
