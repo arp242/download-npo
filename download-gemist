@@ -62,7 +62,7 @@ def GetTermWidth():
 		try:
 			return os.get_terminal_size().columns
 		except OSError:
-			return 80
+			pass
 
 	# No reliable/easy way on Windows in 3.2 and older
 	if sys.platform == 'win32': return 80
@@ -84,6 +84,7 @@ def DownloadVideo(site, videourl, outfile):
 	# Update on terminal resize, if the OS supports it
 	if getattr(signal, 'SIGWINCH', None):
 		def updterm(sig, stack):
+			# TODO: Use nonlocal once we drop Python2 support
 			global termwidth, termwidthchanged
 			termwidth = GetTermWidth()
 			termwidthchanged = True
