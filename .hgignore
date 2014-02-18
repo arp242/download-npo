@@ -3,3 +3,4 @@ syntax: glob
 *.pyc
 dist_win32
 Output
+build/*
