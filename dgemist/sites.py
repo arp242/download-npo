@@ -103,6 +103,9 @@ class NPOPlayer(Site):
 
 	match = '.*'
 
+	# TODO: Regionale omroepen hebben een rare playerId, bv:
+	# data-player-id="REG_FLEV_STR140220"
+	# data-player-id="REG_BRAB_TV1512251"
 	_playerid_regex = '([A-Z][A-Z_]{1,7}_\d{6,9})'
 
 	def FindVideo(self, url):
@@ -140,9 +143,15 @@ class NPOPlayer(Site):
 		stream = self.GetJSON(streams['streams'][0])
 
 		if stream.get('errorstring'):
-			raise dgemist.DgemistError("Foutmelding van site: `%s'" % stream['errorstring'])
+			# Dit is vooral voor regionale afleveringen (lijkt het ...)
+			if meta.get('streams') and len(meta['streams']) > 0:
+				url = meta['streams'][0]['url']
+			else:
+				raise dgemist.DgemistError("Foutmelding van site: `%s'" % stream['errorstring'])
+		else:
+			url = stream['url']
 
-		return (self.OpenUrl(stream['url']), meta.get('title'), playerId, 'mp4')
+		return (self.OpenUrl(url), meta.get('title'), playerId, 'mp4')
 
 
 	def FindVideo_MMS(self, playerId):
@@ -172,6 +181,7 @@ class NPOPlayer(Site):
 		return self._meta[playerId]
 
 
+
 class UitzendingGemist(NPOPlayer):
 	match = '^(www\.)?uitzendinggemist.nl'
 	_playerid_regex = 'data-player-id="(.*?)"'
@@ -180,7 +190,6 @@ class UitzendingGemist(NPOPlayer):
 class NPO(NPOPlayer):
 	match = '(www\.)?npo.nl'
 	_playerid_regex = 'data-prid="(.*?)"'
-
 
 
 # The MIT License (MIT)

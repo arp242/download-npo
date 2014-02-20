@@ -14,7 +14,6 @@ import getopt, signal, subprocess, sys, time, os
 import dgemist
 
 
-_verbose = False
 _silent = False
 _dryrun = False
 _overwrite = False
@@ -136,9 +135,10 @@ def DownloadVideo(site, videourl, outfile):
 
 
 def Download(videos, filename, outdir):
+	exitcode = 0
 	for v in videos:
 		if v == '': continue
-		if _verbose: print('Downloading ' + v)
+		if dgemist.Verbose(): print('Downloading ' + v)
 
 		try:
 			site = dgemist.MatchSite(v)
@@ -146,9 +146,10 @@ def Download(videos, filename, outdir):
 
 			outfile = dgemist.MakeFilename(outdir, filename or title, ext,
 				playerId, _safefilename, _replacespace, _overwrite)
-			if _verbose: print('Saving to %s' % outfile)
+			if dgemist.Verbose(): print('Saving to %s' % outfile)
 		except dgemist.DgemistError as exc:
 			Error(exc)
+			exitcode = 1
 			continue
 
 		if not _silent:
@@ -156,6 +157,8 @@ def Download(videos, filename, outdir):
 		else:
 			for a in site.DownloadVideo(videourl, outfile):
 				pass
+
+	sys.exit(exitcode)
 
 
 if __name__ == '__main__':
@@ -176,12 +179,7 @@ if __name__ == '__main__':
 			Version()
 			sys.exit(0)
 		elif flag == '-V':
-			if _verbose:
-				_verbose = 2
-				dgemist._verbose = 2
-			else:
-				_verbose = 1
-				dgemist._verbose = 1
+			dgemist._verbose += 1
 		elif flag == '-s':
 			_silent = True
 		elif flag == '-o':
