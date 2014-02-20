@@ -10,11 +10,10 @@ allemaal getest).
 
 Installatie
 ===========
-Voor Windows is [de installer][d-win] het makkelijkst.
-
-Voor BSD/Linux/UNIX kan je [de source][d-unix] downloaden, [Python][2] is nodig
-(Python 2.7 & 3.3 zijn getest), voor de grafische interface is ook `Tkinter`
-nodig (deel van Python maar soms een aparte package).
+- **[Windows installer][d-win]**
+- **[Source][d-unix]**, voor BSD, Linux, UNIX, en OSX. [Python][2] is nodig
+  (Python 2.7 & 3.3 zijn getest), voor de grafische interface is ook `Tkinter`
+  nodig (deel van Python maar soms een aparte package).
 
 Als je oudere Silverlight/Windows media player uitzendingen wilt downloaden heb
 je [libmms][libmms] nodig. Dit werkt vooralsnog alleen op POSIX (ie.

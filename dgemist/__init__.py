@@ -20,7 +20,7 @@ else:
 
 __all__ = ['GetVersion', 'CheckUpdate', 'HumanSize', 'HumanTime',]
 
-_verbose = False
+_verbose = 0
 
 
 class DgemistError(Exception): pass

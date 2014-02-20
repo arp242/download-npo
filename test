@@ -1,0 +1,22 @@
+#!/bin/sh
+#
+# Test: download alle afleveringen van de frontpage
+#
+
+eps=$(fetch -qo- http://www.uitzendinggemist.nl/ | grep -Eo '/afleveringen/[0-9]+' | sort -u)
+
+IFS="
+"
+for e in $eps; do
+	e="http://www.uitzendinggemist.nl$e"
+	echo -n "==> $e "
+
+	out=$(python2 download-gemist -nV "$e")
+	if [ $? -ne 0 ]; then
+		echo
+		echo "$out"
+		exit 1
+	else
+		echo "Okay"
+	fi
+done
