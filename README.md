@@ -54,6 +54,11 @@ Uiteraard!
 ChangeLog
 =========
 
+Laatste source
+--------------
+- Fix voor lokale omroepen (omroep Brabant ed.)
+
+
 Versie 1.6.3, 2014-02-18
 ------------------------
 - Fixes in release, Windows-build van 1.6.2 was fubar
