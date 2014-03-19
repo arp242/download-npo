@@ -10,7 +10,7 @@
 #
 
 from __future__ import print_function
-import getopt, signal, subprocess, sys, time, os
+import getopt, signal, subprocess, sys, time, os, re
 import dgemist
 
 
@@ -138,6 +138,7 @@ def Download(videos, filename, outdir):
 	exitcode = 0
 	for v in videos:
 		if v == '': continue
+		if re.match(r'^\d+$', v): v = 'http://www.uitzendinggemist.nl/afleveringen/' + v
 		if dgemist.Verbose(): print('Downloading ' + v)
 
 		try:
