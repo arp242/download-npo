@@ -111,6 +111,10 @@ class GUI:
 
 		self.urls = re.split('\s+', v)
 
+		for i, u in enumerate(self.urls):
+			if re.match(r'^\d+$', u):
+				self.urls[i] = 'http://www.uitzendinggemist.nl/afleveringen/' + u
+
 		self.start_download()
 
 

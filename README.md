@@ -57,6 +57,8 @@ ChangeLog
 Laatste source
 --------------
 - Fix voor lokale omroepen (omroep Brabant ed.)
+- Je mag nu ook alleen het videonummer meegeven, (bv. de `1404271` in
+  `http://www.uitzendinggemist.nl/afleveringen/1404271`)
 
 
 Versie 1.6.3, 2014-02-18
