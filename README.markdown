@@ -82,7 +82,7 @@ feitelijk hetzelfde als Subrip (`.srt`) ondertitels (de verschillen zijn miniem)
 ChangeLog
 =========
 
-Versie 1.7, 2014-10-??
+Versie 1.7, 2014-10-24
 ----------------------
 - uitzendinggemist.nl is nu npo.nl, hernoem hier en daar dingen.
 - Fix voor Python 2.6
@@ -184,8 +184,6 @@ Versie 1.0, 2012-10-03
 [1]: http://www.npo.nl/
 [2]: http://python.org/
 [3]: mailto:martin@arp242.net
-[4]: http://www.publiekeomroep.nl/artikelen/algemene-voorwaarden-privacy
-[5]: http://www.st-ab.nl/wetten/1107_Mediawet_2008.htm
-[d-win]: https://bitbucket.org/Carpetsmoker/download-gemist/downloads/download-gemist-setup-1.6.3.exe
-[d-unix]: https://bitbucket.org/Carpetsmoker/download-gemist/downloads/download-gemist-1.6.3.tar.gz
+[d-win]: https://bitbucket.org/Carpetsmoker/download-gemist/downloads/download-gemist-setup-1.7.exe
+[d-unix]: https://bitbucket.org/Carpetsmoker/download-gemist/downloads/download-gemist-1.7.tar.gz
 [libmms]: http://sourceforge.net/projects/libmms/
