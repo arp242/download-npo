@@ -18,8 +18,8 @@ AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
-OutputBaseFilename=download-gemist-setup
-SetupIconFile=Z:\code\download-gemist\icon.ico
+OutputBaseFilename=download-gemist-setup-{#MyAppVersion}
+SetupIconFile=F:\icon.ico
 Compression=lzma
 SolidCompression=yes
 
@@ -30,9 +30,9 @@ Name: "dutch"; MessagesFile: "compiler:Languages\Dutch.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "Z:\code\download-gemist\dist_win32\download-gemist-gui.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\code\download-gemist\dist_win32\download-gemist.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\code\download-gemist\dist_win32\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "F:\dist_win32\download-gemist-gui.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "F:\dist_win32\download-gemist.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "F:\dist_win32\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

@@ -8,10 +8,6 @@ version = dgemist.GetVersion()[0]
 
 # Windows
 if sys.platform == 'win32':
-	if '#define MyAppVersion "%s"\r\n' % version not in open('setup.iss').readlines():
-		print('Ook versie in setup.iss ophogen')
-		sys.exit(1)
-
 	from cx_Freeze import setup, Executable
 
 	setup(
@@ -23,9 +19,8 @@ if sys.platform == 'win32':
 		description = '',
 		options = {
 			'build_exe': {
-				#'excludes': ['_ssl', '_hashlib', '_ctypes', 'bz2', 'email', 'unittest', 'doctest',
 				'excludes': ['_ssl', '_hashlib', '_ctypes', 'bz2', 'unittest', 'doctest',
-					'locale', 'optparse',],
+					'locale', 'optparse', 'email'],
 			}
 		},
 		executables = [
@@ -44,7 +39,7 @@ if sys.platform == 'win32':
 	)
 
 	filelist = [
-		('', ['README.md']),
+		('', ['README.markdown']),
 	]
 
 	for (destdir, files) in filelist:
