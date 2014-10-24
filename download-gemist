@@ -22,23 +22,28 @@ _replacespace = True
 
 
 def Help():
-	print('%s [-hnvVwn] [-o output_dir] [-f output_file] [url url2 ...]' % sys.argv[0])
+	print('%s [-hvnVsofwcmMtT] [-o output_dir] [-f output_file] [url url2 ...]' % sys.argv[0])
 	print('')
 	print('Video URL kan vanaf de commandline opgegeven worden, of via stdin')
+	print('')
 	print('  -h    Toon deze help')
 	print('  -v    Toon versie')
-	print('  -o    Zet output directory. Default is huidige directory')
-	print('  -f    Zet output file, relatief aan -o. Default is titel van de video.')
-	print('        Gebruik - voor stdout')
 	print("  -n    Download niks, laat zien wat we zouden doen")
 	print('  -V    Print meer informatie naar het scherm. Gebruik -V twee keer voor nog meer info')
 	print('  -s    Stil: geef geen informatieve berichten (alleen errors)')
+	print('  -o    Zet output directory. Default is huidige directory')
+	print('  -f    Zet output file, relatief aan -o. Default is titel van de video.')
+	print('        Gebruik - voor stdout')
 	print('  -w    Overschrijf bestaande bestanden (default is om bestand over te slaan')
 	print('        als deze al bestaat)')
 	print('  -c    Verwijder geen karakters in de bestandsnaam muv. spaties')
 	print('          - Als je -c 2x opgeeft, worden spaties ook behouden')
-	print('          - De default is om alle niet-geldige FAT32/NTFS karakters te')
+	print('          - De default is om alle ongeldige FAT32/NTFS karakters te')
 	print('            verwijderen en spaties te vervangen door underscores')
+	print('  -m    Toon enkel de metadata in YAML formaat')
+	print('  -M    Toon enkel de metadata in JSON formaat')
+	print('  -t    Download ook ondertiteling, als deze bestaat')
+	print('  -T    Download alleen ondertiteling, geef een error als deze niet bestaan')
 	print('')
 
 
@@ -134,37 +139,62 @@ def DownloadVideo(site, videourl, outfile):
 	print('\nOkay!')
 
 
-def Download(videos, filename, outdir):
+def Download(videos, filename, outdir, metaonly, getsubs):
 	exitcode = 0
 	for v in videos:
 		if v == '': continue
-		if re.match(r'^\d+$', v): v = 'http://www.uitzendinggemist.nl/afleveringen/' + v
 		if dgemist.Verbose(): print('Downloading ' + v)
 
 		try:
 			site = dgemist.MatchSite(v)
 			videourl, title, playerId, ext = site.FindVideo(v)
 
-			outfile = dgemist.MakeFilename(outdir, filename or title, ext,
-				playerId, _safefilename, _replacespace, _overwrite)
-			if dgemist.Verbose(): print('Saving to %s' % outfile)
+			if not metaonly:
+				outfile = dgemist.MakeFilename(outdir, filename or title, ext,
+					playerId, _safefilename, _replacespace, _overwrite)
+				if dgemist.Verbose(): print('Saving to %s' % outfile)
+
+			if getsubs > 0:
+				subout = dgemist.MakeFilename(outdir, filename or title, 'srt',
+					playerId, _safefilename, _replacespace, _overwrite)
+				if dgemist.Verbose(): print('Saving subs to %s' % subout)
 		except dgemist.DgemistError as exc:
 			Error(exc)
 			exitcode = 1
 			continue
 
-		if not _silent:
-			DownloadVideo(site, videourl, outfile)
+		if metaonly == 1:
+			try:
+				import yaml
+			except ImportError:
+				print('Error: yaml extensie niet gevonden')
+				print('Om de metadata als YAML te tonen is de YAML extensie nodig; deze is te vinden op:')
+				print('http://pyyaml.org/')
+				sys.exit(1)
+			print(yaml.dump(site.Meta(playerId)))
+		elif metaonly == 2:
+			import json
+			print(json.dumps(site.Meta(playerId), indent=True))
+		elif getsubs == 2:
+			with open(subout, 'wb') as fp:
+				fp.write(site.Subs(playerId).read())
 		else:
-			for a in site.DownloadVideo(videourl, outfile):
-				pass
+			if getsubs == 1:
+				with open(subout, 'wb') as fp:
+					fp.write(site.Subs(playerId).read())
+
+			if not _silent:
+				DownloadVideo(site, videourl, outfile)
+			else:
+				for a in site.DownloadVideo(videourl, outfile):
+					pass
 
 	sys.exit(exitcode)
 
 
 if __name__ == '__main__':
 	try:
-		options, videos = getopt.getopt(sys.argv[1:], 'hvVsnwco:f:')
+		options, videos = getopt.getopt(sys.argv[1:], 'hvVsnwcmMtTo:f:')
 	except getopt.GetoptError:
 		Error('Error: %s' % sys.exc_info()[1])
 		Help()
@@ -172,6 +202,8 @@ if __name__ == '__main__':
 
 	outdir = '.'
 	filename = None
+	metaonly = 0
+	getsubs = 0
 	for flag, arg in options:
 		if flag == '-h':
 			Help()
@@ -195,14 +227,23 @@ if __name__ == '__main__':
 			_replacespace = False
 		elif flag == '-c':
 			_safefilename = False
+		elif flag == '-m':
+			metaonly = 1
+		elif flag == '-M':
+			metaonly = 2
+		elif flag == '-t':
+			getsubs = 1
+		elif flag == '-T':
+			getsubs = 2
 
-	if filename == '-': _silent = True
-	if not os.path.exists(outdir):
-		Error("Output directory `%s' bestaat niet" % outdir)
-		sys.exit(1)
-	if not os.path.isdir(outdir):
-		Error("Output directory `%s' bestaat maar is geen directory" % outdir)
-		sys.exit(1)
+	if not metaonly:
+		if filename == '-': _silent = True
+		if not os.path.exists(outdir):
+			Error("Output directory `%s' bestaat niet" % outdir)
+			sys.exit(1)
+		if not os.path.isdir(outdir):
+			Error("Output directory `%s' bestaat maar is geen directory" % outdir)
+			sys.exit(1)
 
 	v = dgemist.CheckUpdate()
 	if v is not None and not _silent:
@@ -220,7 +261,7 @@ if __name__ == '__main__':
 			sys.exit(0)
 
 	try:
-		Download(videos, filename, outdir)
+		Download(videos, filename, outdir, metaonly, getsubs)
 	except KeyboardInterrupt:
 		print('')
 
