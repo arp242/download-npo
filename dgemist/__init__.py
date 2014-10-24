@@ -32,7 +32,7 @@ def Verbose():
 
 def GetVersion():
 	""" Get (version, release date), both as string """
-	return ('1.6.3', '2014-02-18')
+	return ('1.7', 'beta')
 
 
 def CheckUpdate():
@@ -42,7 +42,9 @@ def CheckUpdate():
 	>>> CheckUpdate() is None
 	True
 	"""
-	
+
+	if GetVersion()[1] == 'beta': return None
+
 	try:
 		page = urllib2.urlopen('http://code.arp242.net/download-gemist/downloads').read().decode('utf-8')
 		versions = re.findall('<td class="name">version-([0-9.]*?)</td>', page)

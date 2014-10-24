@@ -1,18 +1,18 @@
-**Download-gemist downloads videos from the Dutch uitzending gemist site. The
-rest of the documentation is in Dutch.**
+**Download-gemist downloads videos from the Dutch npo.nl (formerly uitzending
+gemist) site. The rest of the documentation is in Dutch.**
 
 
-Download-gemist download videos van de [uitzending gemist][1] site van de
-publieke omroep. In principe zouden alle sites die gebruik maken van de zogeten
-“NPOPlayer” moeten werken, zoals bv. npo.nl, ncrv.nl, enz. (al zijn deze niet
-allemaal getest).
+Download-gemist download videos van de [NPO][1] (voorheen 'uitzending gemist')
+site van de publieke omroep. In principe zouden alle sites die gebruik maken van
+de zogeten “NPOPlayer” moeten werken, zoals bv. npo.nl, ncrv.nl, enz. (al zijn
+deze niet allemaal getest).
 
 
 Installatie
 ===========
 - **[Windows installer][d-win]**
 - **[Source][d-unix]**, voor BSD, Linux, UNIX, en OSX. [Python][2] is nodig
-  (Python 2.7 & 3.3 zijn getest), voor de grafische interface is ook `Tkinter`
+  (Python 2.6+ & 3.2+ zijn getest), voor de grafische interface is ook `Tkinter`
   nodig (deel van Python maar soms een aparte package).
 
 Als je oudere Silverlight/Windows media player uitzendingen wilt downloaden heb
@@ -26,7 +26,7 @@ download-gemist is een commandline-tool, er is ook een grafische frontend
 `download-gemist-gui`
 
 Voorbeeld:  
-`download-gemist http://www.uitzendinggemist.nl/afleveringen/1292817`
+`download-gemist http://www.npo.nl/andere-tijden/23-10-2014/VPWON_1227038`
 
 Zie `download-gemist -h` voor meer help en opties.
 
@@ -36,29 +36,39 @@ FAQ
 
 Help! Het werkt niet! PANIEK!
 -----------------------------
-In het grootste deel van de gevallen komt dit omdat er iets kleins is
-veranderd op de uitzending gemist site. Aangezien ik niet alle dagen videos
-aan het downloaden ben kan het soms even duren voordat ik dit zie (& fix).
-Stuur even een mail naar [martin@arp242.net][3] met de URL die je gebruik en de
-volledige output van het commando (vaak is dit een kleine aanpassing van enkele
-minuten).
-
+Vaak is dit omdat er op de NPO site iets niet klopt; soms ontbreekt een
+videobestand, of is het niet compleet. Meestal is dit een dag of wat later
+opgelost.  
+Werkt het een dag later nog niet, of denk je dat het niet de schuld van de site
+is? Stuur dan even een email naar [martin@arp242.net][3] met de URL die je
+gebruikt en de (volledige) output van je commando; het liefst met de `-VVV`
+opties.
 
 Kan ik ook een video streamen zonder het eerst op te slaan?
 -----------------------------------------------------------
 Uiteraard!
 
-`download-gemist -f - http://www.uitzendinggemist.nl/afleveringen/1330944 | mplayer -cache 4096 -cache-min 99 -`
+`download-gemist -f - http://www.npo.nl/andere-tijden/23-10-2014/VPWON_1227038 | mplayer -cache 4096 -cache-min 99 -`
+
+Ondertitels worden opgeslagen als .srt, maar zijn eigenlijk in het WebVTT formaat?
+----------------------------------------------------------------------------------
+Dat klopt; WebVTT wordt vooralsnog door maar weinig spelers herkend, en het is
+feitelijk hetzelfde als Subrip (.srt) ondertitels (de verschillen zijn miniem).
 
 
 ChangeLog
 =========
 
-Laatste source
---------------
+Versie 1.7, 2014-10-??
+----------------------
+- uitzendinggemist.nl is nu npo.nl, hernoem hier en daar dingen.
+- Fix voor Python 2.6
 - Fix voor lokale omroepen (omroep Brabant ed.)
-- Je mag nu ook alleen het videonummer meegeven, (bv. de `1404271` in
-  `http://www.uitzendinggemist.nl/afleveringen/1404271`)
+- `-V` kan nu tot 3 keer opgegeven worden
+- `-t` toevoegd om ook ondertitels mee te downloaden. Met `-T` worden alleen de
+  ondertitels gedownload.
+- `-m` om alleen de metadata te laten zien, in YAML formaat; `-M` voor JSON
+  formaat.
 
 
 Versie 1.6.3, 2014-02-18
@@ -148,7 +158,7 @@ Versie 1.0, 2012-10-03
 
 
 
-[1]: http://www.uitzendinggemist.nl/
+[1]: http://www.npo.nl/
 [2]: http://python.org/
 [3]: mailto:martin@arp242.net
 [4]: http://www.publiekeomroep.nl/artikelen/algemene-voorwaarden-privacy

@@ -1,5 +1,5 @@
 #define MyAppName "download-gemist"
-#define MyAppVersion "1.6"
+#define MyAppVersion "1.7"
 #define MyAppPublisher "Martin Tournoij"
 #define MyAppURL "http://code.arp242.net/download-gemist"
 #define MyAppExeName "download-gemist-gui.exe"

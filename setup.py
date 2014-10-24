@@ -1,24 +1,17 @@
 #!/usr/bin/env python
 
-import glob, sys, subprocess, os
+import glob, sys, subprocess, os, re
 from distutils.core import setup
 
 import dgemist
 version = dgemist.GetVersion()[0]
 
-# I keep forgetting to increment the version number before release :-/
-if dgemist.CheckUpdate() is None:
-	print("Je hebt het versienummer niet opgehoogd sukkel")
-	sys.exit(1)
-
-if sys.platform != 'win32':
-	subprocess.call(
-		r"sed -E -i.orig 's/download-gemist(-setup)?-[0-9.]{3,5}\.(exe|tar\.gz)/download-gemist\1-%s.\2/' README.md" % version,
-		shell=True)
-	os.unlink('README.md.orig')
-
 # Windows
 if sys.platform == 'win32':
+	if '#define MyAppVersion "%s"\r\n' % version not in open('setup.iss').readlines():
+		print('Ook versie in setup.iss ophogen')
+		sys.exit(1)
+
 	from cx_Freeze import setup, Executable
 
 	setup(
@@ -82,7 +75,6 @@ else:
 		packages = ['dgemist'],
 		scripts = glob.glob('download-*'),
 		data_files = [
-			('share/doc/download-gemist', ['README.md']),
+			('share/doc/download-gemist', ['README.markdown']),
 		],
-
 	)

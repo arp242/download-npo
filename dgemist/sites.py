@@ -4,15 +4,16 @@ import sys, json, time, re
 
 if sys.version_info[0] < 3:
 	import urllib2
+	import httplib
 else:
 	import urllib.request as urllib2
+	import http.client
 
 import dgemist
 
 # These Classes are matched to the URL (using the match property). First match
 # wins.
 sites = [
-	'UitzendingGemist',
 	'NPO',
 	'NPOPlayer',
 ]
@@ -24,6 +25,15 @@ class Site():
 	# Meta info about this broadcast
 	_meta = {}
 
+	def __init__(self):
+		# TODO: Make this work for Python 2
+		if dgemist.Verbose() >= 2:
+			if sys.version_info[0] >= 3:
+				http.client.HTTPConnection.debuglevel = 99
+			else:
+				httplib.HTTPConnection.debuglevel = 99
+
+
 	def OpenUrl(self, url):
 		if dgemist.Verbose(): print('OpenUrl url: ' + url)
 
@@ -32,7 +42,6 @@ class Site():
 			'Cookie': 'npo_cc=30; npo_cc_meta=1.0.5:0',
 		}
 		req = urllib2.Request(url, headers=headers)
-		page = urllib2.urlopen(req)
 
 		return urllib2.urlopen(req)
 
@@ -43,7 +52,7 @@ class Site():
 
 	def GetPage(self, url):
 		data = self.OpenUrl(url).read()
-		if sys.version_info.major > 2: data = data.decode()
+		if sys.version_info[0] > 2: data = data.decode()
 
 		return data.strip()
 
@@ -60,7 +69,7 @@ class Site():
 		return data
 
 
-	def DownloadVideo(self, video, outfile, dryrun=False):
+	def DownloadVideo(self, video, outfile, dryrun=False, getsubs=False):
 		""" Download a video and save to outfile (can be - for stdout).
 
 		This is a generator
@@ -68,8 +77,6 @@ class Site():
 
 		if outfile == '-': fp = sys.stdout
 		elif not dryrun: fp = open(outfile, 'wb+')
-
-		#video = self.OpenUrl(url)
 
 		total = int(video.info().get('Content-Length'))
 		totalh = dgemist.HumanSize(total)
@@ -93,6 +100,7 @@ class Site():
 		if fp != sys.stdout: fp.close()
 
 
+	def DownloadSubs(self): raise dgemist.DgemistError('Not implemented')
 	def FindVideo(self, url): raise dgemist.DgemistError('Not implemented')
 	def Meta(self, url): raise dgemist.DgemistError('Not implemented')
 
@@ -103,7 +111,7 @@ class NPOPlayer(Site):
 
 	match = '.*'
 
-	# TODO: Regionale omroepen hebben een rare playerId, bv:
+	# TODO: Regionale omroepen hebben een `rare' playerId, bv:
 	# data-player-id="REG_FLEV_STR140220"
 	# data-player-id="REG_BRAB_TV1512251"
 	_playerid_regex = '([A-Z][A-Z_]{1,7}_\d{6,9})'
@@ -112,8 +120,9 @@ class NPOPlayer(Site):
 		""" Find video to download
 		Returns (downloadurl, pagetitle, playerId)"""
 
+		page = self.GetPage(url)
 		try:
-			playerId = re.search(self._playerid_regex, self.GetPage(url)).groups()[0]
+			playerId = re.search(self._playerid_regex, page).groups()[0]
 		except AttributeError:
 			raise dgemist.DgemistError('Kan playerId niet vinden')
 		if dgemist.Verbose(): print('Using playerId ' + playerId)
@@ -181,10 +190,16 @@ class NPOPlayer(Site):
 		return self._meta[playerId]
 
 
+	def Subs(self, playerId):
+		# Je zou verwachten dat je met het onderstaande uit de meta-data het
+		# eea. over de ondertitels zou kunnen ophalen ... helaas werkt dat niet
+		# zo, of misschien dat ik het niet goed doe... Voor nu gebruiken dus
+		# hardcoded e.omroep.nl/tt888/, wat goed lijkt te werken.
+		#self.Meta(playerId)
+		#print('%s/%s/' % (meta['sitestat']['baseurl_subtitle'],
+		#	meta['sitestat']['subtitleurl']))
 
-class UitzendingGemist(NPOPlayer):
-	match = '^(www\.)?uitzendinggemist.nl'
-	_playerid_regex = 'data-player-id="(.*?)"'
+		return self.OpenUrl('http://e.omroep.nl/tt888/%s' % playerId)
 
 
 class NPO(NPOPlayer):
