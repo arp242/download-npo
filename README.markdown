@@ -2,10 +2,12 @@
 gemist) site. The rest of the documentation is in Dutch.**
 
 
-Download-gemist download videos van de [NPO][1] (voorheen 'uitzending gemist')
+Download-gemist download videos van de [NPO][1] (voorheen ‘uitzending gemist’)
 site van de publieke omroep. In principe zouden alle sites die gebruik maken van
-de zogeten “NPOPlayer” moeten werken, zoals bv. npo.nl, ncrv.nl, enz. (al zijn
-deze niet allemaal getest).
+de zogeten “NPOPlayer” moeten werken, zoals bv. ncrv.nl of nrc.nl (al zijn deze
+niet allemaal getest).
+
+Voor vragen of opmerkingen kun je mailen naar [martin@arp242.net][3].
 
 
 Installatie
@@ -17,18 +19,39 @@ Installatie
 
 Als je oudere Silverlight/Windows media player uitzendingen wilt downloaden heb
 je [libmms][libmms] nodig. Dit werkt vooralsnog alleen op POSIX (ie.
-niet-Windows) systemen.
+niet-Windows) systemen. Dit is verder geheel optioneel.
 
 
 Gebruik
 =======
 download-gemist is een commandline-tool, er is ook een grafische frontend
-`download-gemist-gui`
+`download-gemist-gui`.
 
 Voorbeeld:  
 `download-gemist http://www.npo.nl/andere-tijden/23-10-2014/VPWON_1227038`
 
-Zie `download-gemist -h` voor meer help en opties.
+Overzicht van alle opties (dit is wat je te zien krijgt als je `download-gemist
+-h` gebruikt):
+
+	-h    Toon deze help
+	-v    Toon versie
+	-n    Download niks, laat zien wat we zouden doen
+	-V    Print meer informatie naar het scherm. Gebruik -V twee keer voor nog meer info
+	-s    Stil: geef geen informatieve berichten (alleen errors)
+	-o    Zet output directory. Default is huidige directory
+	-f    Zet output file, relatief aan -o. Default is titel van de video.
+	      Gebruik - voor stdout
+	-w    Overschrijf bestaande bestanden (default is om bestand over te slaan
+	      als deze al bestaat)
+	-c    Verwijder geen karakters in de bestandsnaam muv. spaties
+	          - Als je -c 2x opgeeft, worden spaties ook behouden
+	          - De default is om alle ongeldige FAT32/NTFS karakters te
+	            verwijderen en spaties te vervangen door underscores
+	-m    Toon enkel de metadata in YAML formaat
+	-M    Toon enkel de metadata in JSON formaat
+	-t    Download ook ondertiteling, als deze bestaat
+	-T    Download alleen ondertiteling, geef een error als deze niet bestaan
+
 
 
 FAQ
@@ -41,8 +64,8 @@ videobestand, of is het niet compleet. Meestal is dit een dag of wat later
 opgelost.  
 Werkt het een dag later nog niet, of denk je dat het niet de schuld van de site
 is? Stuur dan even een email naar [martin@arp242.net][3] met de URL die je
-gebruikt en de (volledige) output van je commando; het liefst met de `-VVV`
-opties.
+gebruikt en de (volledige) output van je commando (het liefst met de `-VVV`
+opties), dan zal ik er even naar kijken.
 
 Kan ik ook een video streamen zonder het eerst op te slaan?
 -----------------------------------------------------------
@@ -53,7 +76,7 @@ Uiteraard!
 Ondertitels worden opgeslagen als .srt, maar zijn eigenlijk in het WebVTT formaat?
 ----------------------------------------------------------------------------------
 Dat klopt; WebVTT wordt vooralsnog door maar weinig spelers herkend, en het is
-feitelijk hetzelfde als Subrip (.srt) ondertitels (de verschillen zijn miniem).
+feitelijk hetzelfde als Subrip (`.srt`) ondertitels (de verschillen zijn miniem).
 
 
 ChangeLog
