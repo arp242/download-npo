@@ -14,7 +14,7 @@ Installatie
 ===========
 - **[Windows installer][d-win]**
 - **[Source][d-unix]**, voor BSD, Linux, UNIX, en OSX. [Python][2] is nodig
-  (Python 2.6+ & 3.2+ zijn getest), voor de grafische interface is ook `Tkinter`
+  (Python 2.6+ & 3.3+ zijn getest), voor de grafische interface is ook `Tkinter`
   nodig (deel van Python maar soms een aparte package).
 
 Als je oudere Silverlight/Windows media player uitzendingen wilt downloaden heb
