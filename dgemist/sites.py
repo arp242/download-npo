@@ -120,6 +120,9 @@ class NPOPlayer(Site):
 		""" Find video to download
 		Returns (downloadurl, pagetitle, playerId)"""
 
+		if not (url.startswith('http://') or url.startswith('https://')):
+			url = 'http://%s' % url
+
 		page = self.GetPage(url)
 		try:
 			playerId = re.search(self._playerid_regex, page).groups()[0]
