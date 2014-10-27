@@ -128,7 +128,7 @@ def MakeFilename(outdir, title, ext, playerId, safe=True, nospace=True, overwrit
 def MatchSite(url):
 	""" Return a Site object based from url """
 
-	url = url.replace('http://', '').replace('https://', '')
+	url = re.sub('^www\.', '', url.replace('http://', '').replace('https://', ''))
 
 	sites = dgemist.sites.sites
 	for s in dgemist.sites.sites:

@@ -85,6 +85,7 @@ class MMS(object):
 		malloc.restype = ctypes.POINTER(ctypes.c_char)
 		self.buf = malloc(8192)
 
+
 	def close(self):
 		return self._libmms.mmsh_close(mms);
 

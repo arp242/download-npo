@@ -82,6 +82,11 @@ feitelijk hetzelfde als Subrip (`.srt`) ondertitels (de verschillen zijn miniem)
 ChangeLog
 =========
 
+Laatste source
+--------------
+- Werk ook zonder `http://` (ie. `download-gemist npo.nl/...`
+
+
 Versie 1.7, 2014-10-24
 ----------------------
 - uitzendinggemist.nl is nu npo.nl, hernoem hier en daar dingen.
