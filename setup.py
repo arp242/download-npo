@@ -20,7 +20,7 @@ if sys.platform == 'win32':
 		options = {
 			'build_exe': {
 				'excludes': ['_ssl', '_hashlib', '_ctypes', 'bz2', 'unittest', 'doctest',
-					'locale', 'optparse', 'email'],
+					'locale', 'optparse'],
 			}
 		},
 		executables = [
