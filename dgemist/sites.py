@@ -14,6 +14,7 @@ import dgemist
 # These Classes are matched to the URL (using the match property). First match
 # wins.
 sites = [
+	'OmroepBrabant',
 	'NPO',
 	'NPOPlayer',
 ]
@@ -35,6 +36,7 @@ class Site():
 
 
 	def OpenUrl(self, url):
+		""" Open a URI; return urllib.request.Request object """
 		if dgemist.Verbose(): print('OpenUrl url: ' + url)
 
 		headers = {
@@ -47,10 +49,13 @@ class Site():
 
 
 	def OpenMMS(self, url):
+		""" Open MMS URL """
 		import dgemist.mms
 		return dgemist.mms.MMS(url)
 
+
 	def GetPage(self, url):
+		""" Open URL, and read() the data """
 		data = self.OpenUrl(url).read()
 		if sys.version_info[0] > 2: data = data.decode()
 
@@ -58,6 +63,7 @@ class Site():
 
 
 	def GetJSON(self, url):
+		""" Open URL, and read() the data, and parse it as JSON """
 		data = re.sub(r'^[\w\d\?]+\(', r'',  self.GetPage(url))
 		data = re.sub('[\);/epc\s]*$', '', data)
 		data = json.loads(data)
@@ -100,9 +106,9 @@ class Site():
 		if fp != sys.stdout: fp.close()
 
 
-	def DownloadSubs(self): raise dgemist.DgemistError('Not implemented')
 	def FindVideo(self, url): raise dgemist.DgemistError('Not implemented')
-	def Meta(self, url): raise dgemist.DgemistError('Not implemented')
+	def Meta(self, playerId): raise dgemist.DgemistError('Not implemented')
+	def Subs(self, playerId): raise dgemist.DgemistError('Deze site ondersteund geen ondertitels')
 
 
 class NPOPlayer(Site):
@@ -110,15 +116,11 @@ class NPOPlayer(Site):
 	NPO player """
 
 	match = '.*'
-
-	# TODO: Regionale omroepen hebben een `rare' playerId, bv:
-	# data-player-id="REG_FLEV_STR140220"
-	# data-player-id="REG_BRAB_TV1512251"
 	_playerid_regex = '([A-Z][A-Z_]{1,7}_\d{6,9})'
 
 	def FindVideo(self, url):
 		""" Find video to download
-		Returns (downloadurl, pagetitle, playerId)"""
+		Returns (downloadurl, pagetitle, playerId, extension)"""
 
 		if not (url.startswith('http://') or url.startswith('https://')):
 			url = 'http://%s' % url
@@ -208,6 +210,52 @@ class NPOPlayer(Site):
 class NPO(NPOPlayer):
 	match = '(www\.)?npo.nl'
 	_playerid_regex = 'data-prid="(.*?)"'
+
+
+
+class OmroepBrabant(Site):
+	match ='(www\.)?omroepbrabant.nl'
+	
+	
+	def FindVideo(self, url):
+		""" Find video to download
+		Returns (downloadurl, pagetitle, playerId, extension)"""
+		if not (url.startswith('http://') or url.startswith('https://')):
+			url = 'http://%s' % url
+
+		page = self.GetPage(url)
+		try:
+			jsurl = re.search('data-url="(.*?)"', page).groups()[0]
+			playerId = re.search('sourceid_string:(\d+)', jsurl).groups()[0]
+		except AttributeError:
+			raise dgemist.DgemistError('Kan playerId niet vinden')
+
+		meta = self.Meta(playerId)
+
+		streams = meta['clipData']['assets']
+		streams.sort(key=lambda v: int(v['bandwidth']), reverse=True)
+		url = streams[0]['src']
+
+		return (self.OpenUrl(url), meta['clipData'].get('title'), playerId, 'mp4')
+
+
+	def Meta(self, playerId):
+		if self._meta.get(playerId) is None:
+			page = self.GetPage('http://media.omroepbrabant.nl/p/Commercieel1/q/sourceid_string:%s.js' % playerId)
+			page = re.search('var opts = (.*);', page).groups()[0]
+
+			data = json.loads(page)
+			del data['playerCSS']
+			del data['playerHTML']
+
+			#if meta.get('serie') is not None:
+			#	meta['title'] = '%s %s' % (meta['serie']['serie_titel'], meta['aflevering_titel'])
+			#else:
+			#	meta['title'] = '%s' % meta['titel']
+
+			self._meta[playerId] = data
+
+		return self._meta[playerId]
 
 
 # The MIT License (MIT)
