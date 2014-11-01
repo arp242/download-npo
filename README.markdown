@@ -84,6 +84,7 @@ ChangeLog
 
 Laatste source
 --------------
+- Implementeer Omroep Brabant.
 - Werk ook zonder `http://` (ie. `download-gemist npo.nl/...`
 
 
