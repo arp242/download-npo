@@ -15,7 +15,7 @@ Installatie
 - **[Windows installer][d-win]**; dit is alles wat je nodig hebt. Het kan zijn
   dat je een foutmelding krijgt mbt. `MSVCR100.dll`; je zal dan de ‘Microsoft
   Visual C++ 2010 Redistributable Package’ moeten downloaden van
-  [http://www.microsoft.com/en-us/download/details.aspx?id=14632][http://www.microsoft.com/en-us/download/details.aspx?id=14632].
+  [http://www.microsoft.com/en-us/download/details.aspx?id=14632](http://www.microsoft.com/en-us/download/details.aspx?id=14632).
 - **[Source][d-unix]**, voor BSD, Linux, UNIX, en OSX. [Python][2] is nodig
   (Python 2.6+ & 3.3+ zijn getest), voor de grafische interface is ook `Tkinter`
   nodig (deel van Python maar soms een aparte package).
@@ -218,7 +218,7 @@ Versie 1.0, 2012-10-03
 [1]: http://www.npo.nl/
 [2]: http://python.org/
 [3]: mailto:martin@arp242.net
-[d-win]: http://tmp.arp242.net/download-npo-setup.2.0..exe
+[d-win]: http://tmp.arp242.net/download-npo-setup-2.0.exe
 [d-unix]: https://bitbucket.org/Carpetsmoker/download-npo/get/version-2.0.tar.gz
 [libmms]: http://sourceforge.net/projects/libmms/
 [dg.nl]: http://downloadgemist.nl
