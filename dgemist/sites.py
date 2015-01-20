@@ -1,4 +1,9 @@
 # encoding:utf-8
+#
+# http://code.arp242.net/download-npo
+#
+# Copyright © 2012-201% Martin Tournoij <martin@arp242.net>
+# See below for full copyright
 
 import sys, json, time, re
 
@@ -269,7 +274,7 @@ class OmroepBrabant(Site):
 
 # The MIT License (MIT)
 #
-# Copyright © 2012-2014 Martin Tournoij
+# Copyright © 2012-2015 Martin Tournoij
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to

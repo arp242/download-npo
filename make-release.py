@@ -11,7 +11,7 @@ if dgemist.CheckUpdate() is None:
 
 if sys.platform != 'win32':
 	subprocess.call(
-		r"sed -E -i.orig 's/download-gemist(-setup)?-[0-9.]{3,5}\.(exe|tar\.gz)/download-gemist\1-%s.\2/' README.markdown" % version,
+		r"sed -E -i.orig 's/download-npo(-setup)?-[0-9.]{3,5}\.(exe|tar\.gz)/download-npo\1-%s.\2/' README.markdown" % version,
 		shell=True)
 	os.unlink('README.markdown.orig')
 

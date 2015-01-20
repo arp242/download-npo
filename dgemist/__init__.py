@@ -2,9 +2,9 @@
 #
 # Download videos from the Dutch `Uitzending gemist' site.
 #
-# http://code.arp242.net/download-gemist
+# http://code.arp242.net/download-npo
 #
-# Copyright © 2012-2014 Martin Tournoij <martin@arp242.net>
+# Copyright © 2012-2015 Martin Tournoij <martin@arp242.net>
 # See below for full copyright
 
 
@@ -32,7 +32,7 @@ def Verbose():
 
 def GetVersion():
 	""" Get (version, release date), both as string """
-	return ('1.7', '2014-10-24')
+	return ('2.0', '2015-01-25')
 
 
 def CheckUpdate():
@@ -46,7 +46,7 @@ def CheckUpdate():
 	if GetVersion()[1] == 'beta': return None
 
 	try:
-		page = urllib2.urlopen('http://code.arp242.net/download-gemist/downloads').read().decode('utf-8')
+		page = urllib2.urlopen('http://code.arp242.net/download-npo/downloads').read().decode('utf-8')
 		versions = re.findall('<td class="name">version-([0-9.]*?)</td>', page)
 		versions.sort()
 		latest = versions.pop()
@@ -143,7 +143,7 @@ def MatchSite(url):
 
 # The MIT License (MIT)
 #
-# Copyright © 2012-2014 Martin Tournoij
+# Copyright © 2012-2015 Martin Tournoij
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to

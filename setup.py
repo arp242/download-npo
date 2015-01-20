@@ -11,11 +11,11 @@ if sys.platform == 'win32':
 	from cx_Freeze import setup, Executable
 
 	setup(
-		name = 'download-gemist',
+		name = 'download-npo',
 		version = version,
 		author = 'Martin Tournoij',
 		author_email = 'martin@arp242.net',
-		url = 'http://code.arp242.net/download-gemist',
+		url = 'http://code.arp242.net/download-npo',
 		description = '',
 		options = {
 			'build_exe': {
@@ -25,12 +25,12 @@ if sys.platform == 'win32':
 		},
 		executables = [
 			Executable(
-				script = 'download-gemist',
+				script = 'download-npo',
 				compress = True,
 				icon = './icon.ico',
 			),
 			Executable(
-				script = 'download-gemist-gui',
+				script = 'download-npo-gui',
 				base = 'Win32GUI',
 				compress = True,
 				icon = './icon.ico',
@@ -62,14 +62,14 @@ if sys.platform == 'win32':
 # Everything else
 else:
 	setup(
-		name = 'download-gemist',
+		name = 'download-npo',
 		version = version,
 		author = 'Martin Tournoij',
 		author_email = 'martin@arp242.net',
-		url = 'http://code.arp242.net/download-gemist',
+		url = 'http://code.arp242.net/download-npo',
 		packages = ['dgemist'],
-		scripts = glob.glob('download-*'),
+		scripts = glob.glob('npo-*'),
 		data_files = [
-			('share/doc/download-gemist', ['README.markdown']),
+			('share/doc/download-npo', ['README.markdown']),
 		],
 	)
