@@ -1,8 +1,8 @@
-#define MyAppName "download-gemist"
-#define MyAppVersion "1.7"
+#define MyAppName "download-npo"
+#define MyAppVersion "2.0"
 #define MyAppPublisher "Martin Tournoij"
-#define MyAppURL "http://code.arp242.net/download-gemist"
-#define MyAppExeName "download-gemist-gui.exe"
+#define MyAppURL "http://code.arp242.net/download-npo"
+#define MyAppExeName "download-npo-gui.exe"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -18,7 +18,7 @@ AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
-OutputBaseFilename=download-gemist-setup-{#MyAppVersion}
+OutputBaseFilename=download-npo-setup-{#MyAppVersion}
 SetupIconFile=E:\icon.ico
 Compression=lzma
 SolidCompression=yes
@@ -30,8 +30,8 @@ Name: "dutch"; MessagesFile: "compiler:Languages\Dutch.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "E:\dist_win32\download-gemist-gui.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\dist_win32\download-gemist.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "E:\dist_win32\download-npo-gui.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "E:\dist_win32\download-npo.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "E:\dist_win32\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 

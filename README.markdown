@@ -1,18 +1,21 @@
-**Download-gemist downloads videos from the Dutch npo.nl (formerly uitzending
+**Download-npo downloads videos from the Dutch npo.nl (formerly uitzending
 gemist) site. The rest of the documentation is in Dutch.**
 
 
-Download-gemist download videos van de [NPO][1] (voorheen ‘uitzending gemist’)
-site van de publieke omroep. In principe zouden alle sites die gebruik maken van
-de zogeten “NPOPlayer” moeten werken, zoals bv. ncrv.nl of nrc.nl (al zijn deze
-niet allemaal getest).
+Download-npo (voorheen `download-gemist` )download videos van de [NPO][1]
+(voorheen ‘uitzending gemist’) site van de publieke omroep. In principe zouden
+alle sites die gebruik maken van de zogeten “NPOPlayer” moeten werken, zoals bv.
+ncrv.nl of nrc.nl (al zijn deze niet allemaal getest).
 
 Voor vragen of opmerkingen kun je mailen naar [martin@arp242.net][3].
 
 
 Installatie
 ===========
-- **[Windows installer][d-win]**
+- **[Windows installer][d-win]**; dit is alles wat je nodig hebt. Het kan zijn
+  dat je een foutmelding krijgt mbt. `MSVCR100.dll`; je zal dan de ‘Microsoft
+  Visual C++ 2010 Redistributable Package’ moeten downloaden van
+  [http://www.microsoft.com/en-us/download/details.aspx?id=14632][http://www.microsoft.com/en-us/download/details.aspx?id=14632].
 - **[Source][d-unix]**, voor BSD, Linux, UNIX, en OSX. [Python][2] is nodig
   (Python 2.6+ & 3.3+ zijn getest), voor de grafische interface is ook `Tkinter`
   nodig (deel van Python maar soms een aparte package).
@@ -24,14 +27,14 @@ niet-Windows) systemen. Dit is verder geheel optioneel.
 
 Gebruik
 =======
-download-gemist is een commandline-tool, er is ook een grafische frontend
-`download-gemist-gui`.
+download-npo is een commandline-tool, er is ook een grafische frontend
+`download-npo-gui`.
 
 Voorbeeld:  
-`download-gemist http://www.npo.nl/andere-tijden/23-10-2014/VPWON_1227038`
+`download-npo http://www.npo.nl/andere-tijden/23-10-2014/VPWON_1227038`
 
-Overzicht van alle opties (dit is wat je te zien krijgt als je `download-gemist
--h` gebruikt):
+Overzicht van alle opties (dit is wat je te zien krijgt als je `download-npo -h`
+gebruikt):
 
 	-h    Toon deze help
 	-v    Toon versie
@@ -71,27 +74,49 @@ Kan ik ook een video streamen zonder het eerst op te slaan?
 -----------------------------------------------------------
 Uiteraard!
 
-`download-gemist -f - http://www.npo.nl/andere-tijden/23-10-2014/VPWON_1227038 | mplayer -cache 4096 -cache-min 99 -`
+`download-npo -f - http://www.npo.nl/andere-tijden/23-10-2014/VPWON_1227038 | mplayer -cache 4096 -cache-min 99 -`
 
 Ondertitels worden opgeslagen als .srt, maar zijn eigenlijk in het WebVTT formaat?
 ----------------------------------------------------------------------------------
 Dat klopt; WebVTT wordt vooralsnog door maar weinig spelers herkend, en het is
 feitelijk hetzelfde als Subrip (`.srt`) ondertitels (de verschillen zijn miniem).
 
+Ik vind dit geen fijn programma, weet je misschien iets anders?
+---------------------------------------------------------------
+Dat is jammer :-( Feedback is trouwens altijd welkom. Stuur een mailtje naar
+[martin@arp242.net][3] en laat me weten wat er beter kan!
+
+Maar, deze alternatieven zijn bekend bij mij:
+
+- [downloadgemist.nl][dg.nl]; voordeel is dat het online is (je hoeft niks te
+  installeren; maar heeft minder opties, en is minder handig als je meer dan een
+  paar afleveringen wilt downloaden.
+
+- [Chrome-Uitzending-Gemist-Downloader][https://github.com/luukd/Chrome-Uitzending-Gemist-Downloader].
+  ; Chrome plugin. Verder niet getest.
+
+- [GemistDownloader][http://www.helpdeskweb.nl/gemistdownloader/]; naast mijn
+  inzien wat onhandig programma, en het is *niet* open source. Wellicht dat het
+  voor jou beter werkt.
+
+Staat jouw programma er niet bij? Mail me dan even en ik zet het erbij
 
 ChangeLog
 =========
 
-Laatste source
---------------
+Versie 2.0, 2015-01-20
+----------------------
+- **Hernoem tool naar `download-npo`**; iemand anders heeft een soortgelijk
+  programma gemaakt en dat dezelfde naam genoemd. In goed overleg is besloten
+  mijn programma te hernoemen om verwarring te voorkomen.
 - Implementeer Omroep Brabant.
-- Werk ook zonder `http://` (ie. `download-gemist npo.nl/...`
+- Werk ook zonder `http://` (ie. `download-npo npo.nl/...`
 - Nieuwe optie: `-k` voor het selecteren van de kwaliteit.
 - Fallback nu naar lagere kwaliteits streams, als `-k` niet opgegeven is en de
   hoogste kwaliteit niet beschikbaar is.
 
 
-Versie 1.7, 2014-10-24
+Versie 1.7, 2014-10-25
 ----------------------
 - uitzendinggemist.nl is nu npo.nl, hernoem hier en daar dingen.
 - Fix voor Python 2.6
@@ -193,6 +218,7 @@ Versie 1.0, 2012-10-03
 [1]: http://www.npo.nl/
 [2]: http://python.org/
 [3]: mailto:martin@arp242.net
-[d-win]: https://bitbucket.org/Carpetsmoker/download-gemist/downloads/download-gemist-setup-1.7.exe
-[d-unix]: https://bitbucket.org/Carpetsmoker/download-gemist/downloads/download-gemist-1.7.tar.gz
+[d-win]: http://tmp.arp242.net/download-npo-setup.2.0..exe
+[d-unix]: https://bitbucket.org/Carpetsmoker/download-npo/get/version-2.0.tar.gz
 [libmms]: http://sourceforge.net/projects/libmms/
+[dg.nl]: http://downloadgemist.nl
