@@ -106,7 +106,7 @@ class Site():
 		if fp != sys.stdout: fp.close()
 
 
-	def FindVideo(self, url): raise dgemist.DgemistError('Not implemented')
+	def FindVideo(self, url, quality=0): raise dgemist.DgemistError('Not implemented')
 	def Meta(self, playerId): raise dgemist.DgemistError('Not implemented')
 	def Subs(self, playerId): raise dgemist.DgemistError('Deze site ondersteund geen ondertitels')
 
@@ -118,7 +118,7 @@ class NPOPlayer(Site):
 	match = '.*'
 	_playerid_regex = '([A-Z][A-Z_]{1,7}_\d{6,9})'
 
-	def FindVideo(self, url):
+	def FindVideo(self, url, quality=0):
 		""" Find video to download
 		Returns (downloadurl, pagetitle, playerId, extension)"""
 
@@ -153,17 +153,25 @@ class NPOPlayer(Site):
 			'_=%s' % time.time(),
 		]))
 
-		# TODO: Allow selecting of streams (ie. quality)
-		stream = self.GetJSON(streams['streams'][0])
-
-		if stream.get('errorstring'):
-			# Dit is vooral voor regionale afleveringen (lijkt het ...)
-			if meta.get('streams') and len(meta['streams']) > 0:
-				url = meta['streams'][0]['url']
+		url = None
+		errors = []
+		for q, streamurl in enumerate(streams['streams'][quality:]):
+			stream = self.GetJSON(streamurl)
+			if stream.get('errorstring'):
+				# Dit is vooral voor regionale afleveringen (lijkt het ...)
+				if meta.get('streams') and len(meta['streams']) > 0:
+					url = meta['streams'][0]['url']
+					break
+				else:
+					sys.stderr.write("Warning: De kwaliteit `%s' lijkt niet beschikbaar.\n" % ['hoog', 'middel', 'laag'][q])
+					sys.stderr.flush()
+					errors.append(stream.get('errorstring'))
 			else:
-				raise dgemist.DgemistError("Foutmelding van site: `%s'" % stream['errorstring'])
-		else:
-			url = stream['url']
+				url = stream['url']
+				break
+
+		if url is None:
+			raise dgemist.DgemistError("Foutmelding van site: `%s'" % ', '.join(errors))
 
 		return (self.OpenUrl(url), meta.get('title'), playerId, 'mp4')
 
@@ -186,10 +194,11 @@ class NPOPlayer(Site):
 			meta = self.GetJSON('http://e.omroep.nl/metadata/aflevering/%s?callback=cb&_=%s' % (
 				playerId, time.time()))
 
-			if meta.get('serie') is not None:
-				meta['title'] = '%s %s' % (meta['serie']['serie_titel'], meta['aflevering_titel'])
-			else:
-				meta['title'] = '%s' % meta['titel']
+			# Hier lijkt zo vaak de helft van te ontbreken dat het niet opschiet
+			#if meta.get('serie') is not None:
+			#	meta['title'] = '%s %s' % (meta['serie']['serie_titel'], meta['aflevering_titel'])
+			#else:
+			meta['title'] = '%s' % meta['titel']
 			self._meta[playerId] = meta
 
 		return self._meta[playerId]
@@ -217,7 +226,7 @@ class OmroepBrabant(Site):
 	match ='(www\.)?omroepbrabant.nl'
 	
 	
-	def FindVideo(self, url):
+	def FindVideo(self, url, quality=0):
 		""" Find video to download
 		Returns (downloadurl, pagetitle, playerId, extension)"""
 		if not (url.startswith('http://') or url.startswith('https://')):
