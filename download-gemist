@@ -44,6 +44,7 @@ def Help():
 	print('  -M    Toon enkel de metadata in JSON formaat')
 	print('  -t    Download ook ondertiteling, als deze bestaat')
 	print('  -T    Download alleen ondertiteling, geef een error als deze niet bestaan')
+	print('  -k    Selecteer de kwaliteit; hoog (default), middel of laag.')
 	print('')
 
 
@@ -139,7 +140,7 @@ def DownloadVideo(site, videourl, outfile):
 	print('\nOkay!')
 
 
-def Download(videos, filename, outdir, metaonly, getsubs):
+def Download(videos, filename, outdir, metaonly, getsubs, quality):
 	exitcode = 0
 	for v in videos:
 		if v == '': continue
@@ -147,7 +148,7 @@ def Download(videos, filename, outdir, metaonly, getsubs):
 
 		try:
 			site = dgemist.MatchSite(v)
-			videourl, title, playerId, ext = site.FindVideo(v)
+			videourl, title, playerId, ext = site.FindVideo(v, quality)
 
 			if not metaonly:
 				outfile = dgemist.MakeFilename(outdir, filename or title, ext,
@@ -194,7 +195,7 @@ def Download(videos, filename, outdir, metaonly, getsubs):
 
 if __name__ == '__main__':
 	try:
-		options, videos = getopt.getopt(sys.argv[1:], 'hvVsnwcmMtTo:f:')
+		options, videos = getopt.getopt(sys.argv[1:], 'hvVsnwcmMtTo:f:k:')
 	except getopt.GetoptError:
 		Error('Error: %s' % sys.exc_info()[1])
 		Help()
@@ -204,6 +205,7 @@ if __name__ == '__main__':
 	filename = None
 	metaonly = 0
 	getsubs = 0
+	quality = 0
 	for flag, arg in options:
 		if flag == '-h':
 			Help()
@@ -235,6 +237,13 @@ if __name__ == '__main__':
 			getsubs = 1
 		elif flag == '-T':
 			getsubs = 2
+		elif flag == '-k':
+			try:
+				quality = ['hoog', 'middel', 'laag'].index(arg)
+			except ValueError:
+				Error("Ongeldige optie voor -k: `%s'." % arg)
+				Error("Geldige opties: `hoog', `middel', `laag'")
+				sys.exit(1)
 
 	if not metaonly:
 		if filename == '-': _silent = True
@@ -261,7 +270,7 @@ if __name__ == '__main__':
 			sys.exit(0)
 
 	try:
-		Download(videos, filename, outdir, metaonly, getsubs)
+		Download(videos, filename, outdir, metaonly, getsubs, quality)
 	except KeyboardInterrupt:
 		print('')
 

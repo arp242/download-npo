@@ -86,6 +86,9 @@ Laatste source
 --------------
 - Implementeer Omroep Brabant.
 - Werk ook zonder `http://` (ie. `download-gemist npo.nl/...`
+- Nieuwe optie: `-k` voor het selecteren van de kwaliteit.
+- Fallback nu naar lagere kwaliteits streams, als `-k` niet opgegeven is en de
+  hoogste kwaliteit niet beschikbaar is.
 
 
 Versie 1.7, 2014-10-24
