@@ -92,10 +92,10 @@ Maar, deze alternatieven zijn bekend bij mij:
   installeren; maar heeft minder opties, en is minder handig als je meer dan een
   paar afleveringen wilt downloaden.
 
-- [Chrome-Uitzending-Gemist-Downloader](https://github.com/luukd/Chrome-Uitzending-Gemist-Downloader).
-  ; Chrome plugin. Verder niet getest.
+- [Chrome-Uitzending-Gemist-Downloader](https://github.com/luukd/Chrome-Uitzending-Gemist-Downloader);
+  Chrome plugin. Verder niet getest.
 
-- [GemistDownloader](http://www.helpdeskweb.nl/gemistdownloader/); naast mijn
+- [GemistDownloader](http://www.helpdeskweb.nl/gemistdownloader/); naar mijn
   inzien wat onhandig programma, en het is *niet* open source. Wellicht dat het
   voor jou beter werkt.
 
