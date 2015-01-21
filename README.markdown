@@ -2,7 +2,7 @@
 gemist) site. The rest of the documentation is in Dutch.**
 
 
-Download-npo (voorheen `download-gemist` )download videos van de [NPO][1]
+Download-npo (voorheen `download-gemist`) download videos van de [NPO][1]
 (voorheen ‘uitzending gemist’) site van de publieke omroep. In principe zouden
 alle sites die gebruik maken van de zogeten “NPOPlayer” moeten werken, zoals bv.
 ncrv.nl of nrc.nl (al zijn deze niet allemaal getest).
@@ -54,7 +54,7 @@ gebruikt):
 	-M    Toon enkel de metadata in JSON formaat
 	-t    Download ook ondertiteling, als deze bestaat
 	-T    Download alleen ondertiteling, geef een error als deze niet bestaan
-
+	-k    Selecteer de kwaliteit; hoog (default), middel of laag.
 
 
 FAQ
@@ -66,7 +66,7 @@ Vaak is dit omdat er op de NPO site iets niet klopt; soms ontbreekt een
 videobestand, of is het niet compleet. Meestal is dit een dag of wat later
 opgelost.  
 Werkt het een dag later nog niet, of denk je dat het niet de schuld van de site
-is? Stuur dan even een email naar [martin@arp242.net][3] met de URL die je
+is? Stuur dan even een mail naar [martin@arp242.net][3] met de URL die je
 gebruikt en de (volledige) output van je commando (het liefst met de `-VVV`
 opties), dan zal ik er even naar kijken.
 
@@ -92,14 +92,14 @@ Maar, deze alternatieven zijn bekend bij mij:
   installeren; maar heeft minder opties, en is minder handig als je meer dan een
   paar afleveringen wilt downloaden.
 
-- [Chrome-Uitzending-Gemist-Downloader][https://github.com/luukd/Chrome-Uitzending-Gemist-Downloader].
+- [Chrome-Uitzending-Gemist-Downloader](https://github.com/luukd/Chrome-Uitzending-Gemist-Downloader).
   ; Chrome plugin. Verder niet getest.
 
-- [GemistDownloader][http://www.helpdeskweb.nl/gemistdownloader/]; naast mijn
+- [GemistDownloader](http://www.helpdeskweb.nl/gemistdownloader/); naast mijn
   inzien wat onhandig programma, en het is *niet* open source. Wellicht dat het
   voor jou beter werkt.
 
-Staat jouw programma er niet bij? Mail me dan even en ik zet het erbij
+Staat jouw programma er niet bij? Mail me dan even en ik zet het erbij.
 
 ChangeLog
 =========
@@ -107,8 +107,8 @@ ChangeLog
 Versie 2.0, 2015-01-20
 ----------------------
 - **Hernoem tool naar `download-npo`**; iemand anders heeft een soortgelijk
-  programma gemaakt en dat dezelfde naam genoemd. In goed overleg is besloten
-  mijn programma te hernoemen om verwarring te voorkomen.
+  programma gemaakt en dat dezelfde naam genoemd. In overleg is besloten mijn
+  programma te hernoemen om verwarring te voorkomen.
 - Implementeer Omroep Brabant.
 - Werk ook zonder `http://` (ie. `download-npo npo.nl/...`
 - Nieuwe optie: `-k` voor het selecteren van de kwaliteit.
