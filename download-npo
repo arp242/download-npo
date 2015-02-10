@@ -171,6 +171,7 @@ def Download(videos, filename, outdir, metaonly, getsubs, quality):
 				print('Error: yaml extensie niet gevonden')
 				print('Om de metadata als YAML te tonen is de YAML extensie nodig; deze is te vinden op:')
 				print('http://pyyaml.org/')
+				print('Je kan eventueel ook -M gebruiken om de metadata als JSON te tonen')
 				sys.exit(1)
 			print(yaml.dump(site.Meta(playerId)))
 		elif metaonly == 2:
@@ -264,7 +265,7 @@ if __name__ == '__main__':
 		sys.stderr.flush()
 
 		try :
-			videos = sys.stdin.read().strip().split(' ')
+			videos = re.split('\s', sys.stdin.read().strip())
 		except KeyboardInterrupt:
 			print('')
 			sys.exit(0)

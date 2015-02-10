@@ -5,7 +5,7 @@
 # Copyright © 2012-201% Martin Tournoij <martin@arp242.net>
 # See below for full copyright
 
-import sys, json, time, re
+import sys, json, time, re, os
 
 if sys.version_info[0] < 3:
 	import urllib2
@@ -86,7 +86,7 @@ class Site():
 		This is a generator
 		yields (total_bytes, bytes_completed, avg_speed_bytes) """
 
-		if outfile == '-': fp = sys.stdout
+		if outfile == '-': fp = os.fdopen(sys.stdout.fileno(), 'wb')
 		elif not dryrun: fp = open(outfile, 'wb+')
 
 		total = int(video.info().get('Content-Length'))

@@ -104,6 +104,15 @@ Staat jouw programma er niet bij? Mail me dan even en ik zet het erbij.
 ChangeLog
 =========
 
+Laatste source, nog niet gereleased
+-----------------------------------
+- De optie `-f` (voor de filename) accepteerd nu ook een aantal placeholders om
+  informatie uit de metadata op te nemen. Zie `download-npo -h` voor meer info.
+- Fix `-f -` (output naar stdout) voor Python 3.
+- Voeg `play-npo` toe, wrapper om video's direct af te spelen.
+- Splits URLs van stdin op elke whitespace (en niet alleen op een spatie).
+
+
 Versie 2.0, 2015-01-20
 ----------------------
 - **Hernoem tool naar `download-npo`**; iemand anders heeft een soortgelijk
