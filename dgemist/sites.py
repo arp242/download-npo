@@ -125,7 +125,7 @@ class NPOPlayer(Site):
 
 	def FindVideo(self, url, quality=0):
 		""" Find video to download
-		Returns (downloadurl, pagetitle, playerId, extension)"""
+		Returns (downloadurl, playerId, extension)"""
 
 		if not (url.startswith('http://') or url.startswith('https://')):
 			url = 'http://%s' % url
@@ -178,7 +178,7 @@ class NPOPlayer(Site):
 		if url is None:
 			raise dgemist.DgemistError("Foutmelding van site: `%s'" % ', '.join(errors))
 
-		return (self.OpenUrl(url), meta.get('title'), playerId, 'mp4')
+		return (self.OpenUrl(url), playerId, 'mp4')
 
 
 	def FindVideo_MMS(self, playerId):

@@ -98,15 +98,37 @@ def HumanTime(s):
 	return '%02is' % s
 
 
-def MakeFilename(outdir, title, ext, playerId, safe=True, nospace=True, overwrite=False):
+def ReplaceVars(path, meta):
+	return path.format(**{
+		'episode_id': meta.get('prid', ''),
+		'datum': meta.get('gidsdatum', ''),
+		'titel': meta.get('titel', None) or meta.get('title', ''),
+		'aflevering_titel': meta.get('aflevering_titel', ''),
+		'tijdsduur': meta.get('tijdsduur', ''),
+		'serie_id': meta.get('serie', {}).get('srid', ''),
+		'serie_titel': meta.get('serie', {}).get('serie_titel', ''),
+	})
+
+
+def MakeFilename(outdir, title, ext, meta, safe=True, nospace=True, overwrite=False):
 	""" Make a filename from the page title
 
-	TODO: doctest
+	Placeholders:
+	{episode_id}         Uniek nummer voor deze uitzending
+	{datum}              Datum van uitzending
+	{titel}              Titel; vaak is dit de serietitel
+	{aflevering_titel}   Titel van de aflevering
+	{tijdsduur}          Tijdsduur
+	{serie_id}           Uniek nummer voor deze serie
+	{serie_titel}        Titel van de serie; vaak is dit hetzelfde als de {titel}
 	"""
 
 	if title == '-': return '-'
 
-	filename = u'%s-%s.%s' % (title, playerId, ext)
+	if title in [None, '']: title = u'{titel}-{episode_id}'
+	if not title.endswith(ext): title += '.' + ext
+	filename = ReplaceVars(title, meta)
+
 	if safe:
 		unsafe = r'"/\\*?<>|:'
 		filename = ''.join([ f for f in filename if f not in unsafe ])

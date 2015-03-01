@@ -141,7 +141,7 @@ class GUI:
 
 				try:
 					site = dgemist.MatchSite(u)
-					videourl, title, playerId, ext = site.FindVideo(u)
+					videourl, playerId, ext = site.FindVideo(u)
 					meta = site.Meta(playerId)
 
 					if meta.get('serie') is not None:
@@ -196,9 +196,9 @@ class GUI:
 
 		site = dgemist.MatchSite(self.urls[i])
 		try:
-			videourl, title, epid, ext = site.FindVideo(self.urls[i])
-			outfile = dgemist.MakeFilename(self.destdir.get(), title, ext, epid,
-				overwrite=True)
+			videourl, epid, ext = site.FindVideo(self.urls[i])
+			outfile = dgemist.MakeFilename(self.destdir.get(), None, ext,
+				site.Meta(epid), overwrite=True)
 		except dgemist.DgemistError as e:
 			messagebox.messagebox('Fout', e.message)
 			self.queue.put(lambda: self.progresslbl[i].set('Fout'))
