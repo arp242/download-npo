@@ -68,7 +68,7 @@ else:
 		author_email = 'martin@arp242.net',
 		url = 'http://code.arp242.net/download-npo',
 		packages = ['dgemist'],
-		scripts = glob.glob('npo-*'),
+		scripts = ['download-npo', 'download-npo-gui', 'play-npo'],
 		data_files = [
 			('share/doc/download-npo', ['README.markdown']),
 		],

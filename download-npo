@@ -27,12 +27,13 @@ def Help():
 	print('Video URL kan vanaf de commandline opgegeven worden, of via stdin')
 	print('')
 	print('  -h    Toon deze help')
+	print('  -i    Toon help voor overzicht van de variabelen in -f & -o')
 	print('  -v    Toon versie')
 	print("  -n    Download niks, laat zien wat we zouden doen")
 	print('  -V    Print meer informatie naar het scherm. Gebruik -V twee keer voor nog meer info')
 	print('  -s    Stil: geef geen informatieve berichten (alleen errors)')
 	print('  -o    Zet output directory. Default is huidige directory')
-	print('  -f    Zet output file, relatief aan -o. Default is titel van de video.')
+	print('  -f    Zet output bestand, relatief aan -o. Default is titel van de video.')
 	print('        Gebruik - voor stdout')
 	print('  -w    Overschrijf bestaande bestanden (default is om bestand over te slaan')
 	print('        als deze al bestaat)')
@@ -45,6 +46,28 @@ def Help():
 	print('  -t    Download ook ondertiteling, als deze bestaat')
 	print('  -T    Download alleen ondertiteling, geef een error als deze niet bestaan')
 	print('  -k    Selecteer de kwaliteit; hoog (default), middel of laag.')
+	print('')
+
+
+def HelpFilename():
+	print('De -o en -f opties kunnen een aantal variabelen bevatten. Deze worden er met')
+	print('de Python .format() methode ingezet.')
+	print('')
+	print('Als een variable niet bestaan in de data die npo.nl ons geeft, dan wordt dit')
+	print("stil genegeerd. Let op dat er relatief veel video's lijken te zijn met meta-data")
+	print("die incompleet is (met name de wat oudere video's). Ook het formaat/inhoud van")
+	print('de data is niet altijd consequent. ')
+	print('')
+	print('{episode_id}         Uniek nummer voor deze uitzending')
+	print('{datum}              Datum van uitzending')
+	print('{titel}              Titel; vaak is dit de serietitel')
+	print('{aflevering_titel}   Titel van de aflevering')
+	print('{tijdsduur}          Tijdsduur')
+	print('{serie_id}           Uniek nummer voor deze serie')
+	print('{serie_titel}        Titel van de serie; vaak is dit hetzelfde als de {titel}')
+	print('')
+	print("Default voor -f: `{titel}-{episode_id}'")
+	print("Default voor -o: `.' (huidige directory)")
 	print('')
 
 
@@ -89,7 +112,6 @@ def DownloadVideo(site, videourl, outfile):
 	# Update on terminal resize, if the OS supports it
 	if getattr(signal, 'SIGWINCH', None):
 		def updterm(sig, stack):
-			# TODO: Use nonlocal once we drop Python2 support
 			global termwidth, termwidthchanged
 			termwidth = GetTermWidth()
 			termwidthchanged = True
@@ -148,16 +170,28 @@ def Download(videos, filename, outdir, metaonly, getsubs, quality):
 
 		try:
 			site = dgemist.MatchSite(v)
-			videourl, title, playerId, ext = site.FindVideo(v, quality)
+			videourl, playerId, ext = site.FindVideo(v, quality)
 
 			if not metaonly:
-				outfile = dgemist.MakeFilename(outdir, filename or title, ext,
-					playerId, _safefilename, _replacespace, _overwrite)
+				outfile = dgemist.MakeFilename(outdir, filename, ext,
+					site.Meta(playerId), _safefilename, _replacespace, _overwrite)
 				if dgemist.Verbose(): print('Saving to %s' % outfile)
 
+				outdir = dgemist.ReplaceVars(outdir, site.Meta(playerId))
+				if not os.path.exists(outdir):
+					try:
+						os.makedirs(outdir)
+					except OSErrror:
+						Error("Output directory `{}' bestaat niet, en kan ook niet gemaakt worden ({})".format(
+							outdir, sys.exc_info()[1]))
+						sys.exit(1)
+				if not os.path.isdir(outdir):
+					Error("Output directory `%s' bestaat maar is geen directory" % outdir)
+					sys.exit(1)
+
 			if getsubs > 0:
-				subout = dgemist.MakeFilename(outdir, filename or title, 'srt',
-					playerId, _safefilename, _replacespace, _overwrite)
+				subout = dgemist.MakeFilename(outdir, filename, 'srt',
+					site.Meta(playerId), _safefilename, _replacespace, _overwrite)
 				if dgemist.Verbose(): print('Saving subs to %s' % subout)
 		except dgemist.DgemistError as exc:
 			Error(exc)
@@ -196,7 +230,7 @@ def Download(videos, filename, outdir, metaonly, getsubs, quality):
 
 if __name__ == '__main__':
 	try:
-		options, videos = getopt.getopt(sys.argv[1:], 'hvVsnwcmMtTo:f:k:')
+		options, videos = getopt.getopt(sys.argv[1:], 'hvVsnwcmMtTo:f:k:p')
 	except getopt.GetoptError:
 		Error('Error: %s' % sys.exc_info()[1])
 		Help()
@@ -210,6 +244,9 @@ if __name__ == '__main__':
 	for flag, arg in options:
 		if flag == '-h':
 			Help()
+			sys.exit(0)
+		if flag == '-p':
+			HelpFilename()
 			sys.exit(0)
 		elif flag == '-v':
 			Version()
@@ -248,12 +285,6 @@ if __name__ == '__main__':
 
 	if not metaonly:
 		if filename == '-': _silent = True
-		if not os.path.exists(outdir):
-			Error("Output directory `%s' bestaat niet" % outdir)
-			sys.exit(1)
-		if not os.path.isdir(outdir):
-			Error("Output directory `%s' bestaat maar is geen directory" % outdir)
-			sys.exit(1)
 
 	v = dgemist.CheckUpdate()
 	if v is not None and not _silent:
