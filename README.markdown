@@ -134,6 +134,7 @@ ChangeLog
 
 Laatste source, nog niet gereleased
 -----------------------------------
+- De GUI (`download-gemist-gui`) is nu een heel stuk beter.
 - De `-o` en `-f` ipties (voor de filename) accepteert nu ook een aantal
   placeholders om informatie uit de metadata op te nemen. Zie `download-npo -p`
   voor meer info.
