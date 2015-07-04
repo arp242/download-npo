@@ -1,5 +1,5 @@
 #define MyAppName "download-npo"
-#define MyAppVersion "2.0"
+#define MyAppVersion "2.0.1"
 #define MyAppPublisher "Martin Tournoij"
 #define MyAppURL "http://code.arp242.net/download-npo"
 #define MyAppExeName "download-npo-gui.exe"

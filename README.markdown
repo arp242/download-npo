@@ -143,6 +143,11 @@ Laatste source, nog niet gereleased
 - Splits URLs van stdin op elke whitespace (en niet alleen op een spatie).
 
 
+Versie 2.0.1, 2015-07-04
+------------------------
+- Fix voor de huidige versie van de site.
+
+
 Versie 2.0, 2015-01-20
 ----------------------
 - **Hernoem tool naar `download-npo`**; iemand anders heeft een soortgelijk

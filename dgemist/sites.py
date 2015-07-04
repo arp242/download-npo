@@ -142,10 +142,13 @@ class NPOPlayer(Site):
 				self.GetPage('http://ida.omroep.nl/npoplayer/i.js')).groups()[0]
 		except AttributeError:
 			raise dgemist.DgemistError('Kan token niet vinden')
-		if dgemist.Verbose(): print('Using token ' + token)
+		if dgemist.Verbose(): print('Found token ' + token)
+
+		new_token = self.transform_token(token)
+		if dgemist.Verbose(): print('Transformed token to ' + new_token)
 
 		meta = self.Meta(playerId)
-		if meta.get('streams') and meta['streams'][0]['formaat'] == 'wmv':
+		if meta.get('streams') and type(meta['streams'][0]) == dict and meta['streams'][0]['formaat'] == 'wmv':
 			return self.FindVideo_MMS(playerId)
 
 		streams = self.GetJSON('&'.join([
@@ -153,7 +156,7 @@ class NPOPlayer(Site):
 			'puboptions=adaptive,h264_bb,h264_sb,h264_std,wmv_bb,wmv_sb,wvc1_std',
 			'adaptive=no',
 			'part=1',
-			'token=%s' % token,
+			'token=%s' % new_token,
 			'callback=cb',
 			'_=%s' % time.time(),
 		]))
@@ -181,6 +184,37 @@ class NPOPlayer(Site):
 		return (self.OpenUrl(url), playerId, 'mp4')
 
 
+	def transform_token(self, token):
+		""" Silly tricks om het token te veranderen. Dit vermoedelijk een extra
+		"bescherming" om dit soort dingen te voorkomen...
+
+		Dit komt uit `function d(req)' in de JS. keyValue == token."""
+
+		first = second = None
+		for i, c in enumerate(token):
+			try:
+				int(c)
+				is_int = True
+			except ValueError:
+				is_int = False
+
+			if is_int and i > 4 and i < len(token) - 5:
+				if first is None:
+					first = i
+				elif second is None:
+					second = i
+
+		new_token = [ c for c in token ]
+		if first is not None and second is not None:
+			new_token[first] = token[second]
+			new_token[second] = token[first]
+		else:
+			new_token[12] = token[13]
+			new_token[13] = token[12]
+
+		return ''.join(new_token)
+
+
 	def FindVideo_MMS(self, playerId):
 		""" Old MMS format """
 
@@ -196,7 +230,8 @@ class NPOPlayer(Site):
 
 	def Meta(self, playerId):
 		if self._meta.get(playerId) is None:
-			meta = self.GetJSON('http://e.omroep.nl/metadata/aflevering/%s?callback=cb&_=%s' % (
+
+			meta = self.GetJSON('http://e.omroep.nl/metadata/%s?callback=cd&version=5.1.0&_=%s' % (
 				playerId, time.time()))
 
 			# Hier lijkt zo vaak de helft van te ontbreken dat het niet opschiet
