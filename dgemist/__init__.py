@@ -32,7 +32,7 @@ def Verbose():
 
 def GetVersion():
 	""" Get (version, release date), both as string """
-	return ('2.0', '2015-01-25')
+	return ('2.0.1', '2015-07-04')
 
 
 def CheckUpdate():
@@ -145,6 +145,22 @@ def MakeFilename(outdir, title, ext, meta, safe=True, nospace=True, overwrite=Fa
 				+ 'Gebruik -w voor overschrijven)')
 
 	return outfile
+
+
+def MakeOutdir(outdir, meta):
+	outdir = dgemist.ReplaceVars(outdir, meta)
+
+	if not os.path.exists(outdir):
+		try:
+			os.makedirs(outdir)
+		except OSErrror:
+			Error("Output directory `{}' bestaat niet, en kan ook niet gemaakt worden ({})".format(outdir, sys.exc_info()[1]))
+			sys.exit(1)
+	if not os.path.isdir(outdir):
+		Error("Output directory `%s' bestaat maar is geen directory" % outdir)
+		sys.exit(1)
+
+	return outdir
 
 
 def MatchSite(url):
