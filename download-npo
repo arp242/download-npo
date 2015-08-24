@@ -159,7 +159,7 @@ def DownloadVideo(site, videourl, outfile):
 			sys.stdout.flush()
 			ptime = curtime
 
-	print('\nOkay!')
+	if _dryrun: print(outfile)
 
 
 def Download(videos, filename, outdir, metaonly, getsubs, quality):
@@ -176,18 +176,7 @@ def Download(videos, filename, outdir, metaonly, getsubs, quality):
 				outfile = dgemist.MakeFilename(outdir, filename, ext,
 					site.Meta(playerId), _safefilename, _replacespace, _overwrite)
 				if dgemist.Verbose(): print('Saving to %s' % outfile)
-
-				outdir = dgemist.ReplaceVars(outdir, site.Meta(playerId))
-				if not os.path.exists(outdir):
-					try:
-						os.makedirs(outdir)
-					except OSErrror:
-						Error("Output directory `{}' bestaat niet, en kan ook niet gemaakt worden ({})".format(
-							outdir, sys.exc_info()[1]))
-						sys.exit(1)
-				if not os.path.isdir(outdir):
-					Error("Output directory `%s' bestaat maar is geen directory" % outdir)
-					sys.exit(1)
+				outdir = dgemist.MakeOutdir(outdir, site.Meta(playerId))
 
 			if getsubs > 0:
 				subout = dgemist.MakeFilename(outdir, filename, 'srt',
@@ -212,12 +201,18 @@ def Download(videos, filename, outdir, metaonly, getsubs, quality):
 			import json
 			print(json.dumps(site.Meta(playerId), indent=True))
 		elif getsubs == 2:
-			with open(subout, 'wb') as fp:
-				fp.write(site.Subs(playerId).read())
-		else:
-			if getsubs == 1:
+			if _dryrun:
+				print(subout)
+			else:
 				with open(subout, 'wb') as fp:
 					fp.write(site.Subs(playerId).read())
+		else:
+			if getsubs == 1:
+				if _dryrun:
+					print(subout)
+				else:
+					with open(subout, 'wb') as fp:
+						fp.write(site.Subs(playerId).read())
 
 			if not _silent:
 				DownloadVideo(site, videourl, outfile)

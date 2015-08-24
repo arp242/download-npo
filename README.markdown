@@ -141,6 +141,8 @@ Laatste source, nog niet gereleased
 - Fix `-f -` (output naar stdout) voor Python 3.
 - Voeg `play-npo` toe, wrapper om video's direct af te spelen.
 - Splits URLs van stdin op elke whitespace (en niet alleen op een spatie).
+- De ondertiteling werd altijd gedownload, ook als `-n` opgegeven was (dank aan
+  Jan Hoek voor het melden).
 
 
 Versie 2.0.1, 2015-07-04

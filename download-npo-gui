@@ -37,12 +37,21 @@ import dgemist
 
 class GUI:
 	def __init__(self, root, argv_videos=[]):
+		self.root = root
 		self.queue = queue.Queue()
 		self._videos = []
 
-		self.root = root
-		self.root.columnconfigure(0, weight=1)
-		self.root.rowconfigure(0, weight=1)
+		# Styling
+		img = tk.PhotoImage(file='icon.gif')
+		self.root.tk.call('wm', 'iconphoto', self.root._w, img)
+		self.root.title('download-npo %s, %s' % dgemist.GetVersion())
+
+		s = ttk.Style()
+		s.theme_use('clam')
+		s.configure('Small.TButton', padding=[5, 1], width=0)
+
+		# Keybinds
+		root.bind('<Control-q>', lambda a: self.root.quit())
 
 		# +-root -----------------------------------------------+
 		# | +- options_frame ----------+ +- progress_frame ---+ |
@@ -53,12 +62,15 @@ class GUI:
 		# | |                          | |                   || |
 		# | |                          | |                   || |
 		# | |                          | |                   || |
-		# | |                          | |                   v| |
+		# | |     [Voeg toe aan lijst] | |                   v| |
 		# | +--------------------------+ +--------------------+ |
 		# | +- buttons_frame ---------------------------------+ |
-		# | | [Reset] [Help]                          [Start] | |
+		# | | [Quit] [Sla config op]                  [Start] | |
 		# | +-------------------------------------------------- |
 		# +-----------------------------------------------------+
+		self.root.columnconfigure(0, weight=1)
+		self.root.rowconfigure(0, weight=1)
+
 		options_frame = ttk.Frame(self.root, padding=5, borderwidth=5, relief=tk.RAISED)
 		self.progress_frame = ttk.Frame(self.root, padding=5, borderwidth=5, relief=tk.RAISED)
 		buttons_frame = ttk.Frame(self.root, padding=5, borderwidth=5, relief=tk.RAISED)
@@ -112,7 +124,7 @@ class GUI:
 		# Filename
 		ttk.Label(options_frame, text='').grid(row=row(), column=0, pady=0)
 		r = row()
-		# TODO: Fill in default; help link
+		# TODO: Fill in default
 		ttk.Label(options_frame, text='Bestandsnaam').grid(row=r, column=0, sticky=tk.W)
 		self.filename = tk.Entry(options_frame)
 		self.filename.grid(row=r, column=1, columnspan=2, sticky=tk.W + tk.E)
@@ -138,23 +150,23 @@ class GUI:
 		# Overwrite
 		self.overwrite = tk.IntVar()
 		overwrite = ttk.Checkbutton(options_frame, var=self.overwrite, text='Overschrijf al bestaande bestanden')
-		overwrite.grid(row=row(), column=0, sticky=tk.W)
+		overwrite.grid(row=row(), column=0, columnspan=3, sticky=tk.W)
 
 		# Subtitles
 		self.subtitles = tk.IntVar()
 		subtitles = ttk.Checkbutton(options_frame, var=self.subtitles, text='Download ook ondertiteling, als deze bestaat')
-		subtitles.grid(row=row(), column=0, sticky=tk.W)
+		subtitles.grid(row=row(), column=0, columnspan=3, sticky=tk.W)
+
+		add_btn = ttk.Button(options_frame, text='Voeg toe aan lijst', command=self.click_add)
+		add_btn.grid(row=row(), column=0, columnspan=3, sticky=tk.E)
 
 		### buttons_frame
 		buttons_frame.columnconfigure(2, weight=1)
 
-		reset_btn = ttk.Button(buttons_frame, text='Reset', command=self.click_reset)
-		reset_btn.grid(row=0, column=0, sticky=tk.W)
+		quit_btn = ttk.Button(buttons_frame, text='Sluiten', command=root.quit)
+		quit_btn.grid(row=0, column=0, sticky=tk.W)
 
-		help_btn = ttk.Button(buttons_frame, text='Help', command=self.click_help)
-		help_btn.grid(row=0, column=1, sticky=tk.W)
-
-		start_btn = ttk.Button(buttons_frame, text='Voeg toe aan lijst', command=self.click_start)
+		start_btn = ttk.Button(buttons_frame, text='Start', command=self.click_start)
 		start_btn.grid(row=0, column=2, sticky=tk.E)
 
 		self.root.minsize(width=600, height=300)
@@ -167,27 +179,16 @@ class GUI:
 					v, dgemist.GetVersion()[0]))
 
 
-	def click_reset(self):
-		# TODO
-		pass
-
-
-	def click_help(self):
-		messagebox.showinfo('download-npo',
-			'Hop, wat help\n' +
-			'Hop, wat help\n' +
-			'Hop, wat help\n' +
-			'Hop, wat help\n' +
-			'asd asdfsafdfsaas safasf\n'
-		)
-
-
-	def click_start(self):
+	def click_add(self):
 		v = self.url_input.get(1.0, tk.END).strip()
 		if v == '' or self.outdir.get() == '': return
 
 		self.urls = re.split('\s+', v)
 		self.start_download()
+
+
+	def click_start(self):
+		pass
 
 
 	def start_download(self):
@@ -196,13 +197,31 @@ class GUI:
 		self.run_queue()
 
 
+	def start_video(self, video):
+		pass
+		# TODO: Set start text to pause, change binding
+		#self.queue.put(lambda: thread.start_new_thread(self.background_download, (video,)))
+
+
+	def pause_video(self, video):
+		pass
+		# TODO: Set text to start
+		# TODO: Pause video download
+
+
+	def cancel_video(self, video):
+		pass
+		# TODO: Stop video download
+		# TODO: Remove from list
+
+
 	def make_progress_frame_entry(self, label_text, video):
 		# +-------------------------------------------------+
 		# | *Titel*                   start/pause] [cancel] |
 		# | progress                                        |
 		# +-------------------------------------------------+
 		video['progress'] = tk.StringVar()
-		video['progress'].set('Wachten...')
+		video['progress'].set('Nog niet gestart')
 
 		frame = ttk.Frame(self.progress_frame, borderwidth=5, relief=tk.RAISED)
 		frame.grid(row=video['row'], sticky=tk.W + tk.E + tk.N)
@@ -211,11 +230,12 @@ class GUI:
 		title.grid(row=0, column=0, sticky=tk.W)
 
 		# TODO: Make the start/pause/cancel buttons
-		#start = ttk.Button(frame, text='Start')
-		#start.grid(row=0, column=1, sticky=tk.E)
+		start = ttk.Button(frame, text='Start', style='Small.TButton',
+			command=lambda: self.start_video(video))
+		start.grid(row=0, column=1, sticky=tk.E)
 
-		#cancel = ttk.Button(frame, text='Annuleren')
-		#cancel.grid(row=0, column=2, sticky=tk.E)
+		cancel = ttk.Button(frame, text='Annuleren', style='Small.TButton')
+		cancel.grid(row=0, column=2, sticky=tk.E)
 
 		progress = tk.Label(frame, textvariable=video['progress'])
 		progress.grid(row=1, column=0, sticky=tk.W)
@@ -246,13 +266,12 @@ class GUI:
 				videourl, playerId, ext = site.FindVideo(video['url'])
 				meta = site.Meta(playerId)
 				text = meta.get('title')
-				self.queue.put(lambda: thread.start_new_thread(self.background_download, (video,)))
+				#self.queue.put(lambda: thread.start_new_thread(self.background_download, (video,)))
 			except Exception as exc:
 				text = '{} - Fout}'.format(url, sys.exc_info()[1])
 			self.make_progress_frame_entry(text, video)
 			thread.exit()
 		self.queue.put(lambda: thread.start_new_thread(fetch_meta, (video,)))
-
 
 
 	def run_queue(self):
@@ -273,20 +292,9 @@ class GUI:
 		site = dgemist.MatchSite(video['url'])
 		try:
 			videourl, playerId, ext = site.FindVideo(video['url'], self.quality.get())
-			outdir = dgemist.ReplaceVars(self.outdir.get(), site.Meta(playerId))
-			if not os.path.exists(outdir):
-				try:
-					os.makedirs(outdir)
-				except OSErrror:
-					Error("Output directory `{}' bestaat niet, en kan ook niet gemaakt worden ({})".format(
-						outdir, sys.exc_info()[1]))
-					sys.exit(1)
-			if not os.path.isdir(outdir):
-				Error("Output directory `%s' bestaat maar is geen directory" % outdir)
-				sys.exit(1)
+			outdir = dgemist.MakeOutdir(self.outdir.get(), site.Meta(playerId))
 
 			outfile = dgemist.MakeFilename(outdir, self.filename.get(), ext, site.Meta(playerId), overwrite=self.overwrite.get())
-
 			if self.subtitles.get() > 0:
 				subout = dgemist.MakeFilename(outdir, self.filename.get(), 'srt', site.Meta(playerId), overwrite=self.overwrite.get())
 				with open(subout, 'wb') as fp: fp.write(site.Subs(playerId).read())
@@ -341,18 +349,7 @@ class GUI:
 
 if __name__ == '__main__':
 	root = tk.Tk()
-
-	img = tk.PhotoImage(file='icon.gif')
-	root.tk.call('wm', 'iconphoto', root._w, img)
-	root.title('download-npo %s, %s (Esc om te sluiten)' %
-		dgemist.GetVersion())
-	root.bind('<Escape>', lambda ev: root.quit())
-
-	s = ttk.Style()
-	s.theme_use('clam')
-
 	GUI(root, sys.argv[1:])
-
 	try:
 		root.mainloop()
 	except KeyboardInterrupt:
