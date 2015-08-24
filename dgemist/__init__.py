@@ -153,7 +153,7 @@ def MakeOutdir(outdir, meta):
 	if not os.path.exists(outdir):
 		try:
 			os.makedirs(outdir)
-		except OSErrror:
+		except OSError:
 			Error("Output directory `{}' bestaat niet, en kan ook niet gemaakt worden ({})".format(outdir, sys.exc_info()[1]))
 			sys.exit(1)
 	if not os.path.isdir(outdir):
