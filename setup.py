@@ -3,8 +3,8 @@
 import glob, sys, subprocess, os, re
 from distutils.core import setup
 
-import dgemist
-version = dgemist.GetVersion()[0]
+import download_npo
+version = download_npo.GetVersion()[0]
 
 # Windows
 if sys.platform == 'win32':
@@ -67,7 +67,7 @@ else:
 		author = 'Martin Tournoij',
 		author_email = 'martin@arp242.net',
 		url = 'http://code.arp242.net/download-npo',
-		packages = ['dgemist'],
+		packages = ['download_npo'],
 		scripts = ['download-npo', 'download-npo-gui', 'play-npo'],
 		data_files = [
 			('share/doc/download-npo', ['README.markdown']),

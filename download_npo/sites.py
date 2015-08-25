@@ -14,7 +14,7 @@ else:
 	import urllib.request as urllib2
 	import http.client
 
-import dgemist
+import download_npo
 
 # These Classes are matched to the URL (using the match property). First match
 # wins.
@@ -33,7 +33,7 @@ class Site():
 
 	def __init__(self):
 		# TODO: Make this work for Python 2
-		if dgemist.Verbose() >= 2:
+		if download_npo.Verbose() >= 2:
 			if sys.version_info[0] >= 3:
 				http.client.HTTPConnection.debuglevel = 99
 			else:
@@ -42,7 +42,7 @@ class Site():
 
 	def OpenUrl(self, url):
 		""" Open a URI; return urllib.request.Request object """
-		if dgemist.Verbose(): print('OpenUrl url: ' + url)
+		if download_npo.Verbose(): print('OpenUrl url: ' + url)
 
 		headers = {
 			'User-Agent': 'Opera/9.80 (X11; FreeBSD 9.1-RELEASE-p3 amd64) Presto/2.12.388 Version/12.15',
@@ -55,8 +55,8 @@ class Site():
 
 	def OpenMMS(self, url):
 		""" Open MMS URL """
-		import dgemist.mms
-		return dgemist.mms.MMS(url)
+		import download_npo.mms
+		return download_npo.mms.MMS(url)
 
 
 	def GetPage(self, url):
@@ -73,7 +73,7 @@ class Site():
 		data = re.sub('[\);/epc\s]*$', '', data)
 		data = json.loads(data)
 
-		if dgemist.Verbose() >= 2:
+		if download_npo.Verbose() >= 2:
 			import pprint
 			pprint.pprint(data)
 
@@ -90,7 +90,7 @@ class Site():
 		elif not dryrun: fp = open(outfile, 'wb+')
 
 		total = int(video.info().get('Content-Length'))
-		totalh = dgemist.HumanSize(total)
+		totalh = download_npo.HumanSize(total)
 		starttime = time.time()
 		speed = i = ptime = 0
 
@@ -111,9 +111,9 @@ class Site():
 		if fp != sys.stdout: fp.close()
 
 
-	def FindVideo(self, url, quality=0): raise dgemist.DgemistError('Not implemented')
-	def Meta(self, playerId): raise dgemist.DgemistError('Not implemented')
-	def Subs(self, playerId): raise dgemist.DgemistError('Deze site ondersteund geen ondertitels')
+	def FindVideo(self, url, quality=0): raise download_npo.DownloadNpoError('Not implemented')
+	def Meta(self, playerId): raise download_npo.DownloadNpoError('Not implemented')
+	def Subs(self, playerId): raise download_npo.DownloadNpoError('Deze site ondersteund geen ondertitels')
 
 
 class NPOPlayer(Site):
@@ -134,18 +134,18 @@ class NPOPlayer(Site):
 		try:
 			playerId = re.search(self._playerid_regex, page).groups()[0]
 		except AttributeError:
-			raise dgemist.DgemistError('Kan playerId niet vinden')
-		if dgemist.Verbose(): print('Using playerId ' + playerId)
+			raise download_npo.DownloadNpoError('Kan playerId niet vinden')
+		if download_npo.Verbose(): print('Using playerId ' + playerId)
 
 		try:
 			token = re.search('token = "(.*?)"',
 				self.GetPage('http://ida.omroep.nl/npoplayer/i.js')).groups()[0]
 		except AttributeError:
-			raise dgemist.DgemistError('Kan token niet vinden')
-		if dgemist.Verbose(): print('Found token ' + token)
+			raise download_npo.DownloadNpoError('Kan token niet vinden')
+		if download_npo.Verbose(): print('Found token ' + token)
 
 		new_token = self.transform_token(token)
-		if dgemist.Verbose(): print('Transformed token to ' + new_token)
+		if download_npo.Verbose(): print('Transformed token to ' + new_token)
 
 		meta = self.Meta(playerId)
 		if meta.get('streams') and type(meta['streams'][0]) == dict and meta['streams'][0]['formaat'] == 'wmv':
@@ -179,7 +179,7 @@ class NPOPlayer(Site):
 				break
 
 		if url is None:
-			raise dgemist.DgemistError("Foutmelding van site: `%s'" % ', '.join(errors))
+			raise download_npo.DownloadNpoError("Foutmelding van site: `%s'" % ', '.join(errors))
 
 		return (self.OpenUrl(url), playerId, 'mp4')
 
@@ -218,12 +218,12 @@ class NPOPlayer(Site):
 	def FindVideo_MMS(self, playerId):
 		""" Old MMS format """
 
-		if dgemist.Verbose(): print('Gebruik FindVideo_MMS')
+		if download_npo.Verbose(): print('Gebruik FindVideo_MMS')
 
 		meta = self.Meta(playerId)
 		stream = self.GetPage(meta['streams'][0]['url'])
 		stream = re.search(r'"(mms://.*?)"', stream).groups()[0]
-		if dgemist.Verbose(): print('MMS stream: %s' % stream)
+		if download_npo.Verbose(): print('MMS stream: %s' % stream)
 
 		return (self.OpenMMS(stream), meta.get('title'), playerId, 'wmv')
 
@@ -277,7 +277,7 @@ class OmroepBrabant(Site):
 			jsurl = re.search('data-url="(.*?)"', page).groups()[0]
 			playerId = re.search('sourceid_string:(\d+)', jsurl).groups()[0]
 		except AttributeError:
-			raise dgemist.DgemistError('Kan playerId niet vinden')
+			raise download_npo.DownloadNpoError('Kan playerId niet vinden')
 
 		meta = self.Meta(playerId)
 
