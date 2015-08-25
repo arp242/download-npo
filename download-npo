@@ -11,7 +11,7 @@
 
 from __future__ import print_function
 import getopt, signal, subprocess, sys, time, os, re
-import dgemist
+import download_npo
 
 
 _silent = False
@@ -26,53 +26,47 @@ def Help():
 	print('')
 	print('Video URL kan vanaf de commandline opgegeven worden, of via stdin')
 	print('')
-	print('  -h    Toon deze help')
-	print('  -i    Toon help voor overzicht van de variabelen in -f & -o')
-	print('  -v    Toon versie')
-	print("  -n    Download niks, laat zien wat we zouden doen")
-	print('  -V    Print meer informatie naar het scherm. Gebruik -V twee keer voor nog meer info')
-	print('  -s    Stil: geef geen informatieve berichten (alleen errors)')
-	print('  -o    Zet output directory. Default is huidige directory')
-	print('  -f    Zet output bestand, relatief aan -o. Default is titel van de video.')
-	print('        Gebruik - voor stdout')
-	print('  -w    Overschrijf bestaande bestanden (default is om bestand over te slaan')
-	print('        als deze al bestaat)')
-	print('  -c    Verwijder geen karakters in de bestandsnaam muv. spaties')
-	print('          - Als je -c 2x opgeeft, worden spaties ook behouden')
-	print('          - De default is om alle ongeldige FAT32/NTFS karakters te')
-	print('            verwijderen en spaties te vervangen door underscores')
-	print('  -m    Toon enkel de metadata in YAML formaat')
-	print('  -M    Toon enkel de metadata in JSON formaat')
-	print('  -t    Download ook ondertiteling, als deze bestaat')
-	print('  -T    Download alleen ondertiteling, geef een error als deze niet bestaan')
-	print('  -k    Selecteer de kwaliteit; hoog (default), middel of laag.')
+	print('  -h  Toon deze help')
+	print('  -v  Toon versie')
+	print("  -n  Download niks, laat zien wat we zouden doen")
+	print('  -V  Toon meer informatie over wat we doen; gebruik 2 keer voor meer info')
+	print('  -s  Stil: geef geen informatieve berichten (alleen errors)')
+	print('  -o  Zet output directory. Default is huidige directory')
+	print('  -f  Bestandsnaam, relatief aan -o; default is titel {titel}-{episode_id}')
+	print('      Gebruik - voor stdout')
+	print('  -w  Overschrijf bestaande bestanden (default is om bestand over te slaan')
+	print('      als deze al bestaat)')
+	print('  -c  Verwijder geen karakters in de bestandsnaam muv. spaties')
+	print('        - Als je -c 2x opgeeft, worden spaties ook behouden')
+	print('        - De default is om alle ongeldige FAT32/NTFS karakters te')
+	print('          verwijderen en spaties te vervangen door underscores')
+	print('  -m  Toon enkel de metadata in YAML formaat')
+	print('  -M  Toon enkel de metadata in JSON formaat')
+	print('  -t  Download ook ondertiteling, als deze bestaat')
+	print('  -T  Download alleen ondertiteling, geef een error als deze niet bestaan')
+	print('  -k  Selecteer de kwaliteit; hoog (default), middel of laag')
 	print('')
-
-
-def HelpFilename():
 	print('De -o en -f opties kunnen een aantal variabelen bevatten. Deze worden er met')
 	print('de Python .format() methode ingezet.')
-	print('')
-	print('Als een variable niet bestaan in de data die npo.nl ons geeft, dan wordt dit')
+	print('Als een variabele niet bestaan in de data die npo.nl ons geeft, dan wordt dit')
 	print("stil genegeerd. Let op dat er relatief veel video's lijken te zijn met meta-data")
 	print("die incompleet is (met name de wat oudere video's). Ook het formaat/inhoud van")
-	print('de data is niet altijd consequent. ')
+	print('de data is niet altijd consequent. Alleen de aanwezigheid van {episode_id} is')
+	print('gegarandeerd, dus ik zou deze er altijd bij zetten om lege bestandsnamen zoals')
+	print("'.mp4' te voorkomen.")
 	print('')
-	print('{episode_id}         Uniek nummer voor deze uitzending')
-	print('{datum}              Datum van uitzending')
-	print('{titel}              Titel; vaak is dit de serietitel')
-	print('{aflevering_titel}   Titel van de aflevering')
-	print('{tijdsduur}          Tijdsduur')
-	print('{serie_id}           Uniek nummer voor deze serie')
-	print('{serie_titel}        Titel van de serie; vaak is dit hetzelfde als de {titel}')
-	print('')
-	print("Default voor -f: `{titel}-{episode_id}'")
-	print("Default voor -o: `.' (huidige directory)")
+	print('  {episode_id}        Uniek nummer voor deze uitzending')
+	print('  {datum}             Datum van uitzending')
+	print('  {titel}             Titel; vaak is dit de serietitel')
+	print('  {aflevering_titel}  Titel van de aflevering')
+	print('  {tijdsduur}         Tijdsduur')
+	print('  {serie_id}          Uniek nummer voor deze serie')
+	print('  {serie_titel}       Titel van de serie; vaak is dit hetzelfde als de {titel}')
 	print('')
 
 
 def Version():
-	print('download-npo ' + ', '.join(dgemist.GetVersion()))
+	print('download-npo ' + ', '.join(download_npo.GetVersion()))
 	print('http://code.arp242.net/download-npo')
 
 
@@ -133,16 +127,16 @@ def DownloadVideo(site, videourl, outfile):
 		if curtime >= ptime + 1:
 			if total < 0:
 				line = '  %(completed)s van onbekende groote met %(speed)4s/s' % ({
-					'completed': dgemist.HumanSize(completed),
-					'speed': dgemist.HumanSize(speed),
+					'completed': download_npo.HumanSize(completed),
+					'speed': download_npo.HumanSize(speed),
 				})
 			else:
 				line = ('%(complete)3s%% van %(total)s; '
 					+ 'nog %(remaining)4s te gaan met %(speed)4s/s') % ({
-					'total': dgemist.HumanSize(total),
+					'total': download_npo.HumanSize(total),
 					'complete': int(completed / (total / 100)),
-					'speed': dgemist.HumanSize(speed),
-					'remaining': dgemist.HumanTime(remaining),
+					'speed': download_npo.HumanSize(speed),
+					'remaining': download_npo.HumanTime(remaining),
 				})
 
 			if termwidthchanged:
@@ -166,23 +160,23 @@ def Download(videos, filename, outdir, metaonly, getsubs, quality):
 	exitcode = 0
 	for v in videos:
 		if v == '': continue
-		if dgemist.Verbose(): print('Downloading ' + v)
+		if download_npo.Verbose(): print('Downloading ' + v)
 
 		try:
-			site = dgemist.MatchSite(v)
+			site = download_npo.MatchSite(v)
 			videourl, playerId, ext = site.FindVideo(v, quality)
 
 			if not metaonly:
-				outfile = dgemist.MakeFilename(outdir, filename, ext,
+				outfile = download_npo.MakeFilename(outdir, filename, ext,
 					site.Meta(playerId), _safefilename, _replacespace, _overwrite)
-				if dgemist.Verbose(): print('Saving to %s' % outfile)
-				outdir = dgemist.MakeOutdir(outdir, site.Meta(playerId))
+				if download_npo.Verbose(): print('Saving to %s' % outfile)
+				outdir = download_npo.MakeOutdir(outdir, site.Meta(playerId))
 
 			if getsubs > 0:
-				subout = dgemist.MakeFilename(outdir, filename, 'srt',
+				subout = download_npo.MakeFilename(outdir, filename, 'srt',
 					site.Meta(playerId), _safefilename, _replacespace, _overwrite)
-				if dgemist.Verbose(): print('Saving subs to %s' % subout)
-		except dgemist.DgemistError as exc:
+				if download_npo.Verbose(): print('Saving subs to %s' % subout)
+		except download_npo.download_npoError as exc:
 			Error(exc)
 			exitcode = 1
 			continue
@@ -224,6 +218,8 @@ def Download(videos, filename, outdir, metaonly, getsubs, quality):
 
 
 if __name__ == '__main__':
+	defaults = download_npo.GetDefaults()
+
 	try:
 		options, videos = getopt.getopt(sys.argv[1:], 'hvVsnwcmMtTo:f:k:p')
 	except getopt.GetoptError:
@@ -247,7 +243,7 @@ if __name__ == '__main__':
 			Version()
 			sys.exit(0)
 		elif flag == '-V':
-			dgemist._verbose += 1
+			download_npo._verbose += 1
 		elif flag == '-s':
 			_silent = True
 		elif flag == '-o':
@@ -281,10 +277,10 @@ if __name__ == '__main__':
 	if not metaonly:
 		if filename == '-': _silent = True
 
-	v = dgemist.CheckUpdate()
+	v = download_npo.CheckUpdate()
 	if v is not None and not _silent:
 		Error('Waarschuwing: De laatste versie is %s, je gebruikt nu versie %s' % (
-			v, dgemist.GetVersion()[0]))
+			v, download_npo.GetVersion()[0]))
 
 	if len(videos) == 0:
 		sys.stderr.write('Lezen van stdin (gebruik -h voor help)...')

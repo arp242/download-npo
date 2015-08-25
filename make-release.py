@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 import sys, subprocess, os
-import dgemist
-version = dgemist.GetVersion()[0]
+import download_npo
+version = download_npo.GetVersion()[0]
 
 # I keep forgetting to increment the version number before release :-/
-if dgemist.CheckUpdate() is None:
+if download_npo.CheckUpdate() is None:
 	print("Je hebt het versienummer niet opgehoogd sukkel")
 	sys.exit(1)
 

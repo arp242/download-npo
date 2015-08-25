@@ -2,7 +2,7 @@
 
 import sys, ctypes, ctypes.util
 
-import dgemist
+import download_npo
 
 
 class mms_stream_t(ctypes.Structure):
@@ -70,7 +70,7 @@ class MMS(object):
 	def __init__(self, url):
 		self._libmms = ctypes.cdll.LoadLibrary(ctypes.util.find_library('mms'))
 		if self._libmms._name is None:
-			raise dgemist.DgemistError('Deze video is in het (oude) MMS/WMV formaat; om dit te downloaden heb je libmms nodig, welke niet is gevonden op je systeem. Zie: http://sourceforge.net/projects/libmms/')
+			raise download_npo.DownloadNpoError('Deze video is in het (oude) MMS/WMV formaat; om dit te downloaden heb je libmms nodig, welke niet is gevonden op je systeem. Zie: http://sourceforge.net/projects/libmms/')
 
 		self._libc = ctypes.cdll.LoadLibrary(ctypes.util.find_library('c'))
 

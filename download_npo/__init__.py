@@ -11,7 +11,7 @@
 from __future__ import print_function
 import os, re, sys, unicodedata, locale
 
-import dgemist.sites
+import download_npo.sites
 
 if sys.version_info[0] < 3:
 	import urllib2
@@ -23,7 +23,7 @@ __all__ = ['GetVersion', 'CheckUpdate', 'HumanSize', 'HumanTime',]
 _verbose = 0
 
 
-class DgemistError(Exception): pass
+class DownloadNpoError(Exception): pass
 
 
 def Verbose():
@@ -141,14 +141,14 @@ def MakeFilename(outdir, title, ext, meta, safe=True, nospace=True, overwrite=Fa
 		outfile = unicodedata.normalize('NFKD', outfile).encode('ascii', 'ignore').decode()
 
 	if os.path.exists(outfile) and not overwrite:
-			raise DgemistError("Bestand `%s' overgeslagen omdat het al bestaat, " % outfile
+			raise DownloadNpoError("Bestand `%s' overgeslagen omdat het al bestaat, " % outfile
 				+ 'Gebruik -w voor overschrijven)')
 
 	return outfile
 
 
 def MakeOutdir(outdir, meta):
-	outdir = dgemist.ReplaceVars(outdir, meta)
+	outdir = download_npo.ReplaceVars(outdir, meta)
 
 	if not os.path.exists(outdir):
 		try:
@@ -168,15 +168,49 @@ def MatchSite(url):
 
 	url = re.sub('^www\.', '', url.replace('http://', '').replace('https://', ''))
 
-	sites = dgemist.sites.sites
-	for s in dgemist.sites.sites:
-		clss = getattr(dgemist.sites, s)
-		if re.match(clss.match, url):
-			if _verbose: print('Using site class %s' % clss)
-			return clss()
+	sites = download_npo.sites.sites
+	for s in download_npo.sites.sites:
+		klass = getattr(download_npo.sites, s)
+		if re.match(klass.match, url):
+			if _verbose: print('Using site class %s' % klass)
+			return klass()
 
-	raise DgemistError("Kan geen site vinden voor de URL `%s'" % url)
+	raise DownloadNpoError("Kan geen site vinden voor de URL `%s'" % url)
 
+
+# TODO: Implement this
+def GetDefaults():
+	config_path = '{}/download-npo.conf'.format(
+		os.getenv('XDG_CONFIG_HOME') or os.path.expanduser('~/.config'))
+
+	if not os.path.exists(config_path):
+		if _verbose: print('No config file at {}'.format(config_path))
+	
+	if _verbose: print('Reading config file from {}'.format(config_path))
+
+	defaults = {
+		'verbose': 0,
+		'silent': 0,
+		'outdir': '',
+		'filename': '',
+		'dryrun': '',
+		'overwrite': '',
+		'replacespace': '',
+		'safefilename': '',
+		'metaonly': '',
+		'getsubs': '',
+		'quality': '',
+	}
+	for line in open(config_path, 'r'):
+		line = line.strip()
+		
+		if line[0] == '#' or line == '':
+			continue
+
+		k, v = line.split('=')
+		defaults[k.strip().tolower()]  = v.strip()
+
+	return defaults
 
 
 # The MIT License (MIT)
