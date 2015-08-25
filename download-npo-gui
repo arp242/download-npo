@@ -72,8 +72,13 @@ class GUI:
 		self.root.columnconfigure(0, weight=1)
 		self.root.rowconfigure(0, weight=1)
 
-		options_frame = ttk.Frame(self.root, padding=5, borderwidth=5, relief=tk.RAISED)
-		self.progress_frame = ttk.Frame(self.root, padding=5, borderwidth=5, relief=tk.RAISED)
+		paned = ttk.PanedWindow(orient=tk.HORIZONTAL)
+
+		options_frame = ttk.Frame(paned, padding=5, borderwidth=5, relief=tk.RAISED)
+		self.progress_frame = ttk.Frame(paned, padding=5, borderwidth=5, relief=tk.RAISED)
+
+		paned.grid(row=0, column=0, sticky=tk.E + tk.W + tk.N + tk.S)
+		
 		buttons_frame = ttk.Frame(self.root, padding=5, borderwidth=5, relief=tk.RAISED)
 
 		options_frame.columnconfigure(0, weight=1)
@@ -83,6 +88,8 @@ class GUI:
 		buttons_frame.grid(row=1, column=0, columnspan=2, sticky=tk.E + tk.W)
 		self.progress_frame.grid(row=0, column=1, sticky=tk.E + tk.W + tk.N + tk.S)
 
+		paned.add(options_frame)
+		paned.add(self.progress_frame)
 
 		### progress_frame
 		ttk.Label(self.progress_frame, text='Voeg een video toe om te beginnen'
