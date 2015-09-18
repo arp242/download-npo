@@ -271,7 +271,7 @@ Versie 1.0, 2012-10-03
 [1]: http://www.npo.nl/
 [2]: http://python.org/
 [3]: mailto:martin@arp242.net
-[d-win]: http://tmp.arp242.net/download-npo-setup-2.0.1.exe
-[d-unix]: https://bitbucket.org/Carpetsmoker/download-npo/get/version-2.0.1.tar.gz
+[d-win]: http://tmp.arp242.net/download-npo-setup-2.1.exe
+[d-unix]: https://bitbucket.org/Carpetsmoker/download-npo/get/version-2.1.tar.gz
 [libmms]: http://sourceforge.net/projects/libmms/
 [dg.nl]: http://downloadgemist.nl
