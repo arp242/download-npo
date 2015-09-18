@@ -1,5 +1,5 @@
 #define MyAppName "download-npo"
-#define MyAppVersion "2.0.1"
+#define MyAppVersion "2.1"
 #define MyAppPublisher "Martin Tournoij"
 #define MyAppURL "http://code.arp242.net/download-npo"
 #define MyAppExeName "download-npo-gui.exe"
@@ -19,9 +19,10 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 OutputBaseFilename=download-npo-setup-{#MyAppVersion}
-SetupIconFile=E:\icon.ico
+SetupIconFile=F:\icon.ico
 Compression=lzma
 SolidCompression=yes
+PrivilegesRequired=admin
 
 [Languages]
 Name: "dutch"; MessagesFile: "compiler:Languages\Dutch.isl"
@@ -30,9 +31,10 @@ Name: "dutch"; MessagesFile: "compiler:Languages\Dutch.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "E:\dist_win32\download-npo-gui.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\dist_win32\download-npo.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\dist_win32\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "F:\dist_win32\download-npo-gui.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "F:\dist_win32\download-npo.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "F:\dist_win32\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "F:\vcredist_x86.exe"; DestDir: {tmp}; Flags: deleteafterinstall 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
@@ -41,4 +43,5 @@ Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: 
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+Filename: {tmp}\vcredist_x86.exe; Parameters: "/q"; StatusMsg: Installing 2010 Runtime...
 
