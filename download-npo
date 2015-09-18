@@ -14,20 +14,17 @@ import getopt, signal, subprocess, sys, time, os, re
 import download_npo
 
 
-_silent = False
-_dryrun = False
-_overwrite = False
-_safefilename = True
-_replacespace = True
+_options = {}
 
 
-def Help():
-	print('%s [-hvnVsofwcmMtT] [-o output_dir] [-f output_file] [url url2 ...]' % sys.argv[0])
+def Help(show_more_help=True):
+	print('%s [-hvdnVsofwcmMtTk] [-o output_dir] [-f output_file] [url url2 ...]' % sys.argv[0])
 	print('')
 	print('Video URL kan vanaf de commandline opgegeven worden, of via stdin')
 	print('')
-	print('  -h  Toon deze help')
+	print('  -h  Toon korte help; gebruik --help voor een langere help')
 	print('  -v  Toon versie')
+	print('  -d  Schrijf een config bestand met de standaard waarden')
 	print("  -n  Download niks, laat zien wat we zouden doen")
 	print('  -V  Toon meer informatie over wat we doen; gebruik 2 keer voor meer info')
 	print('  -s  Stil: geef geen informatieve berichten (alleen errors)')
@@ -46,6 +43,13 @@ def Help():
 	print('  -T  Download alleen ondertiteling, geef een error als deze niet bestaan')
 	print('  -k  Selecteer de kwaliteit; hoog (default), middel of laag')
 	print('')
+
+	if show_more_help:
+		print('Gebruik --help om een langere help te tonen')
+
+
+def LongHelp():
+	Help(False)
 	print('De -o en -f opties kunnen een aantal variabelen bevatten. Deze worden er met')
 	print('de Python .format() methode ingezet.')
 	print('Als een variabele niet bestaan in de data die npo.nl ons geeft, dan wordt dit')
@@ -63,6 +67,10 @@ def Help():
 	print('  {serie_id}          Uniek nummer voor deze serie')
 	print('  {serie_titel}       Titel van de serie; vaak is dit hetzelfde als de {titel}')
 	print('')
+	print('Je kan eventueel ook defaults opslaan in de een config bestand, dit wordt gelezen')
+	print('uit {}.'.format(download_npo.GetConfigPath()))
+	print('Met -d wordt er een config bestand geschreven met de standaard waarden.')
+	print('Zie de comments in het bestand voor meer details.')
 
 
 def Version():
@@ -114,7 +122,7 @@ def DownloadVideo(site, videourl, outfile):
 	filename = os.path.basename(outfile)
 	starttime = time.time()
 	ptime = remaining = 0
-	download = site.DownloadVideo(videourl, outfile, _dryrun)
+	download = site.DownloadVideo(videourl, outfile, _options['dryrun'])
 	for total, completed, speed in download:
 		curtime = time.time()
 		if curtime - starttime > 2:
@@ -144,8 +152,6 @@ def DownloadVideo(site, videourl, outfile):
 				print('')
 
 			if len(filename) + len(line) > termwidth:
-				# TODO: This gives a unicode error on Windows (BSD is fine)
-				#title = filename[:termwidth - len(line) - 1] + u'…'
 				title = filename[:termwidth - len(line) - 2] + u'..'
 			else:
 				title = filename
@@ -153,7 +159,7 @@ def DownloadVideo(site, videourl, outfile):
 			sys.stdout.flush()
 			ptime = curtime
 
-	if _dryrun: print(outfile)
+	if _options['dryrun']: print(outfile)
 
 
 def Download(videos, filename, outdir, metaonly, getsubs, quality):
@@ -168,15 +174,17 @@ def Download(videos, filename, outdir, metaonly, getsubs, quality):
 
 			if not metaonly:
 				outfile = download_npo.MakeFilename(outdir, filename, ext,
-					site.Meta(playerId), _safefilename, _replacespace, _overwrite)
+					site.Meta(playerId), _options['safefilename'],
+					_options['replacespace'], _options['overwrite'])
 				if download_npo.Verbose(): print('Saving to %s' % outfile)
 				outdir = download_npo.MakeOutdir(outdir, site.Meta(playerId))
 
 			if getsubs > 0:
 				subout = download_npo.MakeFilename(outdir, filename, 'srt',
-					site.Meta(playerId), _safefilename, _replacespace, _overwrite)
+					site.Meta(playerId), _options['safefilename'],
+					_options['replacespace'], _options['overwrite'])
 				if download_npo.Verbose(): print('Saving subs to %s' % subout)
-		except download_npo.download_npoError as exc:
+		except download_npo.DownloadNpoError as exc:
 			Error(exc)
 			exitcode = 1
 			continue
@@ -195,20 +203,20 @@ def Download(videos, filename, outdir, metaonly, getsubs, quality):
 			import json
 			print(json.dumps(site.Meta(playerId), indent=True))
 		elif getsubs == 2:
-			if _dryrun:
+			if _options['dryrun']:
 				print(subout)
 			else:
 				with open(subout, 'wb') as fp:
 					fp.write(site.Subs(playerId).read())
 		else:
 			if getsubs == 1:
-				if _dryrun:
+				if _options['dryrun']:
 					print(subout)
 				else:
 					with open(subout, 'wb') as fp:
 						fp.write(site.Subs(playerId).read())
 
-			if not _silent:
+			if not _options['silent']:
 				DownloadVideo(site, videourl, outfile)
 			else:
 				for a in site.DownloadVideo(videourl, outfile):
@@ -218,26 +226,25 @@ def Download(videos, filename, outdir, metaonly, getsubs, quality):
 
 
 if __name__ == '__main__':
-	defaults = download_npo.GetDefaults()
-
 	try:
-		options, videos = getopt.getopt(sys.argv[1:], 'hvVsnwcmMtTo:f:k:p')
+		params, videos = getopt.getopt(sys.argv[1:], 'hvVsnwcmMtTo:f:k:d', ['help'])
 	except getopt.GetoptError:
 		Error('Error: %s' % sys.exc_info()[1])
 		Help()
 		sys.exit(1)
 
-	outdir = '.'
-	filename = None
-	metaonly = 0
-	getsubs = 0
-	quality = 0
-	for flag, arg in options:
+	options = download_npo.GetDefaults()
+	download_npo._verbose = int(options['verbose'])
+
+	for flag, arg in params:
 		if flag == '-h':
 			Help()
 			sys.exit(0)
-		if flag == '-p':
-			HelpFilename()
+		elif flag == '--help':
+			LongHelp()
+			sys.exit(0)
+		elif flag == '-d':
+			download_npo.WriteDefaults()
 			sys.exit(0)
 		elif flag == '-v':
 			Version()
@@ -245,40 +252,41 @@ if __name__ == '__main__':
 		elif flag == '-V':
 			download_npo._verbose += 1
 		elif flag == '-s':
-			_silent = True
+			options['silent'] = True
 		elif flag == '-o':
-			outdir = arg
+			options['outdir'] = arg
 		elif flag == '-f':
-			filename = arg
+			options['filename'] = arg
 		elif flag == '-n':
-			_dryrun = True
+			options['dryrun'] = True
 		elif flag == '-w':
-			_overwrite = True
-		elif flag == '-c' and not _safefilename:
-			_replacespace = False
+			options['overwrite'] = True
+		elif flag == '-c' and not options['safefilename']:
+			options['replacespace'] = False
 		elif flag == '-c':
-			_safefilename = False
+			options['safefilename'] = False
 		elif flag == '-m':
-			metaonly = 1
+			options['metaonly'] = 1
 		elif flag == '-M':
-			metaonly = 2
+			options['metaonly'] = 2
 		elif flag == '-t':
-			getsubs = 1
+			options['getsubs'] = 1
 		elif flag == '-T':
-			getsubs = 2
+			options['getsubs'] = 2
 		elif flag == '-k':
 			try:
-				quality = ['hoog', 'middel', 'laag'].index(arg)
+				options['quality'] = ['hoog', 'middel', 'laag'].index(arg)
 			except ValueError:
 				Error("Ongeldige optie voor -k: `%s'." % arg)
 				Error("Geldige opties: `hoog', `middel', `laag'")
 				sys.exit(1)
 
-	if not metaonly:
-		if filename == '-': _silent = True
+	if not options['metaonly']:
+		if options['filename'] == '-': options['silent'] = True
 
+	_options = options
 	v = download_npo.CheckUpdate()
-	if v is not None and not _silent:
+	if v is not None and not options['silent']:
 		Error('Waarschuwing: De laatste versie is %s, je gebruikt nu versie %s' % (
 			v, download_npo.GetVersion()[0]))
 
@@ -293,7 +301,8 @@ if __name__ == '__main__':
 			sys.exit(0)
 
 	try:
-		Download(videos, filename, outdir, metaonly, getsubs, quality)
+		Download(videos, options['filename'], options['outdir'],
+			options['metaonly'], options['getsubs'], options['quality'])
 	except KeyboardInterrupt:
 		print('')
 

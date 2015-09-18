@@ -6,7 +6,7 @@
 #
 # Copyright © 2012-2015 Martin Tournoij <martin@arp242.net>
 # See below for full copyright
-
+#
 
 from __future__ import print_function
 import os, re, sys, unicodedata, locale
@@ -32,7 +32,7 @@ def Verbose():
 
 def GetVersion():
 	""" Get (version, release date), both as string """
-	return ('2.0.1', '2015-07-04')
+	return ('2.1', '2015-07-04')
 
 
 def CheckUpdate():
@@ -125,7 +125,6 @@ def MakeFilename(outdir, title, ext, meta, safe=True, nospace=True, overwrite=Fa
 
 	if title == '-': return '-'
 
-	if title in [None, '']: title = u'{titel}-{episode_id}'
 	if not title.endswith(ext): title += '.' + ext
 	filename = ReplaceVars(title, meta)
 
@@ -136,7 +135,6 @@ def MakeFilename(outdir, title, ext, meta, safe=True, nospace=True, overwrite=Fa
 		filename = filename.replace(' ', '_')
 
 	outfile = u'%s/%s' % (outdir, filename)
-	# TODO: This is not the best way to do this
 	if locale.getpreferredencoding() != 'UTF-8':
 		outfile = unicodedata.normalize('NFKD', outfile).encode('ascii', 'ignore').decode()
 
@@ -178,40 +176,101 @@ def MatchSite(url):
 	raise DownloadNpoError("Kan geen site vinden voor de URL `%s'" % url)
 
 
-# TODO: Implement this
-def GetDefaults():
-	config_path = '{}/download-npo.conf'.format(
+def GetConfigPath():
+	return '{}/download-npo.conf'.format(
 		os.getenv('XDG_CONFIG_HOME') or os.path.expanduser('~/.config'))
 
-	if not os.path.exists(config_path):
-		if _verbose: print('No config file at {}'.format(config_path))
-	
-	if _verbose: print('Reading config file from {}'.format(config_path))
 
+def GetDefaults():
 	defaults = {
 		'verbose': 0,
-		'silent': 0,
-		'outdir': '',
-		'filename': '',
-		'dryrun': '',
-		'overwrite': '',
-		'replacespace': '',
-		'safefilename': '',
-		'metaonly': '',
-		'getsubs': '',
-		'quality': '',
+		'silent': False,
+		'outdir': u'.',
+		'filename': u'{titel}-{episode_id}',
+		'dryrun': False,
+		'overwrite': False,
+		'replacespace': True,
+		'safefilename': True,
+		'metaonly': 0,
+		'getsubs': 0,
+		'quality': 0,
 	}
+	config_path = GetConfigPath()
+	if not os.path.exists(config_path):
+		if _verbose: print('No config file at {}'.format(config_path))
+		return defaults
+
+	if _verbose: print('Reading config file from {}'.format(config_path))
+	ints = ['verbose', 'metaonly', 'getsubs', 'quality']
+	bools = ['silent', 'dryrun', 'overwrite', 'replacespace', 'safefilename']
+
 	for line in open(config_path, 'r'):
 		line = line.strip()
 		
-		if line[0] == '#' or line == '':
+		if line == '' or line[0] == '#':
 			continue
 
 		k, v = line.split('=')
-		defaults[k.strip().tolower()]  = v.strip()
+		k = k.strip().lower()
 
+		if k in ints:
+			defaults[k] = int(v.strip())
+		elif k in bools:
+			defaults[k] = not (v.strip().lower() in ['0', 'false'])
+		else:
+			defaults[k] = v.strip()
 	return defaults
 
+
+def WriteDefaults():
+	config_path = GetConfigPath()
+	if os.path.exists(config_path):
+		print('Er bestaat al een config bestand in {}. Dit is NIET overschreven.'.format(config_path))
+		sys.exit(1)
+
+	with open(config_path, 'w') as fp:
+		fp.write('''# Toon meer informatie (-V)
+# 0: Standaard
+# 1: Hetzelfde als -V
+# 2: Hetzelfde als -VV
+verbose = 0
+
+# Toon niks behalve errors (-s)
+silent = False
+
+# Map om bestanden in te zetten (-o)
+outdir = .
+
+# Bestandsnaam (-f)
+filename = {titel}-{episode_id}
+
+# Doe niks, toon alleen wat we gaan doen (-n)
+dryrun = False
+
+# Overschrijf bestaande bestanden (-w)
+overwrite = False
+
+# -c
+replacespace = True
+
+# -cc
+safefilename = True
+
+# Toon alleen meta
+# 1: -m
+# 2: -M
+metaonly = 0
+
+# 1: Download ook ondertitels
+# 2: Download alleen ondertitels
+getsubs = 0
+
+# Kwaliteit
+# 0: Hoog
+# 1: Middel
+# 2: Laag
+quality = 0''')
+	print(config_path)
 
 # The MIT License (MIT)
 #

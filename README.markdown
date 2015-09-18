@@ -32,55 +32,56 @@ download-npo is een commandline-tool, er is ook een grafische frontend
 Voorbeeld:  
 `download-npo http://www.npo.nl/andere-tijden/23-10-2014/VPWON_1227038`
 
-Overzicht van alle opties (dit is wat je te zien krijgt als je `download-npo -h`
-gebruikt):
 
-	./download-npo [-hvnVsofwcmMtT] [-o output_dir] [-f output_file] [url url2 ...]
+Overzicht van alle opties (dit is wat je te zien krijgt als je `download-npo
+--help` gebruikt):
+
+	./download-npo [-hvdnVsofwcmMtTk] [-o output_dir] [-f output_file] [url url2 ...]
 
 	Video URL kan vanaf de commandline opgegeven worden, of via stdin
 
-	-h    Toon deze help
-	-p    Toon help voor overzicht van de variabelen in -f & -o
-	-v    Toon versie
-	-n    Download niks, laat zien wat we zouden doen
-	-V    Print meer informatie naar het scherm. Gebruik -V twee keer voor nog meer info
-	-s    Stil: geef geen informatieve berichten (alleen errors)
-	-o    Zet output directory. Default is huidige directory
-	-f    Zet output bestand, relatief aan -o. Default is titel van de video.
-			Gebruik - voor stdout
-	-w    Overschrijf bestaande bestanden (default is om bestand over te slaan
-			als deze al bestaat)
-	-c    Verwijder geen karakters in de bestandsnaam muv. spaties
+	  -h  Toon korte help; gebruik --help voor een langere help
+	  -v  Toon versie
+	  -d  Schrijf een config bestand met de standaard waarden
+	  -n  Download niks, laat zien wat we zouden doen
+	  -V  Toon meer informatie over wat we doen; gebruik 2 keer voor meer info
+	  -s  Stil: geef geen informatieve berichten (alleen errors)
+	  -o  Zet output directory. Default is huidige directory
+	  -f  Bestandsnaam, relatief aan -o; default is titel {titel}-{episode_id}
+		  Gebruik - voor stdout
+	  -w  Overschrijf bestaande bestanden (default is om bestand over te slaan
+		  als deze al bestaat)
+	  -c  Verwijder geen karakters in de bestandsnaam muv. spaties
 			- Als je -c 2x opgeeft, worden spaties ook behouden
 			- De default is om alle ongeldige FAT32/NTFS karakters te
-				verwijderen en spaties te vervangen door underscores
-	-m    Toon enkel de metadata in YAML formaat
-	-M    Toon enkel de metadata in JSON formaat
-	-t    Download ook ondertiteling, als deze bestaat
-	-T    Download alleen ondertiteling, geef een error als deze niet bestaan
-	-k    Selecteer de kwaliteit; hoog (default), middel of laag.
-
-En help overzicht van `-p`:
+			  verwijderen en spaties te vervangen door underscores
+	  -m  Toon enkel de metadata in YAML formaat
+	  -M  Toon enkel de metadata in JSON formaat
+	  -t  Download ook ondertiteling, als deze bestaat
+	  -T  Download alleen ondertiteling, geef een error als deze niet bestaan
+	  -k  Selecteer de kwaliteit; hoog (default), middel of laag
 
 	De -o en -f opties kunnen een aantal variabelen bevatten. Deze worden er met
 	de Python .format() methode ingezet.
-
-	Als een variable niet bestaan in de data die npo.nl ons geeft, dan wordt dit
+	Als een variabele niet bestaan in de data die npo.nl ons geeft, dan wordt dit
 	stil genegeerd. Let op dat er relatief veel video's lijken te zijn met meta-data
 	die incompleet is (met name de wat oudere video's). Ook het formaat/inhoud van
-	de data is niet altijd consequent.
+	de data is niet altijd consequent. Alleen de aanwezigheid van {episode_id} is
+	gegarandeerd, dus ik zou deze er altijd bij zetten om lege bestandsnamen zoals
+	'.mp4' te voorkomen.
 
-	{episode_id}         Uniek nummer voor deze uitzending
-	{datum}              Datum van uitzending
-	{titel}              Titel; vaak is dit de serietitel
-	{aflevering_titel}   Titel van de aflevering
-	{tijdsduur}          Tijdsduur
-	{serie_id}           Uniek nummer voor deze serie
-	{serie_titel}        Titel van de serie; vaak is dit hetzelfde als de {titel}
+	  {episode_id}        Uniek nummer voor deze uitzending
+	  {datum}             Datum van uitzending
+	  {titel}             Titel; vaak is dit de serietitel
+	  {aflevering_titel}  Titel van de aflevering
+	  {tijdsduur}         Tijdsduur
+	  {serie_id}          Uniek nummer voor deze serie
+	  {serie_titel}       Titel van de serie; vaak is dit hetzelfde als de {titel}
 
-	Default voor -f: `{titel}-{episode_id}'
-	Default voor -o: `.' (huidige directory)
-
+	Je kan eventueel ook defaults opslaan in de een config bestand, dit wordt gelezen
+	uit /home/martin/.config/download-npo.conf.
+	Met -d wordt er een config bestand geschreven met de standaard waarden.
+	Zie de comments in het bestand voor meer details.
 
 
 FAQ
@@ -96,6 +97,7 @@ is? Stuur dan even een mail naar [martin@arp242.net][3] met de URL die je
 gebruikt en de (volledige) output van je commando (het liefst met de `-VVV`
 opties), dan zal ik er even naar kijken.
 
+
 Kan ik ook een video streamen zonder het eerst op te slaan?
 -----------------------------------------------------------
 Uiteraard! Bijvoorbeeld met:
@@ -104,10 +106,12 @@ Uiteraard! Bijvoorbeeld met:
 
 Het `play-npo` script doet dit.
 
+
 Ondertitels worden opgeslagen als .srt, maar zijn eigenlijk in het WebVTT formaat?
 ----------------------------------------------------------------------------------
 Dat klopt; WebVTT wordt vooralsnog door maar weinig spelers herkend, en het is
 feitelijk hetzelfde als Subrip (`.srt`) ondertitels (de verschillen zijn miniem).
+
 
 Ik vind dit geen fijn programma, weet je misschien iets anders?
 ---------------------------------------------------------------
@@ -129,15 +133,18 @@ Maar, deze alternatieven zijn bekend bij mij:
 
 Staat jouw programma er niet bij? Mail me dan even en ik zet het erbij.
 
+
 ChangeLog
 =========
 
-Laatste source, nog niet gereleased
------------------------------------
+Versie 2.1, 2015-09-18
+----------------------
 - De GUI (`download-gemist-gui`) is nu een heel stuk beter.
-- De `-o` en `-f` ipties (voor de filename) accepteert nu ook een aantal
-  placeholders om informatie uit de metadata op te nemen. Zie `download-npo -p`
-  voor meer info.
+- Ondersteun config file in `~/.config/download-npo.conf` (zie `--help`).
+- `--help` optie voor meer help (`-h` is nog steeds vrij kort).
+- De `-o` en `-f` opties (voor de filename) accepteert nu ook een aantal
+  placeholders om informatie uit de metadata op te nemen. Zie `download-npo
+  --help` voor meer info.
 - Fix `-f -` (output naar stdout) voor Python 3.
 - Voeg `play-npo` toe, wrapper om video's direct af te spelen.
 - Splits URLs van stdin op elke whitespace (en niet alleen op een spatie).

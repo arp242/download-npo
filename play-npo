@@ -2,4 +2,8 @@
 
 root=$(cd "$(dirname "$0")"; pwd)
 
-"$root"/download-npo -f- $@ | mplayer -cache 4096 -cache-min 99 -
+if which mpv > /dev/null 2>&1; then
+	"$root"/download-npo -f- $@ | mpv -cache=4096 -cache-initial=4096 -
+elif which mplayer > /dev/null 2>&1; then
+	"$root"/download-npo -f- $@ | mplayer -cache 4096 -cache-min 99 -
+fi

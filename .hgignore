@@ -4,3 +4,4 @@ syntax: glob
 dist_win32
 Output
 build/*
+vcredist_x86.exe

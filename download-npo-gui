@@ -43,8 +43,9 @@ class GUI:
 		self.urls = []
 
 		# Styling
-		img = tk.PhotoImage(file='icon.gif')
-		self.root.tk.call('wm', 'iconphoto', self.root._w, img)
+		# TODO: Load from correct path on various OS
+		#img = tk.PhotoImage(file='icon.gif')
+		#self.root.tk.call('wm', 'iconphoto', self.root._w, img)
 		self.root.title('download-npo %s, %s' % download_npo.GetVersion())
 
 		s = ttk.Style()
@@ -281,19 +282,10 @@ class GUI:
 
 
 	def append_download_to_queue(self, url):
-		# Don't add the same video twice
-		# TODO: this should update the settings if the status is an error, and
-		# reset it
 		video = {}
 		for v in self._videos:
 			if v['status'] not in [3, 5] and v['url'] == url:
 				video = v
-		#if u['status'] in [3, 5]:
-		#	u['status'] = 0
-		#for i, u in enumerate(self.urls):
-		#	v = self.get_video(u)
-		#	if v and v['status'] is not 0:
-		#		continue
 
 		video = {
 			'url': url,
@@ -364,7 +356,7 @@ class GUI:
 			if video['subtitles'] > 0:
 				subout = download_npo.MakeFilename(outdir, video['filename'], 'srt', site.Meta(playerId), overwrite=video['overwrite'])
 				with open(subout, 'wb') as fp: fp.write(site.Subs(playerId).read())
-		except download_npo.download_npoError:
+		except download_npo.DownloadNpoError:
 			messagebox.showerror('Fout', sys.exc_info()[1])
 			self.queue.put(lambda: video['progress'].set('Fout'))
 			video['status'] = 3

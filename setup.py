@@ -39,7 +39,7 @@ if sys.platform == 'win32':
 	)
 
 	filelist = [
-		('', ['README.markdown']),
+		('', ['README.markdown', 'icon.gif']),
 	]
 
 	for (destdir, files) in filelist:

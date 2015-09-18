@@ -102,6 +102,3 @@ class MMS(object):
 		return {
 			'Content-Length': -1,
 		}
-
-
-
