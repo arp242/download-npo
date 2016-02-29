@@ -5,7 +5,7 @@
 #
 # http://code.arp242.net/download-npo
 #
-# Copyright © 2012-2015 Martin Tournoij <martin@arp242.net>
+# Copyright © 2012-2016 Martin Tournoij <martin@arp242.net>
 # See below for full copyright
 #
 
@@ -43,9 +43,13 @@ class GUI:
 		self.urls = []
 
 		# Styling
-		# TODO: Load from correct path on various OS
-		#img = tk.PhotoImage(file='icon.gif')
-		#self.root.tk.call('wm', 'iconphoto', self.root._w, img)
+		paths = [os.path.dirname(os.path.realpath(__file__)),
+			'/usr/share/download-npo', '/usr/local/share/download-npo']
+		for p in paths:
+			p = '{}/icon.gif'.format(p)
+			if os.path.exists(p):
+				self.root.tk.call('wm', 'iconphoto', self.root._w, tk.PhotoImage(file=p))
+				break
 		self.root.title('download-npo %s, %s' % download_npo.GetVersion())
 
 		s = ttk.Style()
@@ -55,21 +59,24 @@ class GUI:
 		# Keybinds
 		root.bind('<Control-q>', lambda a: self.root.quit())
 
-		# +-root -----------------------------------------------+
-		# | +- options_frame ----------+ +- progress_frame ---+ |
-		# | |                          | |                   ^| |
-		# | | ...                      | | (o) title_1 100%  || |
-		# | |                          | | (o) title_2 50%   || |
-		# | |                          | | (o) title_2 queue || |
-		# | |                          | |                   || |
-		# | |                          | |                   || |
-		# | |                          | |                   || |
-		# | |     [Voeg toe aan lijst] | |                   v| |
-		# | +--------------------------+ +--------------------+ |
-		# | +- buttons_frame ---------------------------------+ |
-		# | | [Quit] [Sla config op]                  [Start] | |
-		# | +-------------------------------------------------- |
-		# +-----------------------------------------------------+
+		# +- root ----------------------------------------------------+
+		# | +- paned -----------------------------------------------+ |
+		# | | +- options_frame ----------+ | +- progress_frame ---+ | |
+		# | | |                          | | |                   ^| | |
+		# | | | [..]                     | | | (o) title_1 100%  || | |
+		# | | |                          | | | (o) title_2 50%   || | |
+		# | | |                          | / | (o) title_2 queue || | |
+		# | | |                          | / |                   || | |
+		# | | |                          | | |                   || | |
+		# | | |                          | | |                   || | |
+		# | | |     [Voeg toe aan lijst] | | |                   v| | |
+		# | | +--------------------------+ | +--------------------+ | |
+		# | +-------------------------------------------------------+ |
+        # |                                                           |
+		# | +- buttons_frame ---------------------------------------+ |
+		# | | [Quit] [Sla config op]                        [Start] | |
+		# | +-------------------------------------------------------+ |
+		# +-----------------------------------------------------------+
 		self.root.columnconfigure(0, weight=1)
 		self.root.rowconfigure(0, weight=1)
 
@@ -109,8 +116,8 @@ class GUI:
 			ttk.Label(options_frame, text=text).grid(row=row(), column=0, columnspan=3, sticky=tk.W)
 
 		# url_input
-		label("URL('s) naar afleveringpagina, meerdere URL's scheiden door witruimte (spaties of enter)", False)
-		self.url_input = tk.Text(options_frame, height=3)
+		label("URL of ID, meerdere scheiden door spatie of enter", False)
+		self.url_input = tk.Text(options_frame, height=3, width=60)
 		self.url_input.grid(row=row(), column=0, sticky=tk.W + tk.E + tk.N + tk.S, columnspan=3)
 		self.url_input.insert(tk.END, '\n'.join(argv_videos))
 
@@ -181,7 +188,7 @@ class GUI:
 		start_btn = ttk.Button(buttons_frame, text='Start alles', command=self.click_start_all)
 		start_btn.grid(row=0, column=2, sticky=tk.E)
 
-		self.root.minsize(width=600, height=300)
+		self.root.minsize(width=800, height=300)
 		self.root.update()
 
 		v = download_npo.CheckUpdate()
@@ -193,20 +200,23 @@ class GUI:
 
 	def click_add(self):
 		v = self.url_input.get(1.0, tk.END).strip()
+		print(v)
+		self.url_input.delete(1.0, tk.END)
 
 		# Do nothing if no filename or outdir
 		if v == '' or self.outdir.get() == '': return
 
 		urls = re.split('\s+', v)
 		for u in urls:
-			if u not in self.urls:
-				self.urls.append(u)
-			else:
-				v = self.get_video(u)
-				if v['status'] in [3, 5]:
-					v['status'] = 0
+			if u in self.urls:
+				for i, v in enumerate(self._videos):
+					if v['url'] == u:
+						del self._videos[i]
+						break
+				self.urls.remove(u)
+			self.urls.append(u)
 
-		self.start_download_all()
+		self.get_meta_all()
 
 
 	def click_start_all(self):
@@ -220,9 +230,17 @@ class GUI:
 		return None
 
 
+	def get_meta_all(self):
+		for i, u in enumerate(self.urls):
+			if self.get_video(u) is None:
+				self.append_download_to_queue(u)
+		self.run_queue()
+
+
 	def start_download_all(self):
 		for i, u in enumerate(self.urls):
-			self.append_download_to_queue(u)
+			v = self.get_video(u)
+			if v['status'] == 0: self.start_video(v)
 		self.run_queue()
 
 
@@ -245,11 +263,13 @@ class GUI:
 
 
 	def cancel_video(self, video):
-		#self.urls.remove(video['url'])
-		#self._videos.remove(video)
 		video['frame'].grid_forget()
 		video['frame'].destroy()
-		video['status'] = 5
+
+		try: self.urls.remove(video['url'])
+		except: pass
+		try: self._videos.remove(video)
+		except: pass
 
 
 	def make_progress_frame_entry(self, label_text, video):
@@ -260,9 +280,11 @@ class GUI:
 		video['progress'] = tk.StringVar()
 		video['progress'].set('Nog niet gestart')
 
-		frame = ttk.Frame(self.progress_frame, borderwidth=5, relief=tk.RAISED)
+		frame = ttk.Frame(self.progress_frame, relief=tk.GROOVE, borderwidth=10)
 		video['frame'] = frame
-		frame.grid(row=video['row'], sticky=tk.W + tk.E + tk.N)
+		print(video['row'])
+		frame.grid(row=video['row'], sticky=tk.W + tk.E + tk.N, column=0)
+		#paned.grid(row=0, column=0, sticky=tk.E + tk.W + tk.N + tk.S)
 
 		title = tk.Label(frame, text=label_text)
 		title.grid(row=0, column=0, sticky=tk.W)
@@ -282,61 +304,63 @@ class GUI:
 
 
 	def append_download_to_queue(self, url):
-		video = {}
-		for v in self._videos:
-			if v['status'] not in [3, 5] and v['url'] == url:
-				video = v
+		video = None
+		#for v in self._videos:
+		#	if v['status'] not in [3, 5] and v['url'] == url:
+		#		# TODO: Update opts
+		#		video = v
 
-		video = {
-			'url': url,
-			'filename': self.filename.get(),
-			'outdir': self.outdir.get(),
-			'subtitles': self.subtitles.get(),
-			'overwrite': self.overwrite.get(),
-			'quality': self.quality.get(),
+		#if video is None:
+		if True:
+			video = {
+				'url': url,
+				'filename': self.filename.get(),
+				'outdir': self.outdir.get(),
+				'subtitles': self.subtitles.get(),
+				'overwrite': self.overwrite.get(),
+				'quality': self.quality.get(),
 
-			# 0: not yet started
-			# 1: in progress
-			# 2: finished
-			# 3: error
-			# 4: paused
-			# 5: cancelled
-			'status': 0,
-		}
-		self._videos.append(video)
+				# 0: not yet started
+				# 1: in progress
+				# 2: finished
+				# 3: error
+				# 4: paused
+				# 5: cancelled
+				'status': 0,
+			}
+			self._videos.append(video)
 		video['row'] = len(self._videos)
-
-		def fetch_meta(video):
-			try:
-				site = download_npo.MatchSite(video['url'])
-				videourl, playerId, ext = site.FindVideo(video['url'])
-				meta = site.Meta(playerId)
-				text = download_npo.MakeFilename(video['outdir'], video['filename'], 'mp4', meta, True, True, True)
-
-				extra_text = ['{} kwaliteit'.format(
-					['hoge', 'middel', 'lage'][video['quality']])]
-				if video['subtitles']:
-					extra_text.append('ondertitels')
-				if video['overwrite']:
-					extra_text.append('overschrijven')
-				text += ' ({})'.format(', '.join(extra_text))
-			except Exception as exc:
-				video['status'] = 3
-				text = '{} - Fout}'.format(url, sys.exc_info()[1])
-			self.make_progress_frame_entry(text, video)
-			self.start_video(video)
-			thread.exit()
-		self.queue.put(lambda: thread.start_new_thread(fetch_meta, (video,)))
+		self.queue.put(lambda: thread.start_new_thread(self.fetch_meta, (video,)))
 
 
+	def fetch_meta(self, video):
+		try:
+			site = download_npo.MatchSite(video['url'])
+			videourl, playerId, ext = site.FindVideo(video['url'])
+			meta = site.Meta(playerId)
+			text = download_npo.MakeFilename(video['outdir'], video['filename'], 'mp4', meta, True, True, True)
+
+			extra_text = ['{} kwaliteit'.format(
+				['hoge', 'middel', 'lage'][video['quality']])]
+			if video['subtitles']:
+				extra_text.append('ondertitels')
+			if video['overwrite']:
+				extra_text.append('overschrijven')
+			text += ' ({})'.format(', '.join(extra_text))
+		except Exception as exc:
+			video['status'] = 3
+			text = '{} - Fout'.format(video['url'], sys.exc_info()[1])
+		self.make_progress_frame_entry(text, video)
+		thread.exit()
+
+
+	# TODO: Voeg optie toe om te beperken tot /n/ processen
 	def run_queue(self):
 		try:
 			while True:
 				self.queue.get_nowait()()
 		except queue.Empty:
 			pass
-			#if self._downloading >= len(self.urls):
-			#	self.urls = []
 
 		self.root.after(100, self.run_queue)
 
@@ -365,7 +389,7 @@ class GUI:
 		pcomplete = -1
 		starttime = time.time()
 		ptime = remaining = 0
-		for total, completed, speed in site.DownloadVideo(videourl, outfile):
+		for total, completed, speed in site.DownloadVideo(playerId, videourl, outfile):
 			# Paused
 			if video['status'] == 4:
 				self.queue.put(lambda: video['progress'].set('Gepauzeerd'))
@@ -427,7 +451,7 @@ if __name__ == '__main__':
 
 # The MIT License (MIT)
 #
-# Copyright © 2012-2015 Martin Tournoij
+# Copyright © 2012-2016 Martin Tournoij
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to

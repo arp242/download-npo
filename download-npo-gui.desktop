@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=download-npo-gui
+Comment=Download videos van npo.nl
+Exec=download-npo-gui %U
+Icon=download-npo-gui.svg
+Categories=AudioVideo;Video;Network;

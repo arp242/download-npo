@@ -5,14 +5,19 @@
 # Copyright © 2012-201% Martin Tournoij <martin@arp242.net>
 # See below for full copyright
 
+from __future__ import print_function
+
 import sys, json, time, re, os
 
 if sys.version_info[0] < 3:
 	import urllib2
 	import httplib
+	from urllib import unquote
 else:
 	import urllib.request as urllib2
 	import http.client
+	from urllib.parse import unquote
+
 
 import download_npo
 
@@ -46,11 +51,14 @@ class Site():
 
 		headers = {
 			'User-Agent': 'Opera/9.80 (X11; FreeBSD 9.1-RELEASE-p3 amd64) Presto/2.12.388 Version/12.15',
-			'Cookie': 'npo_cc=30; npo_cc_meta=1.0.5:0',
+			'Cookie': 'npo_cc=tmp; npo_cc_www.npogeschiedenis.nl=tmp',
 		}
 		req = urllib2.Request(url, headers=headers)
-
-		return urllib2.urlopen(req)
+		try:
+			return urllib2.urlopen(req)
+		except urllib2.HTTPError:
+			raise download_npo.DownloadNpoError(
+				'De URL {} is niet gevonden (404 error)'.format(url))
 
 
 	def OpenMMS(self, url):
@@ -80,7 +88,25 @@ class Site():
 		return data
 
 
-	def DownloadVideo(self, video, outfile, dryrun=False, getsubs=False):
+	def WriteMeta(self, playerId, path):
+		""" Try to write metadata to the file. """
+		try:
+			from mutagen.mp4 import MP4
+		except ImportError:
+			print('mutagen module niet gevonden; metadata niet ingesteld.', file=sys.stderr)
+			return
+
+		if not path.endswith('.mp4'):
+			return
+
+		meta = self.Meta(playerId)
+		fp = MP4(path)
+		fp['tvsh'] = meta.get('serie', {}).get('serie_titel', '')
+		fp['desc'] = meta.get('aflevering_titel', '') or meta.get('titel', None) or meta.get('title', '')
+		fp.save()
+
+
+	def DownloadVideo(self, playerId, video, outfile, dryrun=False, getsubs=False):
 		""" Download a video and save to outfile (can be - for stdout).
 
 		This is a generator
@@ -108,7 +134,9 @@ class Site():
 				speed = int(i / (curtime - starttime))
 			yield (total, i, speed)
 
-		if fp != sys.stdout: fp.close()
+		if fp != sys.stdout:
+			fp.close()
+			self.WriteMeta(playerId, outfile)
 
 
 	def FindVideo(self, url, quality=0): raise download_npo.DownloadNpoError('Not implemented')
@@ -121,16 +149,17 @@ class NPOPlayer(Site):
 	NPO player """
 
 	match = '.*'
-	_playerid_regex = '([A-Z][A-Z_]{1,7}_\d{6,9})'
+	_playerid_regex = '([A-Z][A-Z_]{1,8}_\d{6,9})'
 
 	def FindVideo(self, url, quality=0):
 		""" Find video to download
 		Returns (downloadurl, playerId, extension)"""
 
 		if not (url.startswith('http://') or url.startswith('https://')):
-			url = 'http://%s' % url
+			url = 'http://www.npo.nl/%s' % url
 
 		page = self.GetPage(url)
+		page = unquote(page)
 		try:
 			playerId = re.search(self._playerid_regex, page).groups()[0]
 		except AttributeError:
@@ -148,7 +177,11 @@ class NPOPlayer(Site):
 		if download_npo.Verbose(): print('Transformed token to ' + new_token)
 
 		meta = self.Meta(playerId)
-		if meta.get('streams') and type(meta['streams'][0]) == dict and meta['streams'][0]['formaat'] == 'wmv':
+		if meta.get('error') and len(meta['error']) > 1:
+			raise download_npo.DownloadNpoError(
+				'Site geeft aan dat er iets fout is: {}'.format(meta['error']))
+
+		if meta.get('streams') and type(meta['streams'][0]) == dict and meta['streams'][0].get('formaat') == 'wmv':
 			return self.FindVideo_MMS(playerId)
 
 		streams = self.GetJSON('&'.join([
@@ -225,12 +258,12 @@ class NPOPlayer(Site):
 		stream = re.search(r'"(mms://.*?)"', stream).groups()[0]
 		if download_npo.Verbose(): print('MMS stream: %s' % stream)
 
-		return (self.OpenMMS(stream), meta.get('title'), playerId, 'wmv')
+		#videourl, playerId, ext = site.FindVideo(v, quality)
+		return (self.OpenMMS(stream), playerId, 'wmv')
 
 
 	def Meta(self, playerId):
 		if self._meta.get(playerId) is None:
-
 			meta = self.GetJSON('http://e.omroep.nl/metadata/%s?callback=cd&version=5.1.0&_=%s' % (
 				playerId, time.time()))
 
@@ -238,7 +271,7 @@ class NPOPlayer(Site):
 			#if meta.get('serie') is not None:
 			#	meta['title'] = '%s %s' % (meta['serie']['serie_titel'], meta['aflevering_titel'])
 			#else:
-			meta['title'] = '%s' % meta['titel']
+			meta['title'] = '%s' % meta.get('titel', '')
 			self._meta[playerId] = meta
 
 		return self._meta[playerId]
@@ -258,7 +291,7 @@ class NPOPlayer(Site):
 
 class NPO(NPOPlayer):
 	match = '(www\.)?npo.nl'
-	_playerid_regex = 'data-prid="(.*?)"'
+	_playerid_regex = 'data-[mpr]{1,2}id="(.*?)"'
 
 
 
@@ -309,7 +342,7 @@ class OmroepBrabant(Site):
 
 # The MIT License (MIT)
 #
-# Copyright © 2012-2015 Martin Tournoij
+# Copyright © 2012-2016 Martin Tournoij
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to
