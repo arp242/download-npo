@@ -4,7 +4,7 @@
 #
 # http://code.arp242.net/download-npo
 #
-# Copyright © 2012-2015 Martin Tournoij <martin@arp242.net>
+# Copyright © 2012-2016 Martin Tournoij <martin@arp242.net>
 # See below for full copyright
 #
 
@@ -32,7 +32,7 @@ def Verbose():
 
 def GetVersion():
 	""" Get (version, release date), both as string """
-	return ('2.1', '2015-07-04')
+	return ('2.2', '2016-02-29')
 
 
 def CheckUpdate():
@@ -272,9 +272,10 @@ getsubs = 0
 quality = 0''')
 	print(config_path)
 
+
 # The MIT License (MIT)
 #
-# Copyright © 2012-2015 Martin Tournoij
+# Copyright © 2012-2016 Martin Tournoij
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to

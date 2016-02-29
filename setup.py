@@ -61,6 +61,10 @@ if sys.platform == 'win32':
 	for f in remove: shutil.rmtree('dist_win32/%s' % f)
 # Everything else
 else:
+	import shutil
+	if not os.path.exists('./build'):
+		os.mkdir('./build')
+	shutil.copyfile('icon.svg', 'build/download-npo-gui.svg')
 	setup(
 		name = 'download-npo',
 		version = version,
@@ -71,5 +75,8 @@ else:
 		scripts = ['download-npo', 'download-npo-gui', 'play-npo'],
 		data_files = [
 			('share/doc/download-npo', ['README.markdown']),
+			('share/download-npo', ['icon.gif', 'icon.svg']),
+			('share/applications', ['download-npo-gui.desktop']),
+			('/usr/share/icons/hicolor/scalable/apps/', ['build/download-npo-gui.svg']),
 		],
 	)
