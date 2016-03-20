@@ -19,7 +19,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 OutputBaseFilename=download-npo-setup-{#MyAppVersion}
-SetupIconFile=F:\icon.ico
+SetupIconFile=D:\icon.ico
 Compression=lzma
 SolidCompression=yes
 PrivilegesRequired=admin
@@ -31,10 +31,10 @@ Name: "dutch"; MessagesFile: "compiler:Languages\Dutch.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "F:\dist_win32\download-npo-gui.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "F:\dist_win32\download-npo.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "F:\dist_win32\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "F:\vcredist_x86.exe"; DestDir: {tmp}; Flags: deleteafterinstall 
+Source: "D:\dist_win32\download-npo-gui.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\dist_win32\download-npo.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\dist_win32\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\vcredist_x86.exe"; DestDir: {tmp}; Flags: deleteafterinstall 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

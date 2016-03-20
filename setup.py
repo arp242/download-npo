@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import glob, sys, subprocess, os, re
+import glob, sys, subprocess, os, re, shutil
 from distutils.core import setup
 
 import download_npo
@@ -61,7 +61,6 @@ if sys.platform == 'win32':
 	for f in remove: shutil.rmtree('dist_win32/%s' % f)
 # Everything else
 else:
-	import shutil
 	if not os.path.exists('./build'):
 		os.mkdir('./build')
 	shutil.copyfile('icon.svg', 'build/download-npo-gui.svg')

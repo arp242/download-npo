@@ -99,7 +99,7 @@ def HumanTime(s):
 
 
 def ReplaceVars(path, meta):
-	return path.format(**{
+	path = path.format(**{
 		'episode_id': meta.get('prid', ''),
 		'datum': meta.get('gidsdatum', ''),
 		'titel': meta.get('titel', None) or meta.get('title', ''),
@@ -108,6 +108,14 @@ def ReplaceVars(path, meta):
 		'serie_id': meta.get('serie', {}).get('srid', ''),
 		'serie_titel': meta.get('serie', {}).get('serie_titel', ''),
 	})
+
+	if locale.getpreferredencoding() != 'UTF-8':
+		if sys.version_info[0] <= 2:
+			path = unicodedata.normalize('NFKD', path.decode('utf-8')).encode('ascii', 'ignore')
+		else:
+			path = unicodedata.normalize('NFKD', path).encode('ascii', 'ignore').decode()
+
+	return path
 
 
 def MakeFilename(outdir, title, ext, meta, safe=True, nospace=True, overwrite=False):
@@ -134,10 +142,10 @@ def MakeFilename(outdir, title, ext, meta, safe=True, nospace=True, overwrite=Fa
 	if nospace:
 		filename = filename.replace(' ', '_')
 
-	outfile = u'%s/%s' % (outdir, filename)
-	if locale.getpreferredencoding() != 'UTF-8':
-		outfile = unicodedata.normalize('NFKD', outfile).encode('ascii', 'ignore').decode()
-
+	if sys.version_info[0] <= 2:
+		outfile = u'%s/%s' % (outdir.decode('utf-8'), filename.decode('utf-8'))
+	else:
+		outfile = u'%s/%s' % (outdir, filename)
 	if os.path.exists(outfile) and not overwrite:
 			raise DownloadNpoError("Bestand `%s' overgeslagen omdat het al bestaat, " % outfile
 				+ 'Gebruik -w voor overschrijven)')
@@ -147,7 +155,6 @@ def MakeFilename(outdir, title, ext, meta, safe=True, nospace=True, overwrite=Fa
 
 def MakeOutdir(outdir, meta):
 	outdir = download_npo.ReplaceVars(outdir, meta)
-
 	if not os.path.exists(outdir):
 		try:
 			os.makedirs(outdir)
