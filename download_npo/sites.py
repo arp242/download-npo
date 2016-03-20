@@ -90,20 +90,24 @@ class Site():
 
 	def WriteMeta(self, playerId, path):
 		""" Try to write metadata to the file. """
+
 		try:
-			from mutagen.mp4 import MP4
+			if path.endswith('.mp4'):
+				from mutagen.mp4 import MP4
+				meta = self.Meta(playerId)
+				fp = MP4(path)
+				fp['tvsh'] = meta.get('serie', {}).get('serie_titel', '')
+				fp['desc'] = meta.get('aflevering_titel', '') or meta.get('titel', None) or meta.get('title', '')
+				fp.save()
+			elif path.endswith('.mp3'):
+				from mutagen.mp3 import MP3
+				meta = self.Meta(playerId)
+				fp = MP3(path)
+				# TODO
+				fp.save()
 		except ImportError:
 			print('mutagen module niet gevonden; metadata niet ingesteld.', file=sys.stderr)
 			return
-
-		if not path.endswith('.mp4'):
-			return
-
-		meta = self.Meta(playerId)
-		fp = MP4(path)
-		fp['tvsh'] = meta.get('serie', {}).get('serie_titel', '')
-		fp['desc'] = meta.get('aflevering_titel', '') or meta.get('titel', None) or meta.get('title', '')
-		fp.save()
 
 
 	def DownloadVideo(self, playerId, video, outfile, dryrun=False, getsubs=False):
@@ -181,8 +185,14 @@ class NPOPlayer(Site):
 			raise download_npo.DownloadNpoError(
 				'Site geeft aan dat er iets fout is: {}'.format(meta['error']))
 
-		if meta.get('streams') and type(meta['streams'][0]) == dict and meta['streams'][0].get('formaat') == 'wmv':
-			return self.FindVideo_MMS(playerId)
+		ext = 'mp4'
+		if meta.get('streams') and type(meta['streams'][0]) == dict:
+			# Radiouitendingen
+			ext = meta['streams'][0].get('type', 'mp4')
+
+			# MMS / Windows Media Speler
+			if meta['streams'][0].get('formaat') == 'wmv':
+				return self.FindVideo_MMS(playerId)
 
 		streams = self.GetJSON('&'.join([
 			'http://ida.omroep.nl/odi/?prid=%s' % playerId,
@@ -214,7 +224,7 @@ class NPOPlayer(Site):
 		if url is None:
 			raise download_npo.DownloadNpoError("Foutmelding van site: `%s'" % ', '.join(errors))
 
-		return (self.OpenUrl(url), playerId, 'mp4')
+		return (self.OpenUrl(url), playerId, ext)
 
 
 	def transform_token(self, token):

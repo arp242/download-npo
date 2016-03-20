@@ -176,11 +176,11 @@ def Download(videos, filename, outdir, metaonly, getsubs, quality):
 			videourl, playerId, ext = site.FindVideo(v, quality)
 
 			if not metaonly:
+				outdir = download_npo.MakeOutdir(outdir, site.Meta(playerId))
 				outfile = download_npo.MakeFilename(outdir, filename, ext,
 					site.Meta(playerId), _options['safefilename'],
 					_options['replacespace'], _options['overwrite'])
 				if download_npo.Verbose(): print('Saving to %s' % outfile)
-				outdir = download_npo.MakeOutdir(outdir, site.Meta(playerId))
 
 			if getsubs > 0:
 				subout = download_npo.MakeFilename(outdir, filename, 'srt',
