@@ -1,5 +1,3 @@
-http://www.pyinstaller.org/
-
 **Download-npo downloads videos from the Dutch npo.nl site. The rest of the
 documentation is in Dutch.**
 
