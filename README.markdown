@@ -1,3 +1,7 @@
+Project status: stable
+
+-----------------------------------------
+
 **Download-npo downloads videos from the Dutch npo.nl site. The rest of the
 documentation is in Dutch.**
 
