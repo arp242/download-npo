@@ -1,0 +1,17 @@
+Source: download-npo
+Maintainer: Maarten Fonville <maarten.fonville@gmail.com>
+Section: python
+Priority: optional
+Build-Depends: dh-python, python3-all, debhelper (>= 9)
+Standards-Version: 3.9.6
+Homepage: http://code.arp242.net/download-npo
+X-Python3-Version: >= 3.3
+
+Package: download-npo
+Architecture: all
+Depends: ${misc:Depends}, ${python3:Depends}
+Recommends: python3-tk
+Suggests: libmms0
+Description: GUI and CLI client of download-npo
+ With download-npo you can download videos from NPO.nl.
+ If you want to use the GUI you need Tkinter for Python
