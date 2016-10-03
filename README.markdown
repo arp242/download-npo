@@ -15,18 +15,19 @@ Voor vragen of opmerkingen kun je mailen naar [martin@arp242.net][3].
 
 Installatie
 ===========
-- **[Windows installer][d-win]** (versie 2.1); dit is alles wat je nodig hebt. Het kan zijn
-  dat je een foutmelding krijgt mbt. `MSVCR100.dll`; je zal dan de ‘Microsoft
-  Visual C++ 2010 Redistributable Package’ moeten downloaden van
-  [http://www.microsoft.com/en-us/download/details.aspx?id=14632](http://www.microsoft.com/en-us/download/details.aspx?id=14632).
+**[Windows installer][d-win]** (versie 2.1); dit is alles wat je nodig hebt. Het kan zijn
+dat je een foutmelding krijgt mbt. `MSVCR100.dll`; je zal dan de ‘Microsoft
+Visual C++ 2010 Redistributable Package’ moeten downloaden van
+[http://www.microsoft.com/en-us/download/details.aspx?id=14632](http://www.microsoft.com/en-us/download/details.aspx?id=14632).
 
-- Voor BSD, Linux, UNIX, en OSX is `pip` het makkelijkste
+--------
 
-          pip install download-npo
+Voor BSD, Linux, UNIX, en OSX is `pip` het makkelijkste
 
-  [Python][2] is nodig (Python 2.6+ & 3.3+ zijn getest), voor de grafische
-  interface is ook `Tkinter` nodig (deel van Python maar soms een aparte
-  package).
+    pip install download-npo
+
+[Python][2] is nodig (Python 2.6+ & 3.3+ zijn getest), voor de grafische
+interface is ook `Tkinter` nodig (deel van Python maar soms een aparte package).
 
 
 Als je oudere Silverlight/Windows media player uitzendingen wilt downloaden heb
