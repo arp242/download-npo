@@ -22,7 +22,7 @@ Installatie
 
 - Voor BSD, Linux, UNIX, en OSX is `pip` het makkelijkste
 
-      pip install download-npo
+          pip install download-npo
 
   [Python][2] is nodig (Python 2.6+ & 3.3+ zijn getest), voor de grafische
   interface is ook `Tkinter` nodig (deel van Python maar soms een aparte
