@@ -32,7 +32,7 @@ def Verbose():
 
 def GetVersion():
 	""" Get (version, release date), both as string """
-	return ('2.2', '2016-02-29')
+	return ('2.4', '2016-10-03')
 
 
 def CheckUpdate():

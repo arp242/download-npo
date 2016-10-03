@@ -19,9 +19,13 @@ Installatie
   dat je een foutmelding krijgt mbt. `MSVCR100.dll`; je zal dan de ‘Microsoft
   Visual C++ 2010 Redistributable Package’ moeten downloaden van
   [http://www.microsoft.com/en-us/download/details.aspx?id=14632](http://www.microsoft.com/en-us/download/details.aspx?id=14632).
-- **[Source][d-unix]** (versie 2.2), voor BSD, Linux, UNIX, en OSX. [Python][2]
-  is nodig (Python 2.6+ & 3.3+ zijn getest), voor de grafische interface is ook
-  `Tkinter` nodig (deel van Python maar soms een aparte package).
+- Voor BSD, Linux, UNIX, en OSX is `pip` het makkelijkste:
+
+        pip install download-npo
+
+  [Python][2] is nodig (Python 2.6+ & 3.3+ zijn getest), voor de grafische
+  interface is ook `Tkinter` nodig (deel van Python maar soms een aparte
+  package).
 
 Als je oudere Silverlight/Windows media player uitzendingen wilt downloaden heb
 je [libmms][libmms] nodig. Dit werkt vooralsnog alleen op POSIX (ie.
@@ -105,12 +109,13 @@ gedownload.
 ChangeLog
 =========
 
-Laatste source
+Versie 2.4, 2016-10-03
 --------------
 - Fix voor radio-uitzendingen.
 - De waarschuwing als metadata niet weggescheven kan worden omdat `mutagen`
   ontbreekt wordt nu alleen getoond als `-V` gebruikt wordt.
 - Bugfix: utf-8 karakters in `-o` en `-f` voor Python 2 & niet-UTF-8 omgevingen.
+- Versie 2.3 overgeslagen door gedoe met PyPI.
 
 
 Versie 2.2, 2016-02-29
@@ -256,7 +261,7 @@ Versie 1.0, 2012-10-03
 [2]: http://python.org/
 [3]: mailto:martin@arp242.net
 [d-win]: http://tmp.arp242.net/download-npo-setup-2.1.exe
-[d-unix]: https://bitbucket.org/Carpetsmoker/download-npo/get/version-2.2.tar.gz
+[d-unix]: https://bitbucket.org/Carpetsmoker/download-npo/get/version-2.4.tar.gz
 [libmms]: http://sourceforge.net/projects/libmms/
 [dg.nl]: http://downloadgemist.nl
 [npo-pvr]: https://github.com/jhoek/Npo-Pvr
