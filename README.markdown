@@ -108,12 +108,19 @@ Voor Windows is er de [Npo-Pvr][npo-pvr] PowerShell wrapper door Jan Hoek.
 Door periodiek dit scriptje te starten worden steeds de nieuwste afleveringen
 gedownload.
 
+Er is ook een plugin voor [Flexget](http://flexget.com/); daarmee kan je
+nieuwe afleveringen van geabonneerde programma’s automatisch downloaden.
+De Flexget plugin zit
+[in Flexget zelf](https://github.com/Flexget/Flexget/blob/develop/flexget/plugins/input/npo_watchlist.py)
+en is gemaakt door (Jeroen L.)[https://github.com/jeroenl].
+
+
 
 ChangeLog
 =========
 
 Versie 2.4, 2016-10-03
---------------
+----------------------
 - Fix voor radio-uitzendingen.
 - De waarschuwing als metadata niet weggescheven kan worden omdat `mutagen`
   ontbreekt wordt nu alleen getoond als `-V` gebruikt wordt.
