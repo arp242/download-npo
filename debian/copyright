@@ -1,0 +1,11 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: download-npo
+Source: http://code.arp242.net/download-npo
+
+Files: *
+Copyright: 2012-2016 Martin Tournoij <martin@arp242.net>
+License: MIT
+
+Files: debian/*
+Copyright: 2016 Maarten Fonville <maarten.fonville@gmail.com>
+License: MIT

@@ -1,0 +1,5 @@
+download-npo (2.4-0) UNRELEASED; urgency=low
+
+  * Initial release for Debian and Ubuntu by Maarten Fonville
+
+ -- Maarten Fonville <maarten.fonville@gmail.com>  Mon, 3 Oct 2016 20:17:54 +0200
