@@ -28,7 +28,8 @@ makkelijkste:
 [Python][2] is nodig (Python 2.6+ & 3.3+ zijn getest), voor de grafische
 interface is ook `Tkinter` nodig (deel van Python maar soms een aparte package).
 
-Voor Ubuntu zijn er ook packages beschikbaar in [Maarten Fonville's PPA][ppa]:
+Voor **Ubuntu** zijn er ook packages beschikbaar in [Maarten Fonville's
+PPA][ppa]:
 
 	$ sudo add-apt-repository ppa:maarten-fonville/ppa
 	$ sudo apt-get update
