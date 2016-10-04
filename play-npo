@@ -1,0 +1,14 @@
+#!/bin/sh
+
+if type download-npo >/dev/null 2>&1; then
+	cmd="download-npo"
+else
+	root=$(cd "$(dirname "$0")"; pwd)
+	cmd="$root"/download-npo 
+fi
+
+if which mpv > /dev/null 2>&1; then
+	"$cmd" -f- $@ | mpv -cache=8192 -cache-initial=4096 -
+elif which mplayer > /dev/null 2>&1; then
+	"$cmd" -f- $@ | mplayer -cache 8192 -cache-min 50 -
+fi
