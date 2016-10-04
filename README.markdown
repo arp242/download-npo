@@ -15,23 +15,29 @@ Voor vragen of opmerkingen kun je mailen naar [martin@arp242.net][3].
 
 Installatie
 ===========
-**[Windows installer][d-win]** (versie 2.1); dit is alles wat je nodig hebt. Het kan zijn
-dat je een foutmelding krijgt mbt. `MSVCR100.dll`; je zal dan de ‘Microsoft
-Visual C++ 2010 Redistributable Package’ moeten downloaden van
-[http://www.microsoft.com/en-us/download/details.aspx?id=14632](http://www.microsoft.com/en-us/download/details.aspx?id=14632).
+Voor **Windows** is er een [installer][d-win] (versie 2.1); dit is alles wat je
+nodig hebt. Het kan zijn dat je een foutmelding krijgt mbt. `MSVCR100.dll`; je
+zal dan de ‘Microsoft Visual C++ 2010 Redistributable Package’ moeten downloaden
+van [http://www.microsoft.com/en-us/download/details.aspx?id=14632](http://www.microsoft.com/en-us/download/details.aspx?id=14632).
 
---------
-
-Voor BSD, Linux, UNIX, en OSX is `pip` het makkelijkste
+Voor **BSD**, **Linux**, **OSX**, en andere **UNIX-y** systemen is `pip` het
+makkelijkste:
 
     pip install download-npo
 
 [Python][2] is nodig (Python 2.6+ & 3.3+ zijn getest), voor de grafische
 interface is ook `Tkinter` nodig (deel van Python maar soms een aparte package).
 
+Voor Ubuntu zijn er ook packages beschikbaar in [Maarten Fonville's PPA][ppa]:
+
+	$ sudo add-apt-repository ppa:maarten-fonville/ppa
+	$ sudo apt-get update
+	$ sudo apt-get install download-npo
+
+---------------
 
 Als je oudere Silverlight/Windows media player uitzendingen wilt downloaden heb
-je [libmms][libmms] nodig. Dit werkt vooralsnog alleen op POSIX (ie.
+je [libmms][libmms] nodig. Dit werkt vooralsnog alleen op POSIX (i.e.
 niet-Windows) systemen. Dit is verder geheel optioneel.
 
 
@@ -275,3 +281,4 @@ Versie 1.0, 2012-10-03
 [libmms]: http://sourceforge.net/projects/libmms/
 [dg.nl]: http://downloadgemist.nl
 [npo-pvr]: https://github.com/jhoek/Npo-Pvr
+[ppa]: https://launchpad.net/~maarten-fonville/+archive/ubuntu/ppa
