@@ -282,4 +282,4 @@ Versie 1.0, 2012-10-03
 [libmms]: http://sourceforge.net/projects/libmms/
 [dg.nl]: http://downloadgemist.nl
 [npo-pvr]: https://github.com/jhoek/Npo-Pvr
-[ppa]: https://launchpad.net/~maarten-fonville/+archive/ubuntu/ppa
+[ppa]: https://code.launchpad.net/~maarten-fonville/+archive/ubuntu/download-npo
