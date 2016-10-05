@@ -31,7 +31,7 @@ interface is ook `Tkinter` nodig (deel van Python maar soms een aparte package).
 Voor **Ubuntu** zijn er ook packages beschikbaar in [Maarten Fonville's
 PPA][ppa]:
 
-	$ sudo add-apt-repository ppa:maarten-fonville/ppa
+	$ sudo add-apt-repository ppa:maarten-fonville/download-npo
 	$ sudo apt-get update
 	$ sudo apt-get install download-npo
 
