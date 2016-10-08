@@ -5,3 +5,4 @@ update-desktop-database -q
 xdg-desktop-menu forceupdate
 killall unity-scope-home
 killall unity-scope-loader
+exit 0
