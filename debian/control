@@ -11,7 +11,8 @@ Package: download-npo
 Architecture: all
 Depends: ${misc:Depends}, ${python3:Depends}
 Recommends: python3-tk
-Suggests: libmms0
+Suggests: libmms0, python3-mutagen
 Description: GUI and CLI client of download-npo
  With download-npo you can download videos from NPO.nl.
  If you want to use the GUI you need Tkinter for Python
+ If you want to update the metadata of downloaded files (required for e.g. watching on an iPad) you need Python Mutagen
