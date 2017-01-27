@@ -78,7 +78,7 @@ class Site():
 	def GetJSON(self, url):
 		""" Open URL, and read() the data, and parse it as JSON """
 		data = re.sub(r'^[\w\d\?]+\(', r'',  self.GetPage(url))
-		data = re.sub('[\);/epc\s]*$', '', data)
+		data = re.sub('[\);/eprc\s]*$', '', data)
 		data = json.loads(data)
 
 		if download_npo.Verbose() >= 2:

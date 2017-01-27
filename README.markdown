@@ -125,6 +125,9 @@ en is gemaakt door (Jeroen L.)[https://github.com/jeroenl].
 
 ChangeLog
 =========
+Versie 2.4.1, 2017-01-27
+------------------------
+- Fix voor de huidige versie van de site.
 
 Versie 2.4, 2016-10-03
 ----------------------

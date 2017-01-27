@@ -1,5 +1,3 @@
-syntax: glob
-
 *.pyc
 dist_win32
 Output
@@ -8,3 +6,5 @@ dist/*
 vcredist_x86.exe
 MANIFEST
 download_npo.egg-info/*
+*.mp4
+*.srt
