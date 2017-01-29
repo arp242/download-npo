@@ -296,7 +296,7 @@ class NPOPlayer(Site):
 		#print('%s/%s/' % (meta['sitestat']['baseurl_subtitle'],
 		#	meta['sitestat']['subtitleurl']))
 
-		return self.OpenUrl('http://e.omroep.nl/tt888/%s' % playerId)
+		return self.OpenUrl('http://tt888.omroep.nl/tt888/%s' % playerId)
 
 
 class NPO(NPOPlayer):
