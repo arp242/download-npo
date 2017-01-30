@@ -1,3 +1,9 @@
+download-npo (2.4.2-0) UNRELEASED; urgency=low
+
+  * Fix for updated NPO.nl site
+
+ -- Martin Tournoij <martin@arp242.net>  Sun, 30 Jan 2017 01:27:00 +0000
+
 download-npo (2.4.1-0) UNRELEASED; urgency=low
 
   * Fix for updated NPO.nl site
