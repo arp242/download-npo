@@ -2,7 +2,7 @@
 #
 # http://code.arp242.net/download-npo
 #
-# Copyright © 2012-201% Martin Tournoij <martin@arp242.net>
+# Copyright © 2012-2017 Martin Tournoij <martin@arp242.net>
 # See below for full copyright
 
 from __future__ import print_function
@@ -106,7 +106,7 @@ class Site():
 				# TODO
 				fp.save()
 		except ImportError:
-			print('mutagen module niet gevonden; metadata niet ingesteld.', file=sys.stderr)
+			print('\nmutagen module niet gevonden; metadata niet ingesteld.', file=sys.stderr)
 			return
 
 
@@ -164,6 +164,10 @@ class NPOPlayer(Site):
 
 		page = self.GetPage(url)
 		page = unquote(page)
+
+		if download_npo.Verbose() >= 3:
+			print('page: %s' % page)
+
 		try:
 			playerId = re.search(self._playerid_regex, page).groups()[0]
 		except AttributeError:
@@ -352,7 +356,7 @@ class OmroepBrabant(Site):
 
 # The MIT License (MIT)
 #
-# Copyright © 2012-2016 Martin Tournoij
+# Copyright © 2012-2017 Martin Tournoij
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to

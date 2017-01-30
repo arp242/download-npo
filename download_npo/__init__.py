@@ -4,7 +4,7 @@
 #
 # http://code.arp242.net/download-npo
 #
-# Copyright © 2012-2016 Martin Tournoij <martin@arp242.net>
+# Copyright © 2012-2017 Martin Tournoij <martin@arp242.net>
 # See below for full copyright
 #
 
@@ -32,7 +32,7 @@ def Verbose():
 
 def GetVersion():
 	""" Get (version, release date), both as string """
-	return ('2.4.2', '2017-01-30')
+	return ('2.5.2', '2017-02-01')
 
 
 def CheckUpdate():
@@ -46,15 +46,12 @@ def CheckUpdate():
 	if GetVersion()[1] == 'beta': return None
 
 	try:
-		page = urllib2.urlopen('http://code.arp242.net/download-npo/downloads').read().decode('utf-8')
-		versions = re.findall('<td class="name">version-([0-9.]*?)</td>', page)
-		versions.sort()
-		latest = versions.pop()
-
+		page = urllib2.urlopen('https://github.com/Carpetsmoker/download-npo/releases').read().decode('utf-8')
+		latest = re.findall('releases/tag/version-([0-9.]+)', page)[0]
 		return (latest if latest != GetVersion()[0] else None)
 	# Never fail
 	except:
-		if _verbose: print('CheckUpdate() failed\n%s' % sys.exc_info()[1])
+		if _verbose: print('CheckUpdate() failed: %s' % sys.exc_info()[1])
 		return None
 
 
@@ -143,7 +140,10 @@ def MakeFilename(outdir, title, ext, meta, safe=True, nospace=True, overwrite=Fa
 		filename = filename.replace(' ', '_')
 
 	if sys.version_info[0] <= 2:
-		outfile = u'%s/%s' % (outdir.decode('utf-8'), filename.decode('utf-8'))
+		try:
+			outfile = u'%s/%s' % (outdir.decode('utf-8'), filename.decode('utf-8'))
+		except UnicodeEncodeError:
+			outfile = u'%s/%s' % (outdir, filename)
 	else:
 		outfile = u'%s/%s' % (outdir, filename)
 	if os.path.exists(outfile) and not overwrite:
@@ -282,7 +282,7 @@ quality = 0''')
 
 # The MIT License (MIT)
 #
-# Copyright © 2012-2016 Martin Tournoij
+# Copyright © 2012-2017 Martin Tournoij
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to

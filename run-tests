@@ -1,0 +1,8 @@
+#!/bin/sh
+
+set -xeuC
+
+./download-npo -VVVn http://www.npo.nl/gouden-jaren-indonesie/26-01-2017/POW_03414349
+
+./download-npo -VVVT http://www.npo.nl/gouden-jaren-indonesie/26-01-2017/POW_03414349 
+[ -f "Gouden_Jaren_Indonesië-POW_03414349.srt" ] || exit 1

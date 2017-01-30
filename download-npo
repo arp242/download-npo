@@ -5,7 +5,7 @@
 #
 # http://code.arp242.net/download-npo
 #
-# Copyright © 2012-2016 Martin Tournoij <martin@arp242.net>
+# Copyright © 2012-2017 Martin Tournoij <martin@arp242.net>
 # See below for full copyright
 #
 
@@ -26,7 +26,7 @@ def Help(show_more_help=True):
 	print('  -v  Toon versie')
 	print('  -d  Schrijf een config bestand met de standaard waarden')
 	print("  -n  Download niks, laat zien wat we zouden doen")
-	print('  -V  Toon meer informatie over wat we doen; gebruik 2 keer voor meer info')
+	print('  -V  Toon meer informatie over wat we doen; gebruik 2 of 3 keer voor meer info')
 	print('  -s  Stil: geef geen informatieve berichten (alleen errors)')
 	print('  -o  Zet output directory. Default is huidige directory')
 	print('  -f  Bestandsnaam, relatief aan -o; default is titel {titel}-{episode_id}')
@@ -312,7 +312,7 @@ if __name__ == '__main__':
 
 # The MIT License (MIT)
 #
-# Copyright © 2012-2016 Martin Tournoij
+# Copyright © 2012-2017 Martin Tournoij
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to
