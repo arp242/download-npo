@@ -1,3 +1,9 @@
+download-npo (2.4.1-0) UNRELEASED; urgency=low
+
+  * Fix for updated NPO.nl site
+
+ -- Maarten Fonville <maarten.fonville@gmail.com>  Sun, 29 Jan 2017 00:10:54 +0100
+
 download-npo (2.4-0) UNRELEASED; urgency=low
 
   * Initial release for Debian and Ubuntu by Maarten Fonville
