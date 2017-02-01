@@ -84,6 +84,18 @@ Uiteraard! Bijvoorbeeld met:
 
 Het `play-npo` script doet dit.
 
+Kan ik ook in 1 keer alle uitzendingen downloaden van een bepaald programma?
+----------------------------------------------------------------------------
+Ja, met `download-npo-list` kan je een lijst van alle uitzendingen ophalen:
+
+	download-npo-list http://www.npo.nl/andere-tijden/VPWON_1247337
+
+Je kan dit pipen naar `download-npo` met bv:
+
+	download-npo-list http://www.npo.nl/andere-tijden/VPWON_1247337 |
+		cut -d ' ' -f 2 |
+		download-npo
+
 Ondertitels worden opgeslagen als .srt, maar zijn eigenlijk in het WebVTT formaat?
 ----------------------------------------------------------------------------------
 Dat klopt; WebVTT wordt vooralsnog door maar weinig spelers herkend, en het is
@@ -97,8 +109,8 @@ Dat is jammer :-( Feedback is trouwens altijd welkom. Stuur een mailtje naar
 Maar, deze alternatieven zijn bekend bij mij:
 
 - [downloadgemist.nl][dg.nl]; voordeel is dat het online is (je hoeft niks te
-  installeren; maar heeft minder opties, en is minder handig als je meer dan een
-  paar afleveringen wilt downloaden.
+  installeren); maar heeft minder opties, en is minder handig als je meer dan
+  een paar afleveringen wilt downloaden.
 
 - [Chrome-Uitzending-Gemist-Downloader](https://github.com/luukd/Chrome-Uitzending-Gemist-Downloader);
   Chrome plugin. Verder niet getest.
@@ -107,26 +119,27 @@ Maar, deze alternatieven zijn bekend bij mij:
   inzien wat onhandig programma, en het is *niet* open source. Wellicht dat het
   voor jou beter werkt.
 
+Voor het ophalen van een lijst met afleveringen:
+
+- Voor Windows is er de [Npo-Pvr][npo-pvr] PowerShell wrapper door Jan Hoek.
+  Door periodiek dit scriptje te starten worden steeds de nieuwste afleveringen
+  gedownload.
+
+- Er is ook een plugin voor [Flexget](http://flexget.com/); daarmee kan je
+  nieuwe afleveringen van geabonneerde programma’s automatisch downloaden. De
+  Flexget plugin zit [in Flexget
+  zelf](https://github.com/Flexget/Flexget/blob/develop/flexget/plugins/input/npo_watchlist.py)
+  en is gemaakt door [Jeroen L.](https://github.com/jeroenl).
+
 Staat jouw programma er niet bij? Mail me dan even en ik zet het erbij.
-
-Kan ik ook in 1 keer alle uitzendingen downloaden van een bepaald programma?
-----------------------------------------------------------------------------
-Niet direct. Eerst kon dat wel, maar dat ging te vaak kapot omdat de site
-veranderd werd.
-
-Voor Windows is er de [Npo-Pvr][npo-pvr] PowerShell wrapper door Jan Hoek.
-Door periodiek dit scriptje te starten worden steeds de nieuwste afleveringen
-gedownload.
-
-Er is ook een plugin voor [Flexget](http://flexget.com/); daarmee kan je
-nieuwe afleveringen van geabonneerde programma’s automatisch downloaden.
-De Flexget plugin zit
-[in Flexget zelf](https://github.com/Flexget/Flexget/blob/develop/flexget/plugins/input/npo_watchlist.py)
-en is gemaakt door [Jeroen L.](https://github.com/jeroenl).
 
 
 ChangeLog
 =========
+Versie 2.6, nog niet gereleased
+-------------------------------
+- Voeg `download-gemist-list` weer toe.
+
 Versie 2.5.2, 2017-02-01
 ------------------------
 - Python 2.6 is **niet** meer ondersteund. Je hebt nu minimaal Python 2.7+ or

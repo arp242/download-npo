@@ -6,3 +6,5 @@ set -xeuC
 
 ./download-npo -VVVT http://www.npo.nl/gouden-jaren-indonesie/26-01-2017/POW_03414349 
 [ -f "Gouden_Jaren_Indonesië-POW_03414349.srt" ] || exit 1
+
+./download-npo-list -VVV http://www.npo.nl/andere-tijden/VPWON_1247337
