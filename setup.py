@@ -10,11 +10,6 @@ from setuptools import setup
 import download_npo
 version = download_npo.GetVersion()[0]
 
-if not os.path.exists('./build'):
-	os.mkdir('./build')
-shutil.copyfile('icon.svg', 'build/download-npo-gui.svg')
-shutil.copyfile('download-npo-gui.pyw', 'build/download-npo-gui')
-
 setup(
 	name = 'download-npo',
 	version = version,
@@ -32,7 +27,7 @@ van de zogeheten “NPOPlayer” zouden moeten werken, zoals bv. ncrv.nl of
 nrc.nl (al zijn deze niet allemaal getest).
 	''',
 	packages = ['download_npo'],
-	scripts = ['download-npo', 'build/download-npo-gui', 'play-npo'],
+	scripts = ['download-npo', 'download-npo-gui', 'play-npo'],
 	license = 'MIT',
 	#platforms = [],
 	classifiers = [
@@ -55,6 +50,6 @@ nrc.nl (al zijn deze niet allemaal getest).
 		('share/doc/download-npo', ['README.markdown']),
 		('share/download-npo', ['icon.gif', 'icon.svg']),
 		('share/applications', ['download-npo-gui.desktop']),
-		('/usr/share/icons/hicolor/scalable/apps/', ['build/download-npo-gui.svg']),
+		('/usr/share/icons/hicolor/scalable/apps/', ['download-npo-gui.svg']),
 	],
 )
