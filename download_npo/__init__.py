@@ -14,229 +14,233 @@ import os, re, sys, unicodedata, locale
 import download_npo.sites
 
 if sys.version_info[0] < 3:
-	import urllib2
+    import urllib2
 else:
-	import urllib.request as urllib2
+    import urllib.request as urllib2
 
-__all__ = ['GetVersion', 'CheckUpdate', 'HumanSize', 'HumanTime',]
+__all__ = ['version', 'check_update', 'human_size', 'human_time']
 
 _verbose = 0
 
 
-class DownloadNpoError(Exception): pass
+class Error(Exception):
+    pass
 
 
-def Verbose():
-	return _verbose
+def verbose():
+    return _verbose
 
 
-def GetVersion():
-	""" Get (version, release date), both as string """
-	return ('2.5.5', '2017-02-01')
+def version():
+    """ Get (version, release date), both as string """
+    return ('2.5.5', '2017-02-01')
 
 
-def CheckUpdate():
-	""" Check if there's a newer version
-	returns None or new version string
-	
-	>>> CheckUpdate() is None
-	True
-	"""
+def check_update():
+    """ Check if there's a newer version
+    returns None or new version string """
 
-	if GetVersion()[1] == 'beta': return None
+    if version()[1] == 'beta':
+        return None
 
-	try:
-		page = urllib2.urlopen('https://github.com/Carpetsmoker/download-npo/releases').read().decode('utf-8')
-		latest = re.findall('releases/tag/version-([0-9.]+)', page)[0]
-		return (latest if latest != GetVersion()[0] else None)
-	# Never fail
-	except:
-		if _verbose: print('CheckUpdate() failed: %s' % sys.exc_info()[1])
-		return None
+    try:
+        page = urllib2.urlopen('https://github.com/Carpetsmoker/download-npo/releases').read().decode('utf-8')
+        latest = re.findall('releases/tag/version-([0-9.]+)', page)[0]
+        return latest if latest != version()[0] else None
+    # Never fail
+    except:
+        if _verbose:
+            print('check_update() failed: {}'.format(sys.exc_info()[1]))
+        return None
 
 
-def HumanSize(bytesize, p=1):
-	""" Return human-readable string of n bytes
-	Use p to set the precision
+def human_size(bytesize, p=1):
+    """ Return human-readable string of n bytes
+    Use p to set the precision
 
-	>>> HumanSize(42424242)
-	'40,5 MiB'
+    >>> HumanSize(42424242)
+    '40,5 MiB'
 
-	>>> HumanSize(42424242, 0)
-	'40 MiB'
+    >>> HumanSize(42424242, 0)
+    '40 MiB'
 
-	>>> HumanSize(1024**3, 2)
-	'1024,00 MiB'
-	"""
+    >>> HumanSize(1024**3, 2)
+    '1024,00 MiB'
+    """
 
-	i = 0
-	while bytesize > 1024:
-		bytesize /= 1024.0
-		i += 1
+    i = 0
+    while bytesize > 1024:
+        bytesize /= 1024.0
+        i += 1
 
-	bytesize = (('%.' + str(p) + 'f') % bytesize).replace('.', ',')
-	return '%s %s' % (bytesize, ('b', 'KiB', 'MiB', 'GiB')[i])
-
-
-def HumanTime(s):
-	""" Return human-readable string of n seconds
-	
-	>>> HumanTime(42)
-	'42s'
-
-	>>> HumanTime(32490)
-	'9h01m30s'
-	"""
-
-	if s > 3600:
-		return '%ih%02im%02is' % (s / 3600, s / 60 % 60, s % 60)
-	if s > 60:
-		return '%im%02is' % (s / 60, s % 60)
-	return '%02is' % s
+    bytesize = (('%.' + str(p) + 'f') % bytesize).replace('.', ',')
+    return '%s %s' % (bytesize, ('b', 'KiB', 'MiB', 'GiB')[i])
 
 
-def ReplaceVars(path, meta):
-	path = path.format(**{
-		'episode_id': meta.get('prid', ''),
-		'datum': meta.get('gidsdatum', ''),
-		'titel': meta.get('titel', None) or meta.get('title', ''),
-		'aflevering_titel': meta.get('aflevering_titel', ''),
-		'tijdsduur': meta.get('tijdsduur', ''),
-		'serie_id': meta.get('serie', {}).get('srid', ''),
-		'serie_titel': meta.get('serie', {}).get('serie_titel', ''),
-	})
+def human_time(s):
+    """ Return human-readable string of n seconds
 
-	if locale.getpreferredencoding() != 'UTF-8':
-		if sys.version_info[0] <= 2:
-			path = unicodedata.normalize('NFKD', path.decode('utf-8')).encode('ascii', 'ignore')
-		else:
-			path = unicodedata.normalize('NFKD', path).encode('ascii', 'ignore').decode()
+    >>> HumanTime(42)
+    '42s'
 
-	return path
+    >>> HumanTime(32490)
+    '9h01m30s'
+    """
+
+    if s > 3600:
+        return '%ih%02im%02is' % (s / 3600, s / 60 % 60, s % 60)
+    if s > 60:
+        return '%im%02is' % (s / 60, s % 60)
+    return '%02is' % s
 
 
-def MakeFilename(outdir, title, ext, meta, safe=True, nospace=True, overwrite=False):
-	""" Make a filename from the page title
+def replace_vars(path, meta):
+    path = path.format(**{
+        'episode_id': meta.get('prid', ''),
+        'datum': meta.get('gidsdatum', ''),
+        'titel': meta.get('titel', None) or meta.get('title', ''),
+        'aflevering_titel': meta.get('aflevering_titel', ''),
+        'tijdsduur': meta.get('tijdsduur', ''),
+        'serie_id': meta.get('serie', {}).get('srid', ''),
+        'serie_titel': meta.get('serie', {}).get('serie_titel', ''),
+    })
 
-	Placeholders:
-	{episode_id}         Uniek nummer voor deze uitzending
-	{datum}              Datum van uitzending
-	{titel}              Titel; vaak is dit de serietitel
-	{aflevering_titel}   Titel van de aflevering
-	{tijdsduur}          Tijdsduur
-	{serie_id}           Uniek nummer voor deze serie
-	{serie_titel}        Titel van de serie; vaak is dit hetzelfde als de {titel}
-	"""
+    if locale.getpreferredencoding() != 'UTF-8':
+        if sys.version_info[0] <= 2:
+            path = unicodedata.normalize('NFKD', path.decode('utf-8')).encode('ascii', 'ignore')
+        else:
+            path = unicodedata.normalize('NFKD', path).encode('ascii', 'ignore').decode()
 
-	if title == '-': return '-'
-
-	if not title.endswith(ext): title += '.' + ext
-	filename = ReplaceVars(title, meta)
-
-	if safe:
-		unsafe = r'"/\\*?<>|:'
-		filename = ''.join([ f for f in filename if f not in unsafe ])
-	if nospace:
-		filename = filename.replace(' ', '_')
-
-	if sys.version_info[0] <= 2:
-		try:
-			outfile = u'%s/%s' % (outdir.decode('utf-8'), filename.decode('utf-8'))
-		except UnicodeEncodeError:
-			outfile = u'%s/%s' % (outdir, filename)
-	else:
-		outfile = u'%s/%s' % (outdir, filename)
-	if os.path.exists(outfile) and not overwrite:
-			raise DownloadNpoError("Bestand `%s' overgeslagen omdat het al bestaat, " % outfile
-				+ 'Gebruik -w voor overschrijven)')
-
-	return outfile
+    return path
 
 
-def MakeOutdir(outdir, meta):
-	outdir = download_npo.ReplaceVars(outdir, meta)
-	if not os.path.exists(outdir):
-		try:
-			os.makedirs(outdir)
-		except OSError:
-			Error("Output directory `{}' bestaat niet, en kan ook niet gemaakt worden ({})".format(outdir, sys.exc_info()[1]))
-			sys.exit(1)
-	if not os.path.isdir(outdir):
-		Error("Output directory `%s' bestaat maar is geen directory" % outdir)
-		sys.exit(1)
+def make_filename(outdir, title, ext, meta, safe=True, nospace=True, overwrite=False):
+    """ Make a filename from the page title
 
-	return outdir
+    Placeholders:
+    {episode_id}         Uniek nummer voor deze uitzending
+    {datum}              Datum van uitzending
+    {titel}              Titel; vaak is dit de serietitel
+    {aflevering_titel}   Titel van de aflevering
+    {tijdsduur}          Tijdsduur
+    {serie_id}           Uniek nummer voor deze serie
+    {serie_titel}        Titel van de serie; vaak is dit hetzelfde als de {titel}
+    """
 
+    if title == '-':
+        return '-'
 
-def MatchSite(url):
-	""" Return a Site object based from url """
+    if not title.endswith(ext):
+        title += '.' + ext
+    filename = replace_vars(title, meta)
 
-	url = re.sub('^www\.', '', url.replace('http://', '').replace('https://', ''))
+    if safe:
+        unsafe = r'"/\\*?<>|:'
+        filename = ''.join([f for f in filename if f not in unsafe])
+    if nospace:
+        filename = filename.replace(' ', '_')
 
-	sites = download_npo.sites.sites
-	for s in download_npo.sites.sites:
-		klass = getattr(download_npo.sites, s)
-		if re.match(klass.match, url):
-			if _verbose: print('Using site class %s' % klass)
-			return klass()
+    if sys.version_info[0] <= 2:
+        try:
+            outfile = u'%s/%s' % (outdir.decode('utf-8'), filename.decode('utf-8'))
+        except UnicodeEncodeError:
+            outfile = u'%s/%s' % (outdir, filename)
+    else:
+        outfile = u'%s/%s' % (outdir, filename)
+    if os.path.exists(outfile) and not overwrite:
+        raise Error("bestand `{}' overgeslagen omdat het al bestaat; gebruik "
+                    '-w voor overschrijven'.format(outfile))
 
-	raise DownloadNpoError("Kan geen site vinden voor de URL `%s'" % url)
-
-
-def GetConfigPath():
-	return '{}/download-npo.conf'.format(
-		os.getenv('XDG_CONFIG_HOME') or os.path.expanduser('~/.config'))
-
-
-def GetDefaults():
-	defaults = {
-		'verbose': 0,
-		'silent': False,
-		'outdir': u'.',
-		'filename': u'{titel}-{episode_id}',
-		'dryrun': False,
-		'overwrite': False,
-		'replacespace': True,
-		'safefilename': True,
-		'metaonly': 0,
-		'getsubs': 0,
-		'quality': 0,
-	}
-	config_path = GetConfigPath()
-	if not os.path.exists(config_path):
-		if _verbose: print('No config file at {}'.format(config_path))
-		return defaults
-
-	if _verbose: print('Reading config file from {}'.format(config_path))
-	ints = ['verbose', 'metaonly', 'getsubs', 'quality']
-	bools = ['silent', 'dryrun', 'overwrite', 'replacespace', 'safefilename']
-
-	for line in open(config_path, 'r'):
-		line = line.strip()
-		
-		if line == '' or line[0] == '#':
-			continue
-
-		k, v = line.split('=')
-		k = k.strip().lower()
-
-		if k in ints:
-			defaults[k] = int(v.strip())
-		elif k in bools:
-			defaults[k] = not (v.strip().lower() in ['0', 'false'])
-		else:
-			defaults[k] = v.strip()
-	return defaults
+    return outfile
 
 
-def WriteDefaults():
-	config_path = GetConfigPath()
-	if os.path.exists(config_path):
-		print('Er bestaat al een config bestand in {}. Dit is NIET overschreven.'.format(config_path))
-		sys.exit(1)
+def make_outdir(outdir, meta):
+    outdir = download_npo.replace_vars(outdir, meta)
+    if not os.path.exists(outdir):
+        try:
+            os.makedirs(outdir)
+        except OSError:
+            Error("Output directory `{}' bestaat niet, en kan ook niet "
+                  'gemaakt worden ({})'.format(outdir, sys.exc_info()[1]))
+            sys.exit(1)
+    if not os.path.isdir(outdir):
+        Error("Output directory `%s' bestaat maar is geen directory" % outdir)
+        sys.exit(1)
 
-	with open(config_path, 'w') as fp:
-		fp.write('''# Toon meer informatie (-V)
+    return outdir
+
+
+def match_site(url):
+    """ Return a Site object based from url """
+
+    url = re.sub(r'^www\.', '', url.replace('http://', '').replace('https://', ''))
+    for s in download_npo.sites.sites:
+        klass = getattr(download_npo.sites, s)
+        if re.match(klass.match, url):
+            if _verbose:
+                print('Using site class %s' % klass)
+            return klass()
+
+    raise Error("Kan geen site vinden voor de URL `%s'" % url)
+
+
+def config_path():
+    return '{}/download-npo.conf'.format(
+        os.getenv('XDG_CONFIG_HOME') or os.path.expanduser('~/.config'))
+
+
+def defaults():
+    defs = {
+        'verbose': 0,
+        'silent': False,
+        'outdir': u'.',
+        'filename': u'{titel}-{episode_id}',
+        'dryrun': False,
+        'overwrite': False,
+        'replacespace': True,
+        'safefilename': True,
+        'metaonly': 0,
+        'getsubs': 0,
+        'quality': 0,
+    }
+    cp = config_path()
+    if not os.path.exists(cp):
+        if _verbose:
+            print('No config file at {}'.format(cp))
+        return defs
+
+    if _verbose:
+        print('Reading config file from {}'.format(cp))
+    ints = ['verbose', 'metaonly', 'getsubs', 'quality']
+    bools = ['silent', 'dryrun', 'overwrite', 'replacespace', 'safefilename']
+
+    for line in open(cp, 'r'):
+        line = line.strip()
+
+        if line == '' or line[0] == '#':
+            continue
+
+        k, v = line.split('=')
+        k = k.strip().lower()
+
+        if k in ints:
+            defs[k] = int(v.strip())
+        elif k in bools:
+            defs[k] = not (v.strip().lower() in ['0', 'false'])
+        else:
+            defs[k] = v.strip()
+    return defs
+
+
+def write_defaults():
+    cp = config_path()
+    if os.path.exists(cp):
+        print('Er bestaat al een config bestand in {}.'
+              'Dit is NIET overschreven.'.format(cp))
+        sys.exit(1)
+
+    with open(cp, 'w') as fp:
+        fp.write('''# Toon meer informatie (-V)
 # 0: Standaard
 # 1: Hetzelfde als -V
 # 2: Hetzelfde als -VV
@@ -277,7 +281,7 @@ getsubs = 0
 # 1: Middel
 # 2: Laag
 quality = 0''')
-	print(config_path)
+    print(cp)
 
 
 # The MIT License (MIT)

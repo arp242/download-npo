@@ -11,89 +11,86 @@ from __future__ import print_function
 import getopt, sys, re
 import download_npo
 
-def Help(show_more_help=True):
-	print('Experimenteel!')
-	print('')
-	print('Voorbeeld:')
-	print('  ./download-gemist-list http://www.npo.nl/andere-tijden/VPWON_1247337')
-	print('')
-	print('Gebruikt -p voor pagina 2, 3, etc.')
-	print('')
-	print('Format is:')
-	print('ID URL omschrijving')
-	print('')
-	print('Let op! Sommige afleveringen komen meer dan een keer voor; vaak met een andere playerid.')
-	print('Meestal is de omschrijving dan wel hetzelfde.')
-	if show_more_help:
-		print('Gebruik --help om een langere help te tonen')
+def usage(show_more_help=True):
+    print('Experimenteel!')
+    print('')
+    print('Voorbeeld:')
+    print('  ./download-gemist-list http://www.npo.nl/andere-tijden/VPWON_1247337')
+    print('')
+    print('Gebruikt -p voor pagina 2, 3, etc.')
+    print('')
+    print('Format is:')
+    print('ID URL omschrijving')
+    print('')
+    print('Let op! Sommige afleveringen komen meer dan een keer voor; vaak met een andere playerid.')
+    print('Meestal is de omschrijving dan wel hetzelfde.')
+    if show_more_help:
+        print('Gebruik --help om een langere help te tonen')
 
+def long_usage():
+    usage(False)
 
-def LongHelp():
-	Help(False)
-
-
-def Error(msg):
-	""" Print message to stderr, can't use print because of Python 2/3
-	incompatibility """
-	sys.stderr.write(u'Error: %s\n' % msg)
-
+def error(msg):
+    """ Print message to stderr, can't use print because of Python 2/3
+    incompatibility """
+    sys.stderr.write(u'error: %s\n' % msg)
 
 if __name__ == '__main__':
-	try:
-		params, series = getopt.getopt(sys.argv[1:], 'hvVsf:p:', ['help'])
-	except getopt.GetoptError:
-		Error('Error: %s' % sys.exc_info()[1])
-		Help()
-		sys.exit(1)
+    try:
+        params, series = getopt.getopt(sys.argv[1:], 'hvVsf:p:', ['help'])
+    except getopt.GetoptError:
+        error('error: %s' % sys.exc_info()[1])
+        usage()
+        sys.exit(1)
 
-	options = download_npo.GetDefaults()
-	download_npo._verbose = int(options['verbose'])
+    options = download_npo.defaults()
+    download_npo._verbose = int(options['verbose'])
 
-	fmt = ''
-	page = 1
-	for flag, arg in params:
-		if flag == '-h':
-			Help()
-			sys.exit(0)
-		elif flag == '--help':
-			LongHelp()
-			sys.exit(0)
-		elif flag == '-v':
-			Version()
-			sys.exit(0)
-		elif flag == '-V':
-			download_npo._verbose += 1
-		elif flag == '-s':
-			options['silent'] = True
-		elif flag == '-f':
-			fmt = arg
-		elif flag == '-p':
-			page = int(arg)
+    fmt = ''
+    page = 1
+    for flag, arg in params:
+        if flag == '-h':
+            usage()
+            sys.exit(0)
+        elif flag == '--help':
+            long_usage()
+            sys.exit(0)
+        elif flag == '-v':
+            Version()
+            sys.exit(0)
+        elif flag == '-V':
+            download_npo._verbose += 1
+        elif flag == '-s':
+            options['silent'] = True
+        elif flag == '-f':
+            fmt = arg
+        elif flag == '-p':
+            page = int(arg)
 
-	v = download_npo.CheckUpdate()
-	if v is not None and not options['silent']:
-		Error('Waarschuwing: De laatste versie is %s, je gebruikt nu versie %s' % (
-			v, download_npo.GetVersion()[0]))
+    v = download_npo.check_update()
+    if v is not None and not options['silent']:
+        error('Waarschuwing: De laatste versie is %s, je gebruikt nu versie %s' % (
+            v, download_npo.version()[0]))
 
-	if len(series) == 0:
-		sys.stderr.write('Lezen van stdin (gebruik -h voor help)...')
-		sys.stderr.flush()
+    if len(series) == 0:
+        sys.stderr.write('Lezen van stdin (gebruik -h voor help)...')
+        sys.stderr.flush()
 
-		try :
-			series = re.split('\s', sys.stdin.read().strip())
-		except KeyboardInterrupt:
-			print('')
-			sys.exit(0)
-	try:
-		for s in series:
-			if s == '':
-				continue
-			download_npo.MatchSite(s).List(s, fmt, page)
-	except download_npo.DownloadNpoError as exc:
-		Error(exc)
-		sys.exit(1)
-	except KeyboardInterrupt:
-		print('')
+        try :
+            series = re.split('\s', sys.stdin.read().strip())
+        except KeyboardInterrupt:
+            print('')
+            sys.exit(0)
+    try:
+        for s in series:
+            if s == '':
+                continue
+            download_npo.match_site(s).list(s, fmt, page)
+    except download_npo.Error as exc:
+        error(exc)
+        sys.exit(1)
+    except KeyboardInterrupt:
+        print('')
 
 
 # The MIT License (MIT)
