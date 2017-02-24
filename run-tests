@@ -2,9 +2,16 @@
 
 set -xeuC
 
-./download-npo -VVVn http://www.npo.nl/gouden-jaren-indonesie/26-01-2017/POW_03414349
+# Gekozen omdat dit een ë in de titel heeft
+url=http://www.npo.nl/gouden-jaren-indonesie/26-01-2017/POW_03414349
 
-./download-npo -VVVT http://www.npo.nl/gouden-jaren-indonesie/26-01-2017/POW_03414349 
-[ -f "Gouden_Jaren_Indonesië-POW_03414349.srt" ] || exit 1
+# Download
+./download-npo -VVVn -f "{titel}_{datum}_{aflevering_titel}" $url
 
+# Subs
+./download-npo -VVVT -f "{titel}_{datum}_{aflevering_titel}" $url
+ls
+[ -f "./Gouden_Jaren_Indonesië_2017-01-26_Aflevering_2.srt" ] || exit 1
+
+# Listings
 ./download-npo-list -VVV http://www.npo.nl/andere-tijden/VPWON_1247337

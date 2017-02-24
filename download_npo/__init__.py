@@ -96,6 +96,9 @@ def HumanTime(s):
 
 
 def ReplaceVars(path, meta):
+	if sys.version_info[0] <= 2:
+		path = unicode(path)
+
 	path = path.format(**{
 		'episode_id': meta.get('prid', ''),
 		'datum': meta.get('gidsdatum', ''),
