@@ -175,15 +175,13 @@ class NPOPlayer(Site):
 			raise download_npo.DownloadNpoError('Kan playerId niet vinden')
 		if download_npo.Verbose(): print('Using playerId ' + playerId)
 
+		#{"token":"h4i536f2104v7aepeonjm83s51"}
+
 		try:
-			token = re.search('token = "(.*?)"',
-				self.GetPage('http://ida.omroep.nl/npoplayer/i.js')).groups()[0]
+			token = json.loads(self.GetPage('http://ida.omroep.nl/app.php/auth'))['token']
 		except AttributeError:
 			raise download_npo.DownloadNpoError('Kan token niet vinden')
 		if download_npo.Verbose(): print('Found token ' + token)
-
-		new_token = self.transform_token(token)
-		if download_npo.Verbose(): print('Transformed token to ' + new_token)
 
 		meta = self.Meta(playerId)
 		if meta.get('error') and len(meta['error']) > 1:
@@ -191,32 +189,25 @@ class NPOPlayer(Site):
 				'Site geeft aan dat er iets fout is: {}'.format(meta['error']))
 
 		ext = 'mp4'
-		if meta.get('streams') and type(meta['streams'][0]) == dict:
+		if meta.get('items') and type(meta['items'][0][0]) == dict:
 			# Radiouitendingen
-			ext = meta['streams'][0].get('type', 'mp4')
+			ext = meta['items'][0][0].get('type', 'mp4')
 
 			# MMS / Windows Media Speler
-			if meta['streams'][0].get('formaat') == 'wmv':
+			if meta['items'][0][0].get('formaat') == 'wmv':
 				return self.FindVideo_MMS(playerId)
 
-		streams = self.GetJSON('&'.join([
-			'http://ida.omroep.nl/odi/?prid=%s' % playerId,
-			'puboptions=adaptive,h264_bb,h264_sb,h264_std,wmv_bb,wmv_sb,wvc1_std',
-			'adaptive=no',
-			'part=1',
-			'token=%s' % new_token,
-			'callback=cb',
-			'_=%s' % time.time(),
-		]))
+		# http://ida.omroep.nl/app.php/POW_03414349?adaptive=no&token=djo0nv08rdk46iq7kijrvtktr3
+		streams = self.GetJSON('http://ida.omroep.nl/app.php/{}?adaptive=no&token={}'.format(playerId, token))
 
 		url = None
 		errors = []
-		for q, streamurl in enumerate(streams['streams'][quality:]):
-			stream = self.GetJSON(streamurl)
+		for q, stream in enumerate(streams['items'][0][quality:]):
+			stream = self.GetJSON(stream['url'])
 			if stream.get('errorstring'):
 				# Dit is vooral voor regionale afleveringen (lijkt het ...)
-				if meta.get('streams') and len(meta['streams']) > 0:
-					url = meta['streams'][0]['url']
+				if meta.get('items') and len(meta['items'][0]) > 0:
+					url = meta['items'][0][0]['url']
 					break
 				else:
 					sys.stderr.write("Warning: De kwaliteit `%s' lijkt niet beschikbaar.\n" % ['hoog', 'middel', 'laag'][q])
@@ -232,44 +223,13 @@ class NPOPlayer(Site):
 		return (self.OpenUrl(url), playerId, ext)
 
 
-	def transform_token(self, token):
-		""" Silly tricks om het token te veranderen. Dit vermoedelijk een extra
-		"bescherming" om dit soort dingen te voorkomen...
-
-		Dit komt uit `function d(req)' in de JS. keyValue == token."""
-
-		first = second = None
-		for i, c in enumerate(token):
-			try:
-				int(c)
-				is_int = True
-			except ValueError:
-				is_int = False
-
-			if is_int and i > 4 and i < len(token) - 5:
-				if first is None:
-					first = i
-				elif second is None:
-					second = i
-
-		new_token = [ c for c in token ]
-		if first is not None and second is not None:
-			new_token[first] = token[second]
-			new_token[second] = token[first]
-		else:
-			new_token[12] = token[13]
-			new_token[13] = token[12]
-
-		return ''.join(new_token)
-
-
 	def FindVideo_MMS(self, playerId):
 		""" Old MMS format """
 
 		if download_npo.Verbose(): print('Gebruik FindVideo_MMS')
 
 		meta = self.Meta(playerId)
-		stream = self.GetPage(meta['streams'][0]['url'])
+		stream = self.GetPage(meta['items'][0]['url'])
 		stream = re.search(r'"(mms://.*?)"', stream).groups()[0]
 		if download_npo.Verbose(): print('MMS stream: %s' % stream)
 

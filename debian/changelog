@@ -1,3 +1,9 @@
+download-npo (2.6.0-0) UNRELEASED; urgency=low
+
+  * Fix for updated NPO.nl site
+
+ -- Martin Tournoij <martin@arp242.net>  Thu, 2 Mar 2017 11:12:33 +0000
+
 download-npo (2.5.2-0) UNRELEASED; urgency=low
 
   * Several small fixes for Windows, Python 2 (this package is unaffected).
