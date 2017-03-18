@@ -1,0 +1,26 @@
+# Maintainer: Martin Tournoij <martin@arp242.net>
+
+pkgname=pqiv
+pkgver=2.6
+pkgrel=1
+pkgdesc="Download videos from npo.nl"
+arch=('i686' 'x86_64')
+url="https://code.arp242.net/download-npo"
+license=('MIT')
+depends=('python')
+optdepends=(
+'libmms: Download older MMS videos'
+)
+install=
+source=($pkgname-$pkgver.tar.gz::https://github.com/Carpetsmoker/download-npo/archive/$pkgver.tar.gz)
+sha256sums=('')
+
+build() {
+	#cd $pkgname-$pkgver
+	#make
+}
+
+package() {
+	#cd $pkgname-$pkgver
+	#make DESTDIR=$pkgdir install
+}
