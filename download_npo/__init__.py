@@ -9,10 +9,15 @@
 #
 
 from __future__ import print_function
-import os, re, sys, unicodedata, locale
+import locale
+import os
+import re
+import sys
+import unicodedata
 
 import download_npo.sites
 
+# pylint:disable=import-error
 if sys.version_info[0] < 3:
     import urllib2
 else:
@@ -20,15 +25,11 @@ else:
 
 __all__ = ['version', 'check_update', 'human_size', 'human_time']
 
-_verbose = 0
+verbose = 0
 
 
 class Error(Exception):
     pass
-
-
-def verbose():
-    return _verbose
 
 
 def version():
@@ -44,12 +45,13 @@ def check_update():
         return None
 
     try:
-        page = urllib2.urlopen('https://github.com/Carpetsmoker/download-npo/releases').read().decode('utf-8')
+        page = urllib2.urlopen(
+            'https://github.com/Carpetsmoker/download-npo/releases').read().decode('utf-8')
         latest = re.findall('releases/tag/version-([0-9.]+)', page)[0]
         return latest if latest != version()[0] else None
-    # Never fail
+    # pylint:disable=bare-except
     except:
-        if _verbose:
+        if verbose:
             print('check_update() failed: {}'.format(sys.exc_info()[1]))
         return None
 
@@ -58,13 +60,13 @@ def human_size(bytesize, p=1):
     """ Return human-readable string of n bytes
     Use p to set the precision
 
-    >>> HumanSize(42424242)
+    >>> human_size(42424242)
     '40,5 MiB'
 
-    >>> HumanSize(42424242, 0)
+    >>> human_size(42424242, 0)
     '40 MiB'
 
-    >>> HumanSize(1024**3, 2)
+    >>> human_size(1024**3, 2)
     '1024,00 MiB'
     """
 
@@ -80,10 +82,10 @@ def human_size(bytesize, p=1):
 def human_time(s):
     """ Return human-readable string of n seconds
 
-    >>> HumanTime(42)
+    >>> human_time(42)
     '42s'
 
-    >>> HumanTime(32490)
+    >>> human_time(32490)
     '9h01m30s'
     """
 
@@ -96,7 +98,7 @@ def human_time(s):
 
 def replace_vars(path, meta):
     if sys.version_info[0] <= 2:
-            path = unicode(path)
+        path = unicode(path)
 
     path = path.format(**{
         'episode_id': meta.get('prid', ''),
@@ -117,6 +119,7 @@ def replace_vars(path, meta):
     return path
 
 
+# pylint:disable=too-many-arguments
 def make_filename(outdir, title, ext, meta, safe=True, nospace=True, overwrite=False):
     """ Make a filename from the page title
 
@@ -180,7 +183,7 @@ def match_site(url):
     for s in download_npo.sites.sites:
         klass = getattr(download_npo.sites, s)
         if re.match(klass.match, url):
-            if _verbose:
+            if verbose:
                 print('Using site class %s' % klass)
             return klass()
 
@@ -208,11 +211,11 @@ def defaults():
     }
     cp = config_path()
     if not os.path.exists(cp):
-        if _verbose:
+        if verbose:
             print('No config file at {}'.format(cp))
         return defs
 
-    if _verbose:
+    if verbose:
         print('Reading config file from {}'.format(cp))
     ints = ['verbose', 'metaonly', 'getsubs', 'quality']
     bools = ['silent', 'dryrun', 'overwrite', 'replacespace', 'safefilename']

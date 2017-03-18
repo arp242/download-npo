@@ -1,6 +1,9 @@
 # encoding:utf-8
+# pylint:disable=too-few-public-methods
 
-import sys, ctypes, ctypes.util
+import ctypes
+import ctypes.util
+import sys
 import download_npo
 
 
@@ -14,7 +17,6 @@ class mms_stream_t(ctypes.Structure):
 
 
 class mmsh_t(ctypes.Structure):
-    ''' pylint: '''
     _fields_ = [
         ('s', ctypes.c_int),
 
@@ -68,8 +70,8 @@ class mmsh_t(ctypes.Structure):
 
 class MMS(object):
     def __init__(self, url):
-        self._libmms = ctypes.cdll.LoadLibrary(ctypes.util.find_library('mms'))
-        if self._libmms._name is None:
+        self.libmms = ctypes.cdll.LoadLibrary(ctypes.util.find_library('mms'))
+        if self.libmms._name is None:  # pylint:disable=protected-access
             raise download_npo.Error(
                 'Deze video is in het (oude) MMS/WMV formaat; om dit te'
                 'downloaden heb je libmms nodig, welke niet is gevonden op je'
@@ -77,7 +79,7 @@ class MMS(object):
 
         self._libc = ctypes.cdll.LoadLibrary(ctypes.util.find_library('c'))
 
-        mmsh_connect = self._libmms.mmsh_connect
+        mmsh_connect = self.libmms.mmsh_connect
         mmsh_connect.restype = ctypes.POINTER(mmsh_t)
 
         if sys.version_info[0] > 2:
@@ -90,10 +92,10 @@ class MMS(object):
         self.buf = malloc(8192)
 
     def close(self):
-        return self._libmms.mmsh_close(self._mms)
+        return self.libmms.mmsh_close(self._mms)
 
     def read(self, l):
-        total = self._libmms.mmsh_read(None, self._mms, self.buf, l)
+        total = self.libmms.mmsh_read(None, self._mms, self.buf, l)
 
         if total == 0:
             return None

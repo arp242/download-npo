@@ -10,13 +10,21 @@
 #
 
 from __future__ import print_function
-import getopt, signal, subprocess, sys, time, os, re
+import getopt
+import os
+import re
+import signal
+import subprocess
+import sys
+import time
 import download_npo
 
 _options = {}
 
+
 def usage(show_more_help=True):
-    print('{} [-hvdnVsofwcmMtTk] [-o output_dir] [-f output_file] [url url2 ...]'.format(sys.argv[0]))
+    print('{} [-hvdnVsofwcmMtTk] [-o output_dir] [-f output_file] [url url2 ...]'.format(
+        sys.argv[0]))
     print('')
     print('Video URL kan vanaf de commandline opgegeven worden, of via stdin')
     print('')
@@ -45,6 +53,7 @@ def usage(show_more_help=True):
     if show_more_help:
         print('Gebruik --help om een langere help te tonen')
 
+
 def long_usage():
     usage(False)
     print('De -o en -f opties kunnen een aantal variabelen bevatten. Deze worden er met')
@@ -69,14 +78,17 @@ def long_usage():
     print('Met -d wordt er een config bestand geschreven met de standaard waarden.')
     print('Zie de comments in het bestand voor meer details.')
 
+
 def version():
     print('download-npo ' + ', '.join(download_npo.version()))
     print('http://code.arp242.net/download-npo')
+
 
 def error(msg):
     """ Print message to stderr, can't use print because of Python 2/3
     incompatibility """
     sys.stderr.write(u'error: {}\n'.format(msg))
+
 
 def term_width():
     """ Try and get the terminal width """
@@ -101,6 +113,10 @@ def term_width():
     except OSError:
         return 80
 
+
+termwidth = termwidthchanged = None
+
+
 def download_video(site, player_id, videourl, outfile):
     global termwidth, termwidthchanged
     termwidth = term_width()
@@ -108,7 +124,7 @@ def download_video(site, player_id, videourl, outfile):
 
     # Update on terminal resize, if the OS supports it
     if getattr(signal, 'SIGWINCH', None):
-        def updterm(sig, stack):
+        def updterm(_sig, _stack):
             global termwidth, termwidthchanged
             termwidth = term_width()
             termwidthchanged = True
@@ -117,8 +133,8 @@ def download_video(site, player_id, videourl, outfile):
     filename = os.path.basename(outfile)
     starttime = time.time()
     ptime = remaining = 0
-    download = site.download_video(player_id, videourl, outfile, _options['dryrun'])
-    for total, completed, speed in download:
+    dl = site.download_video(player_id, videourl, outfile, _options['dryrun'])
+    for total, completed, speed in dl:
         curtime = time.time()
         if curtime - starttime > 2:
             speed = int(completed / (curtime - starttime))
@@ -129,18 +145,16 @@ def download_video(site, player_id, videourl, outfile):
 
         if curtime >= ptime + 1:
             if total < 0:
-                line = '  %(completed)s van onbekende groote met %(speed)4s/s' % ({
-                    'completed': download_npo.human_size(completed),
-                    'speed': download_npo.human_size(speed),
-                })
+                line = '  {completed} van onbekende groote met {speed:>4}/s'.format(
+                    completed=download_npo.human_size(completed),
+                    speed=download_npo.human_size(speed))
             else:
-                line = ('%(complete)3s%% van %(total)s; '
-                    + 'nog %(remaining)4s te gaan met %(speed)4s/s') % ({
-                    'total': download_npo.human_size(total),
-                    'complete': int(completed / (total / 100)),
-                    'speed': download_npo.human_size(speed),
-                    'remaining': download_npo.HumanTime(remaining),
-                })
+                line = '{complete:>3}% van {total}; nog {remaining:>4} te gaan met {speed:>4}/s'
+                line = line.format(
+                    total=download_npo.human_size(total),
+                    complete=int(completed / (total / 100)),
+                    speed=download_npo.human_size(speed),
+                    remaining=download_npo.human_time(remaining))
 
             if termwidthchanged:
                 termwidthchanged = False
@@ -159,30 +173,37 @@ def download_video(site, player_id, videourl, outfile):
     else:
         print()
 
-def download(videos, filename, outdir, metaonly, getsubs, quality):
+
+def download(download_videos, filename, outdir, metaonly, getsubs, quality):
     exitcode = 0
-    for v in videos:
-        if v == '':
+    for vid in download_videos:
+        if vid == '':
             continue
         if download_npo.verbose():
-            print('Downloading ' + v)
+            print('Downloading ' + vid)
 
         try:
-            site = download_npo.match_site(v)
-            videourl, player_id, ext = site.FindVideo(v, quality)
+            site = download_npo.match_site(vid)
+            videourl, player_id, ext = site.find_video(vid, quality)
 
             if not metaonly:
-                outdir = download_npo.make_outdir(outdir, site.Meta(player_id))
+                outdir = download_npo.make_outdir(outdir, site.meta(player_id))
                 outfile = download_npo.make_filename(outdir, filename, ext,
-                    site.Meta(player_id), _options['safefilename'],
-                    _options['replacespace'], _options['overwrite'])
-                if download_npo.verbose(): print('Saving to %s' % outfile)
+                                                     site.meta(player_id),
+                                                     _options['safefilename'],
+                                                     _options['replacespace'],
+                                                     _options['overwrite'])
+                if download_npo.verbose():
+                    print('Saving to %s' % outfile)
 
             if getsubs > 0:
                 subout = download_npo.make_filename(outdir, filename, 'srt',
-                    site.Meta(player_id), _options['safefilename'],
-                    _options['replacespace'], _options['overwrite'])
-                if download_npo.verbose(): print('Saving subs to %s' % subout)
+                                                    site.Meta(player_id),
+                                                    _options['safefilename'],
+                                                    _options['replacespace'],
+                                                    _options['overwrite'])
+                if download_npo.verbose():
+                    print('Saving subs to %s' % subout)
         except download_npo.Error as exc:
             error(exc)
             exitcode = 1
@@ -193,32 +214,32 @@ def download(videos, filename, outdir, metaonly, getsubs, quality):
                 import yaml
             except ImportError:
                 print('error: yaml extensie niet gevonden')
-                print('Om de metadata als YAML te tonen is de YAML extensie nodig; deze is te vinden op:')
+                print('Om de metadata als YAML te tonen is de YAML extensie nodig:')
                 print('http://pyyaml.org/')
                 print('Je kan eventueel ook -M gebruiken om de metadata als JSON te tonen')
                 sys.exit(1)
-            print(yaml.dump(site.Meta(player_id)))
+            print(yaml.dump(site.meta(player_id)))
         elif metaonly == 2:
             import json
-            print(json.dumps(site.Meta(player_id), indent=True))
+            print(json.dumps(site.meta(player_id), indent=True))
         elif getsubs == 2:
             if _options['dryrun']:
                 print(subout)
             else:
                 with open(subout, 'wb') as fp:
-                    fp.write(site.Subs(player_id).read())
+                    fp.write(site.subs(player_id).read())
         else:
             if getsubs == 1:
                 if _options['dryrun']:
                     print(subout)
                 else:
                     with open(subout, 'wb') as fp:
-                        fp.write(site.Subs(player_id).read())
+                        fp.write(site.subs(player_id).read())
 
             if not _options['silent']:
                 download_video(site, player_id, videourl, outfile)
             else:
-                for a in site.download_video(player_id, videourl, outfile):
+                for _ in site.download_video(player_id, videourl, outfile):
                     pass
 
     sys.exit(exitcode)
@@ -293,14 +314,14 @@ if __name__ == '__main__':
         sys.stderr.flush()
 
         try:
-            videos = re.split('\s', sys.stdin.read().strip())
+            videos = re.split(r'\s', sys.stdin.read().strip())
         except KeyboardInterrupt:
             print('')
             sys.exit(0)
 
     try:
         download(videos, options['filename'], options['outdir'],
-            options['metaonly'], options['getsubs'], options['quality'])
+                 options['metaonly'], options['getsubs'], options['quality'])
     except KeyboardInterrupt:
         print('')
 

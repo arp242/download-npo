@@ -14,6 +14,7 @@ import re
 import os
 import download_npo
 
+# pylint:disable=import-error,no-name-in-module
 if sys.version_info[0] < 3:
     import urllib2
     import httplib
@@ -40,17 +41,16 @@ class Site():
     _meta = {}
 
     def __init__(self):
-        # TODO: Make this work for Python 2
-        if download_npo.Verbose() >= 2:
+        if download_npo.verbose >= 2:
             if sys.version_info[0] >= 3:
                 http.client.HTTPConnection.debuglevel = 99
             else:
                 httplib.HTTPConnection.debuglevel = 99
 
-    def openURL(self, url):
+    def urlopen(self, url):  # pylint:disable=no-self-use
         """ Open a URI; return urllib.request.Request object """
-        if download_npo.Verbose():
-            print('openURL: ' + url)
+        if download_npo.verbose:
+            print('urlopen: ' + url)
 
         headers = {
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:51.0) Gecko/20100101 Firefox/51.0',
@@ -63,14 +63,14 @@ class Site():
             raise download_npo.Error(
                 'De URL {} is niet gevonden (404 error)'.format(url))
 
-    def openMMS(self, url):
+    def open_mms(self, url):  # pylint:disable=no-self-use
         """ Open MMS URL """
-        import download_npo.mms
+        # import download_npo.mms
         return download_npo.mms.MMS(url)
 
     def get_page(self, url):
         """ Open URL, and read() the data """
-        data = self.openURL(url).read()
+        data = self.urlopen(url).read()
         if sys.version_info[0] > 2:
             data = data.decode()
         return data.strip()
@@ -81,7 +81,7 @@ class Site():
         data = re.sub(r'[\);/eprc\s]*$', '', data)
         data = json.loads(data)
 
-        if download_npo.Verbose() >= 2:
+        if download_npo.verbose >= 2:
             import pprint
             pprint.pprint(data)
 
@@ -108,7 +108,7 @@ class Site():
                 fp.save()
         except ImportError:
             print('\nmutagen module niet gevonden; metadata niet ingesteld.',
-                file=sys.stderr)
+                  file=sys.stderr)
             return
 
     def download_video(self, player_id, video, outfile, dryrun=False, getsubs=False):
@@ -160,161 +160,168 @@ class Site():
 
 
 class NPOPlayer(Site):
-        """ Base class voor NPOPlayer sites, this should work on all sites using the
-        NPO player """
+    """ Base class voor NPOPlayer sites, this should work on all sites using the
+    NPO player """
 
-        match = '.*'
-        _playerid_regex = '([A-Z][A-Z_]{1,8}_\d{6,9})'
+    match = '.*'
+    _playerid_regex = r'([A-Z][A-Z_]{1,8}_\d{6,9})'
+    base = 'http://ida.omroep.nl/app.php'
 
-        def find_video(self, url, quality=0):
-                """ Find video to download
-                Returns (downloadurl, playerId, extension)"""
+    def find_video(self, url, quality=0):
+        """ Find video to download
+            Returns (downloadurl, player_id, extension)"""
 
-                if not (url.startswith('http://') or url.startswith('https://')):
-                        url = 'http://www.npo.nl/%s' % url
+        if not (url.startswith('http://') or url.startswith('https://')):
+            url = 'http://www.npo.nl/{}'.format(url)
 
-                page = self.GetPage(url)
-                page = unquote(page)
+        page = self.get_page(url)
+        page = unquote(page)
 
-                if download_npo.Verbose() >= 3:
-                        print('page: %s' % page)
+        if download_npo.verbose >= 3:
+            print('page: {}'.format(page))
 
-                try:
-                        playerId = re.search(self._playerid_regex, page).groups()[0]
-                except AttributeError:
-                        raise download_npo.DownloadNpoError('Kan playerId niet vinden')
-                if download_npo.Verbose(): print('Using playerId ' + playerId)
+        try:
+            player_id = re.search(self._playerid_regex, page).groups()[0]
+        except AttributeError:
+            raise download_npo.Error('Kan player_id niet vinden')
+        if download_npo.verbose:
+            print('Using player_id {}'.format(player_id))
 
-                #{"token":"h4i536f2104v7aepeonjm83s51"}
+        # {"token":"h4i536f2104v7aepeonjm83s51"}
+        try:
+            token = json.loads(self.get_page('{}/auth'.format(self.base)))['token']
+        except AttributeError:
+            raise download_npo.Error('Kan token niet vinden')
+        if download_npo.verbose:
+            print('Found token ' + token)
 
-                try:
-                        token = json.loads(self.GetPage('http://ida.omroep.nl/app.php/auth'))['token']
-                except AttributeError:
-                        raise download_npo.DownloadNpoError('Kan token niet vinden')
-                if download_npo.Verbose(): print('Found token ' + token)
+        meta = self.meta(player_id)
+        if meta.get('error') and len(meta['error']) > 1:
+            raise download_npo.Error(
+                'Site geeft aan dat er iets fout is: {}'.format(meta['error']))
 
-                meta = self.meta(playerId)
-                if meta.get('error') and len(meta['error']) > 1:
-                        raise download_npo.DownloadNpoError(
-                                'Site geeft aan dat er iets fout is: {}'.format(meta['error']))
+        ext = 'mp4'
+        if meta.get('items') and isinstance(meta['items'][0][0], dict):
+            # Radiouitendingen
+            ext = meta['items'][0][0].get('type', 'mp4')
 
-                ext = 'mp4'
-                if meta.get('items') and type(meta['items'][0][0]) == dict:
-                        # Radiouitendingen
-                        ext = meta['items'][0][0].get('type', 'mp4')
+            # MMS / Windows Media Speler
+            if meta['items'][0][0].get('formaat') == 'wmv':
+                return self.find_video_MMS(player_id)
 
-                        # MMS / Windows Media Speler
-                        if meta['items'][0][0].get('formaat') == 'wmv':
-                                return self.find_video_MMS(playerId)
+        # http://ida.omroep.nl/app.php/POW_03414349?adaptive=no&token=djo0nv08rdk46iq7kijrvtktr3
+        streams = self.get_json('{}/{}?adaptive=no&token={}'.format(
+            self.base, player_id, token))
 
-                # http://ida.omroep.nl/app.php/POW_03414349?adaptive=no&token=djo0nv08rdk46iq7kijrvtktr3
-                streams = self.GetJSON('http://ida.omroep.nl/app.php/{}?adaptive=no&token={}'.format(playerId, token))
+        url = None
+        errors = []
+        for q, stream in enumerate(streams['items'][0][quality:]):
+            stream = self.get_json(stream['url'])
+            if stream.get('errorstring'):
+                # Dit is vooral voor regionale afleveringen (lijkt het ...)
+                if meta.get('items') and len(meta['items'][0]) > 0:
+                    url = meta['items'][0][0]['url']
+                    break
+                else:
+                    n = ['hoog', 'middel', 'laag'][q]
+                    sys.stderr.write("Warning: De kwaliteit `{}' "
+                                     "lijkt niet beschikbaar.\n".format(n))
+                    sys.stderr.flush()
+                    errors.append(stream.get('errorstring'))
+            else:
+                url = stream['url']
+                break
 
-                url = None
-                errors = []
-                for q, stream in enumerate(streams['items'][0][quality:]):
-                        stream = self.GetJSON(stream['url'])
-                        if stream.get('errorstring'):
-                                # Dit is vooral voor regionale afleveringen (lijkt het ...)
-                                if meta.get('items') and len(meta['items'][0]) > 0:
-                                        url = meta['items'][0][0]['url']
-                                        break
-                                else:
-                                        sys.stderr.write("Warning: De kwaliteit `%s' lijkt niet beschikbaar.\n" % ['hoog', 'middel', 'laag'][q])
-                                        sys.stderr.flush()
-                                        errors.append(stream.get('errorstring'))
-                        else:
-                                url = stream['url']
-                                break
+        if url is None:
+            raise download_npo.Error("Foutmelding van site: `{}'".format(
+                ', '.join(errors)))
 
-                if url is None:
-                        raise download_npo.DownloadNpoError("Foutmelding van site: `%s'" % ', '.join(errors))
+        return (self.urlopen(url), player_id, ext)
 
-                return (self.OpenUrl(url), playerId, ext)
+    def find_video_MMS(self, player_id):
+        """ Old MMS format """
 
+        if download_npo.verbose:
+            print('Gebruik find_video_MMS')
 
-        def find_video_MMS(self, playerId):
-                """ Old MMS format """
+        meta = self.meta(player_id)
+        stream = self.get_page(meta['items'][0]['url'])
+        stream = re.search(r'"(mms://.*?)"', stream).groups()[0]
+        if download_npo.verbose:
+            print('MMS stream: %s' % stream)
 
-                if download_npo.Verbose(): print('Gebruik find_video_MMS')
+        # videourl, player_id, ext = site.find_video(v, quality)
+        return (self.open_mms(stream), player_id, 'wmv')
 
-                meta = self.meta(playerId)
-                stream = self.GetPage(meta['items'][0]['url'])
-                stream = re.search(r'"(mms://.*?)"', stream).groups()[0]
-                if download_npo.Verbose(): print('MMS stream: %s' % stream)
+    def meta(self, player_id):
+        if self._meta.get(player_id) is None:
+            meta = self.get_json(
+                'http://e.omroep.nl/metadata/{}?callback=cd&version=5.1.0&_={}'.format(
+                    player_id, time.time()))
 
-                #videourl, playerId, ext = site.find_video(v, quality)
-                return (self.OpenMMS(stream), playerId, 'wmv')
+            #  Hier lijkt zo vaak de helft van te ontbreken dat het niet opschiet
+            # if meta.get('serie') is not None:
+            #     meta['title'] = '{} {}'.format(
+            #         meta['serie']['serie_titel'],
+            #         meta['aflevering_titel'])
+            # else:
+            meta['title'] = '%s' % meta.get('titel', '')
+            self._meta[player_id] = meta
 
+        return self._meta[player_id]
 
-        def meta(self, playerId):
-                if self._meta.get(playerId) is None:
-                        meta = self.GetJSON('http://e.omroep.nl/metadata/%s?callback=cd&version=5.1.0&_=%s' % (
-                                playerId, time.time()))
+    def subs(self, player_id):
+        # Je zou verwachten dat je met het onderstaande uit de meta-data het
+        # eea. over de ondertitels zou kunnen ophalen ... helaas werkt dat niet
+        # zo, of misschien dat ik het niet goed doe... Voor nu gebruiken dus
+        # hardcoded e.omroep.nl/tt888/, wat goed lijkt te werken.
+        # self.Meta(player_id)
+        # print('%s/%s/' % (meta['sitestat']['baseurl_subtitle'],
+        #       meta['sitestat']['subtitleurl']))
 
-                        # Hier lijkt zo vaak de helft van te ontbreken dat het niet opschiet
-                        #if meta.get('serie') is not None:
-                        #       meta['title'] = '%s %s' % (meta['serie']['serie_titel'], meta['aflevering_titel'])
-                        #else:
-                        meta['title'] = '%s' % meta.get('titel', '')
-                        self._meta[playerId] = meta
+        return self.urlopen('http://tt888.omroep.nl/tt888/{}'.format(player_id))
 
-                return self._meta[playerId]
+    def list(self, url, fmt, page):
+        """ List all episodes for a series.
+        http://www.npo.nl/andere-tijden/VPWON_1247337/search?media_type=broadcast&start_date=&end_date=&start=8&rows=8
+        """
 
+        if not url.startswith('http://'):
+            # Must be series ID; e.g. VPWON_1247337
+            if '_' in url:
+                url = 'http://www.npo.nl/ignored/{}'.format(url)
+        if not url.endswith('/search'):
+            url += '/search'
+        url += '?media_type=broadcast&rows=20&start={}'.format((page - 1) * 20)
+        p = self.get_page(url)
 
-        def subs(self, playerId):
-                # Je zou verwachten dat je met het onderstaande uit de meta-data het
-                # eea. over de ondertitels zou kunnen ophalen ... helaas werkt dat niet
-                # zo, of misschien dat ik het niet goed doe... Voor nu gebruiken dus
-                # hardcoded e.omroep.nl/tt888/, wat goed lijkt te werken.
-                #self.Meta(playerId)
-                #print('%s/%s/' % (meta['sitestat']['baseurl_subtitle'],
-                #       meta['sitestat']['subtitleurl']))
+        '''
+        <div class='js-search-result list-item non-responsive row-fluid'
+        data-crid='crid://npo.nl/WO_NTR_7087971'>
+        <div class='span4'>
+        <div class='image-container'>
+        <a href="/truck-het-land-in-met-convoy-vara/23-01-2017/WO_NTR_7087971"><img
+        alt="Afbeelding van Truck: het land in met Convoy, VARA" class="program-image"
+        data-images="[&quot;//images.poms.omroep.nl/image/s174/c174x98/855819.png&quot;]"
+        data-toggle="image-skimmer"
+        src="//images.poms.omroep.nl/image/s174/c174x98/855819.png" />
+        <div class="overlay-icon"><span class="npo-glyph camera"></span> 4:27</div>
+        </a></div>
+        </div>
+        <div class='span8'>
+        <a href="/truck-het-land-in-met-convoy-vara/23-01-2017/WO_NTR_7087971"><h4>
+        Andere Tijden: 'Vrije jongens op de weg'
+        <span class='inactive'>(NTR en VPRO)</span>
+        <span class='av-icon'></span>
+        </h4>
+        '''
 
-                return self.OpenUrl('http://tt888.omroep.nl/tt888/%s' % playerId)
+        matches = re.findall(r'data-crid=["\']crid://(.*?)["\'].*?<h4>(.*?)<\w+',
+                             p, re.DOTALL | re.MULTILINE)
 
-
-        def list(self, url, fmt, page):
-                ''' 
-                http://www.npo.nl/andere-tijden/VPWON_1247337/search?media_type=broadcast&start_date=&end_date=&start=8&rows=8
-                '''
-
-                if not url.startswith('http://'):
-                        # Must be series ID; e.g. VPWON_1247337
-                        if '_' in url:
-                                url = 'http://www.npo.nl/ignored/{}'.format(url)
-                if not url.endswith('/search'):
-                        url += '/search'
-                url += '?media_type=broadcast&rows=20&start={}'.format((page-1) * 20)
-                p = self.GetPage(url)
-
-                '''
-                <div class='js-search-result list-item non-responsive row-fluid'
-                data-crid='crid://npo.nl/WO_NTR_7087971'>
-                <div class='span4'>
-                <div class='image-container'>
-                <a href="/truck-het-land-in-met-convoy-vara/23-01-2017/WO_NTR_7087971"><img
-                alt="Afbeelding van Truck: het land in met Convoy, VARA" class="program-image"
-                data-images="[&quot;//images.poms.omroep.nl/image/s174/c174x98/855819.png&quot;]"
-                data-toggle="image-skimmer"
-                src="//images.poms.omroep.nl/image/s174/c174x98/855819.png" />
-                <div class="overlay-icon"><span class="npo-glyph camera"></span> 4:27</div>
-                </a></div>
-                </div>
-                <div class='span8'>
-                <a href="/truck-het-land-in-met-convoy-vara/23-01-2017/WO_NTR_7087971"><h4>
-                Andere Tijden: 'Vrije jongens op de weg'
-                <span class='inactive'>(NTR en VPRO)</span>
-                <span class='av-icon'></span>
-                </h4>
-                '''
-
-                matches = re.findall(r'data-crid=["\']crid://(.*?)["\'].*?<h4>(.*?)<\w+',
-                        p, re.DOTALL | re.MULTILINE)
-
-                for m in matches:
-                        i = m[0].split('/').pop()
-                        print('{} http://{} {}'.format(i, m[0], m[1].strip()))
+        for m in matches:
+            i = m[0].split('/').pop()
+            print('{} http://{} {}'.format(i, m[0], m[1].strip()))
 
 
 class NPO(NPOPlayer):
@@ -344,11 +351,13 @@ class OmroepBrabant(Site):
         streams.sort(key=lambda v: int(v['bandwidth']), reverse=True)
         url = streams[0]['src']
 
-        return self.openURL(url), meta['clipData'].get('title'), player_id, 'mp4'
+        return self.urlopen(url), meta['clipData'].get('title'), player_id, 'mp4'
 
     def meta(self, player_id):
         if self._meta.get(player_id) is None:
-            page = self.get_page('http://media.omroepbrabant.nl/p/Commercieel1/q/sourceid_string:{}.js'.format(player_id))
+            page = self.get_page(
+                'http://media.omroepbrabant.nl/p/Commercieel1/q/sourceid_string:{}.js'.format(
+                    player_id))
             page = re.search('var opts = (.*);', page).groups()[0]
 
             data = json.loads(page)

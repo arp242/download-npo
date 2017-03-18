@@ -2,6 +2,8 @@
 
 set -xeuC
 
+./test.py
+
 # Gekozen omdat dit een ë in de titel heeft
 url=http://www.npo.nl/gouden-jaren-indonesie/26-01-2017/POW_03414349
 
