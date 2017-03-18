@@ -179,7 +179,7 @@ def download(download_videos, filename, outdir, metaonly, getsubs, quality):
     for vid in download_videos:
         if vid == '':
             continue
-        if download_npo.verbose():
+        if download_npo.verbose:
             print('Downloading ' + vid)
 
         try:
@@ -193,16 +193,16 @@ def download(download_videos, filename, outdir, metaonly, getsubs, quality):
                                                      _options['safefilename'],
                                                      _options['replacespace'],
                                                      _options['overwrite'])
-                if download_npo.verbose():
+                if download_npo.verbose:
                     print('Saving to %s' % outfile)
 
             if getsubs > 0:
                 subout = download_npo.make_filename(outdir, filename, 'srt',
-                                                    site.Meta(player_id),
+                                                    site.meta(player_id),
                                                     _options['safefilename'],
                                                     _options['replacespace'],
                                                     _options['overwrite'])
-                if download_npo.verbose():
+                if download_npo.verbose:
                     print('Saving subs to %s' % subout)
         except download_npo.Error as exc:
             error(exc)

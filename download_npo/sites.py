@@ -275,7 +275,7 @@ class NPOPlayer(Site):
         # eea. over de ondertitels zou kunnen ophalen ... helaas werkt dat niet
         # zo, of misschien dat ik het niet goed doe... Voor nu gebruiken dus
         # hardcoded e.omroep.nl/tt888/, wat goed lijkt te werken.
-        # self.Meta(player_id)
+        # self.meta(player_id)
         # print('%s/%s/' % (meta['sitestat']['baseurl_subtitle'],
         #       meta['sitestat']['subtitleurl']))
 

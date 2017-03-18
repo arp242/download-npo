@@ -10,7 +10,11 @@
 #
 
 from __future__ import print_function
-import os, sys, time, re, traceback
+import os
+import re
+import sys
+import time
+import traceback
 
 # Play some import games to make it work with Python 2 & 3
 if sys.version_info[0] > 2:
@@ -20,8 +24,10 @@ if sys.version_info[0] > 2:
     import tkinter.messagebox as messagebox
     import queue
 
-    try: import _thread as thread
-    except ImportError: import _dummy_thread as thread
+    try:
+        import _thread as thread
+    except ImportError:
+        import _dummy_thread as thread
 else:
     import Tkinter as tk
     import ttk
@@ -29,14 +35,16 @@ else:
     import tkMessageBox as messagebox
     import Queue as queue
 
-    try: import thread
-    except ImportError: import dummy_thread as thread
+    try:
+        import thread
+    except ImportError:
+        import dummy_thread as thread
 
 import download_npo
 
 
 class GUI:
-    def __init__(self, root, argv_videos=[]):
+    def __init__(self, root, argv_videos=None):
         self.root = root
         self.queue = queue.Queue()
         self._videos = []
@@ -44,7 +52,7 @@ class GUI:
 
         # Styling
         paths = [os.path.dirname(os.path.realpath(__file__)),
-            '/usr/share/download-npo', '/usr/local/share/download-npo']
+                 '/usr/share/download-npo', '/usr/local/share/download-npo']
         for p in paths:
             p = '{}/icon.gif'.format(p)
             if os.path.exists(p):
@@ -99,15 +107,16 @@ class GUI:
         paned.add(options_frame)
         paned.add(self.progress_frame)
 
-        ### progress_frame
+        # progress_frame
         ttk.Label(self.progress_frame, text='Voeg een video toe om te beginnen'
-        ).grid(row=0, column=0, sticky=tk.N)
+                  ).grid(row=0, column=0, sticky=tk.N)
 
-
-        ### options_frame
+        # options_frame
         self.row = -1
+
         def row(inc=True):
-            if inc: self.row += 1
+            if inc:
+                self.row += 1
             return self.row
 
         def label(text, add_space=True):
@@ -126,11 +135,11 @@ class GUI:
         self.outdir.set(os.path.expanduser('~'))
         outdir_input = tk.Entry(options_frame, textvariable=self.outdir)
 
-        cmd = lambda: self.outdir.set(filedialog.askdirectory(
-            initialdir=self.outdir.get(),
-            parent=self.root,
-            title='Selecteer map om bestanden op te slaan'
-        ))
+        def cmd():
+            self.outdir.set(filedialog.askdirectory(
+                            initialdir=self.outdir.get(),
+                            parent=self.root,
+                            title='Selecteer map om bestanden op te slaan'))
         selectdir_btn = tk.Button(options_frame, text='Selecteer', command=cmd)
 
         label('Map om bestanden op te slaan')
@@ -168,18 +177,20 @@ class GUI:
 
         # Overwrite
         self.overwrite = tk.IntVar()
-        overwrite = ttk.Checkbutton(options_frame, var=self.overwrite, text='Overschrijf al bestaande bestanden')
+        overwrite = ttk.Checkbutton(options_frame, var=self.overwrite,
+                                    text='Overschrijf al bestaande bestanden')
         overwrite.grid(row=row(), column=0, columnspan=3, sticky=tk.W)
 
         # Subtitles
         self.subtitles = tk.IntVar()
-        subtitles = ttk.Checkbutton(options_frame, var=self.subtitles, text='Download ook ondertiteling, als deze bestaat')
+        subtitles = ttk.Checkbutton(options_frame, var=self.subtitles,
+                                    text='Download ook ondertiteling, als deze bestaat')
         subtitles.grid(row=row(), column=0, columnspan=3, sticky=tk.W)
 
         add_btn = ttk.Button(options_frame, text='Voeg toe aan lijst', command=self.click_add)
         add_btn.grid(row=row(), column=0, columnspan=3, sticky=tk.E)
 
-        ### buttons_frame
+        # buttons_frame
         buttons_frame.columnconfigure(2, weight=1)
 
         quit_btn = ttk.Button(buttons_frame, text='Sluiten', command=root.quit)
@@ -193,10 +204,9 @@ class GUI:
 
         v = download_npo.check_update()
         if v is not None:
-            messagebox.showwarning('download-npo',
-                'Waarschuwing: De laatste versie is {}, je gebruikt nu versie {}'.format(
-                    v, download_npo.version()[0]))
-
+            messagebox.showwarning('download-npo', 'Waarschuwing: De laatste '
+                                   'versie is {}, je gebruikt nu versie {}'.format(
+                                       v, download_npo.version()[0]))
 
     def click_add(self):
         v = self.url_input.get(1.0, tk.END).strip()
@@ -204,7 +214,8 @@ class GUI:
         self.url_input.delete(1.0, tk.END)
 
         # Do nothing if no filename or outdir
-        if v == '' or self.outdir.get() == '': return
+        if v == '' or self.outdir.get() == '':
+            return
 
         urls = re.split(r'\s+', v)
         for u in urls:
@@ -218,10 +229,8 @@ class GUI:
 
         self.get_meta_all()
 
-
     def click_start_all(self):
         self.start_download_all()
-
 
     def get_video(self, url):
         for v in self._videos:
@@ -229,27 +238,24 @@ class GUI:
                 return v
         return None
 
-
     def get_meta_all(self):
-        for i, u in enumerate(self.urls):
+        for u in self.urls:
             if self.get_video(u) is None:
                 self.append_download_to_queue(u)
         self.run_queue()
 
-
     def start_download_all(self):
-        for i, u in enumerate(self.urls):
+        for u in self.urls:
             v = self.get_video(u)
-            if v['status'] == 0: self.start_video(v)
+            if v['status'] == 0:
+                self.start_video(v)
         self.run_queue()
-
 
     def start_or_pause_video(self, video):
         if video['start_pause'].get() == 'Pauze':
             self.pause_video(video)
         else:
             self.start_video(video)
-
 
     def start_video(self, video):
         self.queue.put(lambda: thread.start_new_thread(self.background_download, (video,)))
@@ -261,16 +267,18 @@ class GUI:
         video['status'] = 4
         video['start_pause'].set('Ga verder')
 
-
     def cancel_video(self, video):
         video['frame'].grid_forget()
         video['frame'].destroy()
 
-        try: self.urls.remove(video['url'])
-        except: pass
-        try: self._videos.remove(video)
-        except: pass
-
+        try:
+            self.urls.remove(video['url'])
+        except:
+            pass
+        try:
+            self._videos.remove(video)
+        except:
+            pass
 
     def make_progress_frame_entry(self, label_text, video):
         # +-------------------------------------------------+
@@ -284,7 +292,7 @@ class GUI:
         video['frame'] = frame
         print(video['row'])
         frame.grid(row=video['row'], sticky=tk.W + tk.E + tk.N, column=0)
-        #paned.grid(row=0, column=0, sticky=tk.E + tk.W + tk.N + tk.S)
+        # paned.grid(row=0, column=0, sticky=tk.E + tk.W + tk.N + tk.S)
 
         title = tk.Label(frame, text=label_text)
         title.grid(row=0, column=0, sticky=tk.W)
@@ -292,25 +300,24 @@ class GUI:
         video['start_pause'] = tk.StringVar()
         video['start_pause'].set('Start')
         btn = ttk.Button(frame, textvariable=video['start_pause'], style='Small.TButton',
-            command=lambda: self.start_or_pause_video(video))
+                         command=lambda: self.start_or_pause_video(video))
         btn.grid(row=0, column=1, sticky=tk.E)
 
         cancel = ttk.Button(frame, text='Annuleren', style='Small.TButton',
-            command=lambda: self.cancel_video(video))
+                            command=lambda: self.cancel_video(video))
         cancel.grid(row=0, column=2, sticky=tk.E)
 
         progress = tk.Label(frame, textvariable=video['progress'])
         progress.grid(row=1, column=0, sticky=tk.W)
 
-
     def append_download_to_queue(self, url):
         video = None
-        #for v in self._videos:
-        #   if v['status'] not in [3, 5] and v['url'] == url:
-        #       # TODO: Update opts
-        #       video = v
+        # for v in self._videos:
+        #    if v['status'] not in [3, 5] and v['url'] == url:
+        #        # TODO: Update opts
+        #        video = v
 
-        #if video is None:
+        # if video is None:
         if True:
             video = {
                 'url': url,
@@ -332,13 +339,13 @@ class GUI:
         video['row'] = len(self._videos)
         self.queue.put(lambda: thread.start_new_thread(self.fetch_meta, (video,)))
 
-
     def fetch_meta(self, video):
         try:
             site = download_npo.match_site(video['url'])
-            videourl, playerId, ext = site.FindVideo(video['url'])
-            meta = site.Meta(playerId)
-            text = download_npo.make_filename(video['outdir'], video['filename'], 'mp4', meta, True, True, True)
+            videourl, player_id, ext = site.find_video(video['url'])
+            meta = site.meta(player_id)
+            text = download_npo.make_filename(video['outdir'], video['filename'],
+                                              'mp4', meta, True, True, True)
 
             extra_text = ['{} kwaliteit'.format(
                 ['hoge', 'middel', 'lage'][video['quality']])]
@@ -353,7 +360,6 @@ class GUI:
         self.make_progress_frame_entry(text, video)
         thread.exit()
 
-
     # TODO: Voeg optie toe om te beperken tot /n/ processen
     def run_queue(self):
         try:
@@ -364,22 +370,27 @@ class GUI:
 
         self.root.after(100, self.run_queue)
 
-
     def background_download(self, video):
         """ Download videos in thread """
 
-        if video['status'] != 0: return
+        if video['status'] != 0:
+            return
         video['status'] = 1
 
         site = download_npo.match_site(video['url'])
 
         try:
-            videourl, playerId, ext = site.FindVideo(video['url'], video['quality'])
-            outdir = download_npo.make_outdir(video['outdir'], site.Meta(playerId))
-            outfile = download_npo.make_filename(outdir, video['filename'], ext, site.Meta(playerId), overwrite=video['overwrite'])
+            videourl, player_id, ext = site.find_video(video['url'], video['quality'])
+            outdir = download_npo.make_outdir(video['outdir'], site.meta(player_id))
+            outfile = download_npo.make_filename(outdir, video['filename'], ext,
+                                                 site.meta(player_id),
+                                                 overwrite=video['overwrite'])
             if video['subtitles'] > 0:
-                subout = download_npo.make_filename(outdir, video['filename'], 'srt', site.Meta(playerId), overwrite=video['overwrite'])
-                with open(subout, 'wb') as fp: fp.write(site.Subs(playerId).read())
+                subout = download_npo.make_filename(outdir, video['filename'],
+                                                    'srt', site.meta(player_id),
+                                                    overwrite=video['overwrite'])
+                with open(subout, 'wb') as fp:
+                    fp.write(site.subs(player_id).read())
         except download_npo.Error:
             messagebox.showerror('Fout', sys.exc_info()[1])
             self.queue.put(lambda: video['progress'].set('Fout'))
@@ -389,7 +400,7 @@ class GUI:
         pcomplete = -1
         starttime = time.time()
         ptime = remaining = 0
-        for total, completed, speed in site.DownloadVideo(playerId, videourl, outfile):
+        for total, completed, speed in site.download_video(player_id, videourl, outfile):
             # Paused
             if video['status'] == 4:
                 self.queue.put(lambda: video['progress'].set('Gepauzeerd'))
@@ -402,7 +413,7 @@ class GUI:
             curtime = time.time()
 
             if completepc != pcomplete:
-                #self.queue.put(lambda: video['progress'].set(completepc))
+                # self.queue.put(lambda: video['progress'].set(completepc))
                 pcomplete = completepc
 
             if curtime - starttime > 2:
@@ -419,18 +430,16 @@ class GUI:
                     remaining = (total - completed) / speed
 
                 if total < 0:
-                    line = '  %(completed)s van onbekende groote met %(speed)4s/s' % ({
-                        'completed': download_npo.human_size(completed),
-                        'speed': download_npo.human_size(speed),
-                    })
+                    line = '  {completed} van onbekende groote met {speed:>4}/s'.format(
+                        completed=download_npo.human_size(completed),
+                        speed=download_npo.human_size(speed))
                 else:
-                    line = ('%(complete)3s%% van %(total)s; '
-                        + 'nog %(remaining)4s te gaan met %(speed)4s/s') % ({
-                        'total': download_npo.human_size(total),
-                        'complete': completepc,
-                        'speed': download_npo.human_size(speed),
-                        'remaining': download_npo.HumanTime(remaining),
-                    })
+                    line = '{complete:>3}% van {total}; nog {remaining:>4} te gaan met {speed:>4}/s'
+                    line = line.format(
+                        total=download_npo.human_size(total),
+                        complete=int(completed / (total / 100)),
+                        speed=download_npo.human_size(speed),
+                        remaining=download_npo.human_time(remaining))
                 self.queue.put(lambda: video['progress'].set(line))
                 ptime = curtime
 

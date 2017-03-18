@@ -8,5 +8,12 @@ python:
   - "3.6"
 notifications:
   email: false
-install: "true"
+cache:
+  directories:
+    - $HOME/.cache/pip
+#install: "true"
+install:
+  - pip install coverage coveralls
 script: ./run-tests
+after_success:
+  - coveralls
