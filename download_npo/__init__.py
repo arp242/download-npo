@@ -38,8 +38,7 @@ def version():
 
 
 def check_update():
-    """ Check if there's a newer version
-    returns None or new version string """
+    """ Check if there's a newer version. returns None or new version string """
 
     if version()[1] == 'beta':
         return None
@@ -97,8 +96,12 @@ def human_time(s):
 
 
 def replace_vars(path, meta):
+    """ Replace variables in the path with format(); we need to play some games
+        to make sure it works with both Python 2 and 3 and unicode.
+    """
+
     if sys.version_info[0] <= 2:
-        path = unicode(path)
+        path = path.decode()
 
     path = path.format(**{
         'episode_id': meta.get('prid', ''),
