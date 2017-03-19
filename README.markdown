@@ -38,10 +38,6 @@ PPA][ppa]:
 2. Daarna kan je de [laatste versie downloaden][releases].
 3. Dubbel-klik `download-npo-gui.pyw` om de boel te starten.
 
-De automatische installer is al een tijd niet meer bijgewerkt. Voel je vrij om
-[je te melden](https://github.com/Carpetsmoker/download-npo/issues/1) mocht je
-interesse hebben om hier aan te werken.
-
 ---------------
 
 Als je oudere Silverlight/Windows media player uitzendingen wilt downloaden heb
