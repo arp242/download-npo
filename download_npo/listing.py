@@ -14,26 +14,22 @@ import re
 import download_npo
 
 
-def usage(show_more_help=True):
-    print('Experimenteel!')
+def usage():
+    print('{} [-hvVs] [-p pagina] '.format(sys.argv[0]))
     print('')
-    print('Voorbeeld:')
-    print('  ./download-npo-list http://www.npo.nl/andere-tijden/VPWON_1247337')
+    print('  -h  Toon deze help')
+    print('  -v  Toon versie')
+    print('  -V  Toon meer informatie over wat we doen; gebruik 2 of 3 keer voor meer info')
+    print('  -s  Stil: geef geen informatieve berichten (alleen errors)')
+    print('  -p  Pagina, beginnend bij 1; default is 1')
     print('')
-    print('Gebruikt -p voor pagina 2, 3, etc.')
+    print('De output is:')
+    print('episode_id url titel')
     print('')
-    print('Format is:')
-    print('ID URL omschrijving')
+    print('De episode_id en URL bevatten nooit spaties. De titel wel.')
     print('')
-    print('Let op! Sommige afleveringen komen meer dan een keer voor;'
-          'vaak met een andere playerid.')
-    print('Meestal is de omschrijving dan wel hetzelfde.')
-    if show_more_help:
-        print('Gebruik --help om een langere help te tonen')
-
-
-def long_usage():
-    usage(False)
+    print('Let op! Sommige afleveringen komen meer dan een keer voor, vaak met')
+    print('een andere episode_id. Meestal is de omschrijving dan wel hetzelfde.')
 
 
 def error(msg):
@@ -44,7 +40,7 @@ def error(msg):
 
 def main():
     try:
-        params, series = getopt.getopt(sys.argv[1:], 'hvVsf:p:', ['help'])
+        params, series = getopt.getopt(sys.argv[1:], 'hvVsp:')
     except getopt.GetoptError:
         error('error: %s' % sys.exc_info()[1])
         usage()
@@ -53,24 +49,19 @@ def main():
     options = download_npo.defaults()
     download_npo.verbose = int(options['verbose'])
 
-    fmt = ''
     page = 1
     for flag, arg in params:
         if flag == '-h':
             usage()
             sys.exit(0)
-        elif flag == '--help':
-            long_usage()
-            sys.exit(0)
         elif flag == '-v':
-            print(download_npo.version())
+            print('download-npo ' + ', '.join(download_npo.version()))
+            print('http://code.arp242.net/download-npo')
             sys.exit(0)
         elif flag == '-V':
             download_npo.verbose += 1
         elif flag == '-s':
             options['silent'] = True
-        elif flag == '-f':
-            fmt = arg
         elif flag == '-p':
             page = int(arg)
 
@@ -92,7 +83,8 @@ def main():
         for s in series:
             if s == '':
                 continue
-            download_npo.match_site(s).list(s, fmt, page)
+            for l in download_npo.match_site(s).list(s, page):
+                print(' '.join(l))
     except download_npo.Error as exc:
         error(exc)
         sys.exit(1)

@@ -80,11 +80,6 @@ def long_usage():
     print('Zie de comments in het bestand voor meer details.')
 
 
-def version():
-    print('download-npo ' + ', '.join(download_npo.version()))
-    print('http://code.arp242.net/download-npo')
-
-
 def error(msg):
     """ Print message to stderr, can't use print because of Python 2/3
     incompatibility """
@@ -270,7 +265,8 @@ def main():
             download_npo.write_defaults()
             sys.exit(0)
         elif flag == '-v':
-            version()
+            print('download-npo ' + ', '.join(download_npo.version()))
+            print('http://code.arp242.net/download-npo')
             sys.exit(0)
         elif flag == '-V':
             download_npo.verbose += 1

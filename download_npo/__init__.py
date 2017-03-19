@@ -34,20 +34,18 @@ class Error(Exception):
 
 def version():
     """ Get (version, release date), both as string """
-    return ('2.6', '2017-03-02')
+    return ('2.7', '2017-03-19')
 
 
 def check_update():
     """ Check if there's a newer version. returns None or new version string """
 
-    if version()[1] == 'beta':
-        return None
-
     try:
         page = urllib2.urlopen(
             'https://github.com/Carpetsmoker/download-npo/releases').read().decode('utf-8')
         latest = re.findall('releases/tag/version-([0-9.]+)', page)[0]
-        return latest if latest != version()[0] else None
+        if latest > version()[0]:
+            return latest
     # pylint:disable=bare-except
     except:
         if verbose:

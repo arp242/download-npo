@@ -162,7 +162,7 @@ class Site():
     def subs(self, player_id):
         raise download_npo.Error('Deze site ondersteund geen ondertitels')
 
-    def list(self, url, fmt, page):
+    def list(self, url, page):
         raise download_npo.Error('Dit is niet ondersteund voor deze site')
 
 
@@ -289,7 +289,7 @@ class NPOPlayer(Site):
 
         return self.urlopen('http://tt888.omroep.nl/tt888/{}'.format(player_id))
 
-    def list(self, url, fmt, page):
+    def list(self, url, page):
         """ List all episodes for a series.
         http://www.npo.nl/andere-tijden/VPWON_1247337/search?media_type=broadcast&start_date=&end_date=&start=8&rows=8
         """
@@ -303,33 +303,14 @@ class NPOPlayer(Site):
         url += '?media_type=broadcast&rows=20&start={}'.format((page - 1) * 20)
         p = self.get_page(url)
 
-        '''
-        <div class='js-search-result list-item non-responsive row-fluid'
-        data-crid='crid://npo.nl/WO_NTR_7087971'>
-        <div class='span4'>
-        <div class='image-container'>
-        <a href="/truck-het-land-in-met-convoy-vara/23-01-2017/WO_NTR_7087971"><img
-        alt="Afbeelding van Truck: het land in met Convoy, VARA" class="program-image"
-        data-images="[&quot;//images.poms.omroep.nl/image/s174/c174x98/855819.png&quot;]"
-        data-toggle="image-skimmer"
-        src="//images.poms.omroep.nl/image/s174/c174x98/855819.png" />
-        <div class="overlay-icon"><span class="npo-glyph camera"></span> 4:27</div>
-        </a></div>
-        </div>
-        <div class='span8'>
-        <a href="/truck-het-land-in-met-convoy-vara/23-01-2017/WO_NTR_7087971"><h4>
-        Andere Tijden: 'Vrije jongens op de weg'
-        <span class='inactive'>(NTR en VPRO)</span>
-        <span class='av-icon'></span>
-        </h4>
-        '''
-
         matches = re.findall(r'data-crid=["\']crid://(.*?)["\'].*?<h4>(.*?)<\w+',
                              p, re.DOTALL | re.MULTILINE)
 
+        ret = []
         for m in matches:
             i = m[0].split('/').pop()
-            print('{} http://{} {}'.format(i, m[0], m[1].strip()))
+            ret.append((i, 'http://{}'.format(i, m[0]), m[1].strip()))
+        return ret
 
 
 class NPO(NPOPlayer):
