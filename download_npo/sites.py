@@ -37,7 +37,7 @@ sites = [
 
 def msg(t):
     f = inspect.stack()[1]
-    print('download-npo {}:{} {}'.format(os.path.basename(f.filename), f.lineno, t))
+    print('download-npo {}:{} {}'.format(os.path.basename(f[1]), f[2], t))
 
 
 class Site():
