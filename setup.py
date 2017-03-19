@@ -7,16 +7,16 @@
 from setuptools import setup
 
 import download_npo
-version = download_npo.GetVersion()[0]
+version = download_npo.version()[0]
 
 setup(
-    name = 'download-npo',
-    version = version,
-    author = 'Martin Tournoij',
-    author_email = 'martin@arp242.net',
-    url = 'http://arp242.net/code/download-npo',
-    description = 'download videos from the Dutch npo.nl site.',
-    long_description = '''
+    name='download-npo',
+    version=version,
+    author='Martin Tournoij',
+    author_email='martin@arp242.net',
+    url='http://arp242.net/code/download-npo',
+    description='download videos from the Dutch npo.nl site.',
+    long_description='''
     Download-npo downloads videos from the Dutch npo.nl site. The rest of
 the documentation is in Dutch.
 
@@ -25,11 +25,11 @@ van de publieke omroep. In principe zouden alle sites die gebruik maken
 van de zogeheten “NPOPlayer” zouden moeten werken, zoals bv. ncrv.nl of
 nrc.nl (al zijn deze niet allemaal getest).
     ''',
-    packages = ['download_npo'],
-    scripts = ['download-npo', 'download-npo-gui', 'play-npo'],
-    license = 'MIT',
-    #platforms = [],
-    classifiers = [
+    packages=['download_npo'],
+    scripts=['download-npo', 'download-npo-gui', 'play-npo'],
+    license='MIT',
+    # platforms=[],
+    classifiers=[
         'Development Status :: 5 - Production/Stable',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: Dutch',
@@ -45,7 +45,7 @@ nrc.nl (al zijn deze niet allemaal getest).
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
     ],
-    data_files = [
+    data_files=[
         ('share/doc/download-npo', ['README.markdown']),
         ('share/download-npo', ['icon.gif', 'icon.svg']),
         ('share/applications', ['download-npo-gui.desktop']),
