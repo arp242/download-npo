@@ -4,10 +4,17 @@
 # ./setup.py bdist_wheel upload
 # ./setup.py bdist_wininst
 
+import codecs
 import platform
 from setuptools import setup
 import download_npo
 
+# Make bdist_wininst work on Linux
+# https://groups.google.com/forum/#!topic/comp.lang.python/pAeiF0qwtY0
+try:
+    codecs.lookup('mbcs')
+except LookupError:
+    codecs.register(lambda name, enc=codecs.lookup('windows-1252'): {True: enc}.get(name == 'mbcs'))
 
 version = download_npo.version()[0]
 

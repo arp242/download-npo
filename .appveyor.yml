@@ -33,7 +33,8 @@ test_script:
 
 after_test:
   # This step builds your wheels.
-  - "%PYTHON%\\python.exe setup.py bdist_wheel"
+  #- "%PYTHON%\\python.exe setup.py bdist_wheel"
+  - "%PYTHON%\\python.exe setup.py bdist_wininst"
 
 artifacts:
   # bdist_wheel puts your built wheel in the dist directory
