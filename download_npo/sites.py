@@ -7,6 +7,7 @@
 
 from __future__ import print_function
 
+import inspect
 import json
 import os
 import re
@@ -34,6 +35,11 @@ sites = [
 ]
 
 
+def msg(t):
+    f = inspect.stack()[1]
+    print('download-npo {}:{} {}'.format(os.path.basename(f.filename), f.lineno, t))
+
+
 class Site():
     # matched against the URL (w/o protocol)
     match = None
@@ -51,7 +57,7 @@ class Site():
     def urlopen(self, url):  # pylint:disable=no-self-use
         """ Open a URI; return urllib.request.Request object """
         if download_npo.verbose:
-            print('urlopen: ' + url)
+            msg('urlopen: ' + url)
 
         headers = {
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:51.0) Gecko/20100101 Firefox/51.0',
@@ -179,14 +185,14 @@ class NPOPlayer(Site):
         page = unquote(page)
 
         if download_npo.verbose >= 3:
-            print('page: {}'.format(page))
+            msg('page: {}'.format(page))
 
         try:
             player_id = re.search(self._playerid_regex, page).groups()[0]
         except AttributeError:
             raise download_npo.Error('Kan player_id niet vinden')
         if download_npo.verbose:
-            print('Using player_id {}'.format(player_id))
+            msg('Using player_id {}'.format(player_id))
 
         # {"token":"h4i536f2104v7aepeonjm83s51"}
         try:
@@ -194,7 +200,7 @@ class NPOPlayer(Site):
         except AttributeError:
             raise download_npo.Error('Kan token niet vinden')
         if download_npo.verbose:
-            print('Found token ' + token)
+            msg('Found token ' + token)
 
         meta = self.meta(player_id)
         if meta.get('error') and len(meta['error']) > 1:
@@ -217,17 +223,22 @@ class NPOPlayer(Site):
         url = None
         errors = set()
         for q, stream in enumerate(streams['items'][0][quality:]):
-            stream = self.get_json(stream['url'])
-            if stream.get('errorstring'):
-                # Dit is vooral voor regionale afleveringen (lijkt het ...)
-                if meta.get('items') and len(meta['items'][0]) > 0:
-                    url = meta['items'][0][0]['url']
-                    break
-                else:
-                    errors.add(stream.get('errorstring'))
-            else:
+            # Oudere afleveringen; zie #10
+            if stream.get('contentType') == 'url':
                 url = stream['url']
                 break
+            else:
+                stream = self.get_json(stream['url'])
+                if stream.get('errorstring'):
+                    # Dit is vooral voor regionale afleveringen (lijkt het ...)
+                    if meta.get('items') and len(meta['items'][0]) > 0:
+                        url = meta['items'][0][0]['url']
+                        break
+                    else:
+                        errors.add(stream.get('errorstring'))
+                else:
+                    url = stream['url']
+                    break
 
         if url is None:
             raise download_npo.Error("Foutmelding van site:\n{}".format(
@@ -239,13 +250,13 @@ class NPOPlayer(Site):
         """ Old MMS format """
 
         if download_npo.verbose:
-            print('Gebruik find_video_MMS')
+            msg('Gebruik find_video_MMS')
 
         meta = self.meta(player_id)
         stream = self.get_page(meta['items'][0]['url'])
         stream = re.search(r'"(mms://.*?)"', stream).groups()[0]
         if download_npo.verbose:
-            print('MMS stream: %s' % stream)
+            msg('MMS stream: %s' % stream)
 
         # videourl, player_id, ext = site.find_video(v, quality)
         return (self.open_mms(stream), player_id, 'wmv')

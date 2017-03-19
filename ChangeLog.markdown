@@ -1,5 +1,11 @@
 ChangeLog
 =========
+
+Versie 2.7, 2017-03-19
+------------------------
+- Voeg `download-gemist-list` weer toe.
+- Fix voor sommige oudere afleveringen.
+
 Versie 2.6, 2017-03-02
 ----------------------
 - Fix voor huidige versie van de site.

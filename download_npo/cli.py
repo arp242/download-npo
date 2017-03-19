@@ -146,11 +146,11 @@ def download_video(site, player_id, videourl, outfile):
 
         if curtime >= ptime + 1:
             if total < 0:
-                line = '  {completed} van onbekende groote met {speed:>4}/s'.format(
+                line = '  {completed} van onbekende groote met {speed:>4}/s    '.format(
                     completed=download_npo.human_size(completed),
                     speed=download_npo.human_size(speed))
             else:
-                line = '{complete:>3}% van {total}; nog {remaining:>4} te gaan met {speed:>4}/s'
+                line = '{complete:>3}% van {total}; nog {remaining:>4} te gaan met {speed:>4}/s    '
                 line = line.format(
                     total=download_npo.human_size(total),
                     complete=int(completed / (total / 100)),
