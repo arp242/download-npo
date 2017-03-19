@@ -253,7 +253,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     options = download_npo.defaults()
-    download_npo._verbose = int(options['verbose'])
+    download_npo.verbose = int(options['verbose'])
 
     for flag, arg in params:
         if flag == '-h':
@@ -269,7 +269,7 @@ if __name__ == '__main__':
             version()
             sys.exit(0)
         elif flag == '-V':
-            download_npo._verbose += 1
+            download_npo.verbose += 1
         elif flag == '-s':
             options['silent'] = True
         elif flag == '-o':

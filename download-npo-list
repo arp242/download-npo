@@ -8,8 +8,11 @@
 #
 
 from __future__ import print_function
-import getopt, sys, re
+import getopt
+import sys
+import re
 import download_npo
+
 
 def usage(show_more_help=True):
     print('Experimenteel!')
@@ -22,13 +25,16 @@ def usage(show_more_help=True):
     print('Format is:')
     print('ID URL omschrijving')
     print('')
-    print('Let op! Sommige afleveringen komen meer dan een keer voor; vaak met een andere playerid.')
+    print('Let op! Sommige afleveringen komen meer dan een keer voor;'
+          'vaak met een andere playerid.')
     print('Meestal is de omschrijving dan wel hetzelfde.')
     if show_more_help:
         print('Gebruik --help om een langere help te tonen')
 
+
 def long_usage():
     usage(False)
+
 
 def error(msg):
     """ Print message to stderr, can't use print because of Python 2/3
@@ -44,7 +50,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     options = download_npo.defaults()
-    download_npo._verbose = int(options['verbose'])
+    download_npo.verbose = int(options['verbose'])
 
     fmt = ''
     page = 1
@@ -56,10 +62,10 @@ if __name__ == '__main__':
             long_usage()
             sys.exit(0)
         elif flag == '-v':
-            Version()
+            print(download_npo.version())
             sys.exit(0)
         elif flag == '-V':
-            download_npo._verbose += 1
+            download_npo.verbose += 1
         elif flag == '-s':
             options['silent'] = True
         elif flag == '-f':
@@ -76,8 +82,8 @@ if __name__ == '__main__':
         sys.stderr.write('Lezen van stdin (gebruik -h voor help)...')
         sys.stderr.flush()
 
-        try :
-            series = re.split('\s', sys.stdin.read().strip())
+        try:
+            series = re.split(r'\s', sys.stdin.read().strip())
         except KeyboardInterrupt:
             print('')
             sys.exit(0)
