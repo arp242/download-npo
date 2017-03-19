@@ -18,7 +18,7 @@ def usage(show_more_help=True):
     print('Experimenteel!')
     print('')
     print('Voorbeeld:')
-    print('  ./download-gemist-list http://www.npo.nl/andere-tijden/VPWON_1247337')
+    print('  ./download-npo-list http://www.npo.nl/andere-tijden/VPWON_1247337')
     print('')
     print('Gebruikt -p voor pagina 2, 3, etc.')
     print('')

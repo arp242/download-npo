@@ -3,7 +3,7 @@ ChangeLog
 
 Versie 2.7, 2017-03-19
 ------------------------
-- Voeg `download-gemist-list` weer toe.
+- Voeg `download-npo-list` weer toe.
 - Fix voor sommige oudere afleveringen.
 
 Versie 2.6, 2017-03-02
