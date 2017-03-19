@@ -7,11 +7,12 @@
 
 from __future__ import print_function
 
-import sys
 import json
-import time
-import re
 import os
+import re
+import sys
+import textwrap
+import time
 import download_npo
 
 # pylint:disable=import-error,no-name-in-module
@@ -214,7 +215,7 @@ class NPOPlayer(Site):
             self.base, player_id, token))
 
         url = None
-        errors = []
+        errors = set()
         for q, stream in enumerate(streams['items'][0][quality:]):
             stream = self.get_json(stream['url'])
             if stream.get('errorstring'):
@@ -223,18 +224,14 @@ class NPOPlayer(Site):
                     url = meta['items'][0][0]['url']
                     break
                 else:
-                    n = ['hoog', 'middel', 'laag'][q]
-                    sys.stderr.write("Warning: De kwaliteit `{}' "
-                                     "lijkt niet beschikbaar.\n".format(n))
-                    sys.stderr.flush()
-                    errors.append(stream.get('errorstring'))
+                    errors.add(stream.get('errorstring'))
             else:
                 url = stream['url']
                 break
 
         if url is None:
-            raise download_npo.Error("Foutmelding van site: `{}'".format(
-                ', '.join(errors)))
+            raise download_npo.Error("Foutmelding van site:\n{}".format(
+                '\n'.join(['\n'.join(textwrap.wrap(e)) for e in errors])))
 
         return (self.urlopen(url), player_id, ext)
 
