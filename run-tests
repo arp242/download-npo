@@ -2,7 +2,7 @@
 
 set -xeuC
 
-coverage run ./test.py
+coverage run --omit '*_test.py,test.py' ./test.py
 
 # Gekozen omdat dit een ë in de titel heeft
 url=http://www.npo.nl/gouden-jaren-indonesie/26-01-2017/POW_03414349

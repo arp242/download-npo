@@ -4,9 +4,13 @@ import doctest
 import unittest
 import download_npo
 import download_npo.sites
+import download_npo.cli
+import download_npo.gui
+import download_npo.listing
 
 doctest.testmod(download_npo)
-doctest.testmod(download_npo.sites)
+for m in ('sites', 'cli', 'gui', 'listing'):
+    doctest.testmod(getattr(download_npo, m))
 
 loader = unittest.TestLoader()
 test = loader.discover('.', pattern='*_test.py')
