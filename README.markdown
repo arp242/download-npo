@@ -1,6 +1,7 @@
 [![This project is considered stable](https://img.shields.io/badge/Status-stable-green.svg)](https://arp242.net/status/stable)
-[![Build Status](https://travis-ci.org/Carpetsmoker/download-npo.svg?branch=master)](https://travis-ci.org/Carpetsmoker/download-npo)
 [![PyPI](https://img.shields.io/pypi/v/download-npo.svg)](https://pypi.python.org/pypi/download-npo)
+[![Build Status](https://travis-ci.org/Carpetsmoker/download-npo.svg?branch=master)](https://travis-ci.org/Carpetsmoker/download-npo)
+[![Coverage Status](https://coveralls.io/repos/github/Carpetsmoker/download-npo/badge.svg?branch=master)](https://coveralls.io/github/Carpetsmoker/download-npo?branch=master)
 
 **Download-npo downloads videos from the Dutch npo.nl site. The rest of the
 documentation is in Dutch.**
