@@ -4,10 +4,21 @@
 # ./setup.py bdist_wheel upload
 # ./setup.py bdist_wininst
 
+import platform
 from setuptools import setup
-
 import download_npo
+
+
 version = download_npo.version()[0]
+
+data_files = [
+    ('share/doc/download-npo', ['README.markdown']),
+    ('share/download-npo', ['icon.gif', 'icon.svg']),
+    ('share/applications', ['download-npo-gui.desktop']),
+]
+
+if platform.system() != 'Windows':
+    data_files.append(('/usr/share/icons/hicolor/scalable/apps/', ['download-npo-gui.svg']))
 
 setup(
     name='download-npo',
@@ -45,10 +56,5 @@ nrc.nl (al zijn deze niet allemaal getest).
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
     ],
-    data_files=[
-        ('share/doc/download-npo', ['README.markdown']),
-        ('share/download-npo', ['icon.gif', 'icon.svg']),
-        ('share/applications', ['download-npo-gui.desktop']),
-        ('/usr/share/icons/hicolor/scalable/apps/', ['download-npo-gui.svg']),
-    ],
+    data_files=data_files,
 )

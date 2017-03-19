@@ -114,10 +114,9 @@ def replace_vars(path, meta):
     })
 
     if locale.getpreferredencoding() != 'UTF-8':
-        if sys.version_info[0] <= 2:
-            path = unicodedata.normalize('NFKD', path.decode('utf-8')).encode('ascii', 'ignore')
-        else:
-            path = unicodedata.normalize('NFKD', path).encode('ascii', 'ignore').decode()
+        path = unicodedata.normalize('NFKD', path).encode('ascii', 'ignore')
+        if sys.version_info[0] > 2:
+            path = path.decode()
 
     return path
 

@@ -14,6 +14,8 @@ cache:
 #install: "true"
 install:
   - pip install coverage coveralls
-script: ./run-tests
+script:
+  - ./run-tests
+  - ./setup.py bdist_wheel
 after_success:
   - coveralls
