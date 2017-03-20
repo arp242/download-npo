@@ -133,7 +133,7 @@ Staat jouw programma er niet bij? Mail me dan even en ik zet het erbij.
 
 ChangeLog
 =========
-Zie [ChangeLog.markdown](https://github.com/Carpetsmoker/download-npo/blob/master/Changelog.markdown).
+Zie [ChangeLog.markdown](https://github.com/Carpetsmoker/download-npo/blob/master/ChangeLog.markdown).
 
 [npo]: http://www.npo.nl/
 [issue]: https://github.com/Carpetsmoker/download-npo/issues/new
