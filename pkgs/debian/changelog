@@ -1,3 +1,10 @@
+download-npo (2.7.0-0) UNRELEASED; urgency=low
+
+  * Add `download-npo-list` tool.
+  * Fix for some older episodes.
+
+ -- Martin Tournoij <martin@arp242.net>  Thu, 20 Mar 2017 11:55:07 +0000
+
 download-npo (2.6.0-0) UNRELEASED; urgency=low
 
   * Fix for updated NPO.nl site
