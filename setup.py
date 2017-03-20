@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # encoding:utf-8
 #
+# ./setup.py sdist upload
 # ./setup.py bdist_wheel upload
 # ./setup.py bdist_wininst
 
@@ -55,7 +56,6 @@ nrc.nl (al zijn deze niet allemaal getest).
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
