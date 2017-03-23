@@ -224,7 +224,7 @@ class NPOPlayer(Site):
         errors = set()
         for q, stream in enumerate(streams['items'][0][quality:]):
             # Oudere afleveringen; zie #10
-            if stream.get('contentType') == 'url':
+            if stream.get('contentType') in ('url', 'audio'):
                 url = stream['url']
                 break
             else:

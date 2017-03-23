@@ -15,5 +15,8 @@ url=http://www.npo.nl/gouden-jaren-indonesie/26-01-2017/POW_03414349
 ls
 [ -f "./Gouden_Jaren_Indonesië_2017-01-26_Aflevering_2.srt" ] || exit 1
 
+# Radio
+./download-npo -VVVn https://www.npo.nl/nooit-meer-slapen/23-03-2017/RBX_VPRO_5273361
+
 # Listings
 ./download-npo-list -VVV http://www.npo.nl/andere-tijden/VPWON_1247337

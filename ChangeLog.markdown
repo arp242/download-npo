@@ -1,5 +1,8 @@
 ChangeLog
 =========
+Versie 2.7.1, 2017-03-23
+------------------------
+- Fix voor radio uitzendingen; blijkbaar was hier het eea. veranderd op de site.
 
 Versie 2.7, 2017-03-19
 ------------------------
