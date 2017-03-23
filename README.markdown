@@ -1,3 +1,4 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/3e631e6d2ea445baab26fc796bc725db)](https://www.codacy.com/app/Carpetsmoker/download-npo?utm_source=github.com&utm_medium=referral&utm_content=Carpetsmoker/download-npo&utm_campaign=badger)
 [![This project is considered stable](https://img.shields.io/badge/Status-stable-green.svg)](https://arp242.net/status/stable)
 [![PyPI](https://img.shields.io/pypi/v/download-npo.svg)](https://pypi.python.org/pypi/download-npo)
 [![Build Status](https://travis-ci.org/Carpetsmoker/download-npo.svg?branch=master)](https://travis-ci.org/Carpetsmoker/download-npo)
