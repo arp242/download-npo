@@ -148,13 +148,13 @@ def make_filename(outdir, title, ext, meta, safe=True, nospace=True, overwrite=F
 
     if sys.version_info[0] <= 2:
         try:
-            outfile = u'%s/%s' % (outdir.decode('utf-8'), filename.decode('utf-8'))
+            outfile = os.path.join(outdir.decode('utf-8'), filename.decode('utf-8'))
         except UnicodeEncodeError:
-            outfile = u'%s/%s' % (outdir, filename)
+            outfile = os.path.join(outdir, filename)
     else:
-        outfile = u'%s/%s' % (outdir, filename)
+        outfile = os.path.join(outdir, filename)
     if os.path.exists(outfile) and not overwrite:
-        raise Error("bestand `{}' overgeslagen omdat het al bestaat; gebruik "
+        raise Error(u"bestand `{}' overgeslagen omdat het al bestaat; gebruik "
                     '-w voor overschrijven'.format(outfile))
 
     return outfile

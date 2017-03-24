@@ -2,21 +2,24 @@
 
 set -xeuC
 
+python=${1:-python}
+
 coverage run --omit '*_test.py,test.py' ./test.py
 
 # Gekozen omdat dit een ë in de titel heeft
 url=http://www.npo.nl/gouden-jaren-indonesie/26-01-2017/POW_03414349
 
 # Download
-./download-npo -VVVn -f "{titel}_{datum}_{aflevering_titel}" $url
+$python download-npo -VVVn -f "{titel}_{datum}_{aflevering_titel}" $url
 
 # Subs
-./download-npo -VVVT -f "{titel}_{datum}_{aflevering_titel}" $url
+$python download-npo -VVVT -f "{titel}_{datum}_{aflevering_titel}" $url
 ls
 [ -f "./Gouden_Jaren_Indonesië_2017-01-26_Aflevering_2.srt" ] || exit 1
+rm "./Gouden_Jaren_Indonesië_2017-01-26_Aflevering_2.srt"
 
 # Radio
-./download-npo -VVVn https://www.npo.nl/nooit-meer-slapen/23-03-2017/RBX_VPRO_5273361
+$python download-npo -VVVn https://www.npo.nl/nooit-meer-slapen/23-03-2017/RBX_VPRO_5273361
 
 # Listings
-./download-npo-list -VVV http://www.npo.nl/andere-tijden/VPWON_1247337
+$python download-npo-list -VVV http://www.npo.nl/andere-tijden/VPWON_1247337

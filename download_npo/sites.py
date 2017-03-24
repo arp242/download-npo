@@ -210,7 +210,9 @@ class NPOPlayer(Site):
         ext = 'mp4'
         if meta.get('items') and isinstance(meta['items'][0][0], dict):
             # Radiouitendingen
-            ext = meta['items'][0][0].get('type', 'mp4')
+            ext = (meta['items'][0][0].get('type') or
+                   meta['items'][0][0].get('format') or
+                   'mp4')
 
             # MMS / Windows Media Speler
             if meta['items'][0][0].get('formaat') == 'wmv':
@@ -226,6 +228,8 @@ class NPOPlayer(Site):
             # Oudere afleveringen; zie #10
             if stream.get('contentType') in ('url', 'audio'):
                 url = stream['url']
+                if stream.get('format'):
+                    ext = stream.get('format')
                 break
             else:
                 stream = self.get_json(stream['url'])
@@ -287,7 +291,13 @@ class NPOPlayer(Site):
         # print('%s/%s/' % (meta['sitestat']['baseurl_subtitle'],
         #       meta['sitestat']['subtitleurl']))
 
-        return self.urlopen('http://tt888.omroep.nl/tt888/{}'.format(player_id))
+        data = self.get_page('http://tt888.omroep.nl/tt888/{}'.format(player_id))
+
+        # Subs die niet bestaan geven een code van 200 met inhoud "No subtitle
+        # found". HTTP is moeilijk mensen :-/
+        if data.startswith('No subtitle found'):
+            return None
+        return data
 
     def list(self, url, page):
         """ List all episodes for a series.

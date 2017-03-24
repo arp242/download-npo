@@ -176,7 +176,7 @@ def download(download_videos, filename, outdir, metaonly, getsubs, quality):
         if vid == '':
             continue
         if download_npo.verbose:
-            print('Downloading ' + vid)
+            print('Downloading {}'.format(vid))
 
         try:
             site = download_npo.match_site(vid)
@@ -190,16 +190,16 @@ def download(download_videos, filename, outdir, metaonly, getsubs, quality):
                                                      _options['replacespace'],
                                                      _options['overwrite'])
                 if download_npo.verbose:
-                    print('Saving to %s' % outfile)
+                    print(u'Saving to {}'.format(outfile))
 
-            if getsubs > 0:
-                subout = download_npo.make_filename(outdir, filename, 'srt',
-                                                    site.meta(player_id),
-                                                    _options['safefilename'],
-                                                    _options['replacespace'],
-                                                    _options['overwrite'])
-                if download_npo.verbose:
-                    print('Saving subs to %s' % subout)
+                if getsubs > 0:
+                    subout = download_npo.make_filename(outdir, filename, 'srt',
+                                                        site.meta(player_id),
+                                                        _options['safefilename'],
+                                                        _options['replacespace'],
+                                                        _options['overwrite'])
+                    if download_npo.verbose:
+                        print(u'Saving subs to {}'.format(subout))
         except download_npo.Error as exc:
             error(exc)
             exitcode = 1
@@ -218,19 +218,25 @@ def download(download_videos, filename, outdir, metaonly, getsubs, quality):
         elif metaonly == 2:
             import json
             print(json.dumps(site.meta(player_id), indent=True))
-        elif getsubs == 2:
+        elif getsubs == 2:  # -T
             if _options['dryrun']:
                 print(subout)
             else:
-                with open(subout, 'wb') as fp:
-                    fp.write(site.subs(player_id).read())
+                data = site.subs(player_id)
+                if data is None:
+                    error('ondertiteling lijkt niet te bestaan')
+                    sys.exit(1)
+                with open(subout, 'w') as fp:
+                    fp.write(data)
         else:
-            if getsubs == 1:
+            if getsubs == 1:  # -t
                 if _options['dryrun']:
                     print(subout)
                 else:
-                    with open(subout, 'wb') as fp:
-                        fp.write(site.subs(player_id).read())
+                    data = site.subs(player_id)
+                    if data is not None:
+                        with open(subout, 'w') as fp:
+                            fp.write(data)
 
             if not _options['silent']:
                 download_video(site, player_id, videourl, outfile)
@@ -247,7 +253,7 @@ def main():
     try:
         params, videos = getopt.getopt(sys.argv[1:], 'hvVsnwcmMtTo:f:k:d', ['help'])
     except getopt.GetoptError:
-        error('error: {}'.format(sys.exc_info()[1]))
+        error('{}'.format(sys.exc_info()[1]))
         usage()
         sys.exit(1)
 

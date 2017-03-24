@@ -1,5 +1,11 @@
 ChangeLog
 =========
+Versie 2.7.2, nog niet gereleased
+---------------------------------
+- Gebruik de juiste extensie voor radiouitzendingen (en mogelijk andere
+  uitzendingen).
+- Betere detectie voor als ondertitels niet bestaan.
+
 Versie 2.7.1, 2017-03-23
 ------------------------
 - Fix voor radio uitzendingen; blijkbaar was hier het eea. veranderd op de site.
