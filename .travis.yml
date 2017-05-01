@@ -10,9 +10,9 @@ cache:
   directories:
     - $HOME/.cache/pip
 install:
-  - pip install coverage coveralls
+  - pip install coverage codecov
 script:
   - ./run-tests
   - ./setup.py bdist_wheel
 after_success:
-  - coveralls
+  - codecov
