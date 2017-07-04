@@ -187,9 +187,13 @@ class NPOPlayer(Site):
         if download_npo.verbose >= 3:
             msg('page: {}'.format(page))
 
-        try:
-            player_id = re.search(self._playerid_regex, page).groups()[0]
-        except AttributeError:
+        player_id = None
+        find = re.search(self._playerid_regex, page)
+        if download_npo.verbose >= 2:
+            msg('player_id find: {}'.format(find))
+        if find is not None and len(find.groups()) > 0:
+            player_id = find.groups()[0]
+        if player_id is None:
             raise download_npo.Error('Kan player_id niet vinden')
         if download_npo.verbose:
             msg('Using player_id {}'.format(player_id))
@@ -301,19 +305,24 @@ class NPOPlayer(Site):
 
     def list(self, url, page):
         """ List all episodes for a series.
-        http://www.npo.nl/andere-tijden/VPWON_1247337/search?media_type=broadcast&start_date=&end_date=&start=8&rows=8
+        https://www.npo.nl/media/series/VPWON_1247337/episodes?page=2&tilemapping=dedicated&tiletype=asset
         """
 
-        if not url.startswith('http://'):
-            # Must be series ID; e.g. VPWON_1247337
-            if '_' in url:
-                url = 'http://www.npo.nl/ignored/{}'.format(url)
-        if not url.endswith('/search'):
-            url += '/search'
-        url += '?media_type=broadcast&rows=20&start={}'.format((page - 1) * 20)
+        raise download_npo.Error('Dit werkt momenteel niet. Sorry :-(')
+
+        if url.startswith('http://') or  url.startswith('https://'):
+            series_id = re.search(r'([A-Z][A-Z_]{1,8}_\d{6,9})').groups()[1]
+        else:
+            series_id = url
+
+        url = 'http://www.npo.nl/media/series/{}/episodes'.format(url)
+
+        if not url.endswith('/episodes'):
+            url += '/episodes'
+        url += '?tilemapping=dedicated&tiletype=asset&page={}'.format(page)
         p = self.get_page(url)
 
-        matches = re.findall(r'data-crid=["\']crid://(.*?)["\'].*?<h4>(.*?)<\w+',
+        matches = re.findall(r'id=["\']([A-Z][A-Z_]{1,8}_\d{6,9})["\'].*?alt=["\'](.*?)["\'] onerror',
                              p, re.DOTALL | re.MULTILINE)
 
         ret = []
@@ -325,7 +334,7 @@ class NPOPlayer(Site):
 
 class NPO(NPOPlayer):
     match = r'(www\.)?npo.nl'
-    _playerid_regex = r'data-[mpr]{1,2}id="(.*?)"'
+    _playerid_regex = r'data-episode="(.*?)"'
 
 
 class OmroepBrabant(Site):

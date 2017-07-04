@@ -1,5 +1,10 @@
 ChangeLog
 =========
+Versie 2.8, 2017-07-04
+----------------------
+- Fix voor de huidige versie van de site. `download-gemist-list` werkt niet, dat
+  fix ik later.
+
 Versie 2.7.2, 2017-05-01
 ------------------------
 - Gebruik de juiste extensie voor radiouitzendingen (en mogelijk andere
