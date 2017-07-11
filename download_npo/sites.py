@@ -160,7 +160,7 @@ class Site():
         raise download_npo.Error('Not implemented')
 
     def subs(self, player_id):
-        raise download_npo.Error('Deze site ondersteund geen ondertitels')
+        raise download_npo.Error('Deze site ondersteunt geen ondertitels')
 
     def list(self, url, page):
         raise download_npo.Error('Dit is niet ondersteund voor deze site')
