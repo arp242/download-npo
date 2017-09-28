@@ -45,7 +45,7 @@ van de zogeheten “NPOPlayer” zouden moeten werken, zoals bv. ncrv.nl of
 nrc.nl (al zijn deze niet allemaal getest).
     ''',
     packages=['download_npo'],
-    scripts=['download-npo', 'download-npo-gui', 'download-npo-list', 'play-npo'],
+    scripts=['download-npo', 'download-npo-gui', 'play-npo'],
     license='MIT',
     # platforms=[],
     classifiers=[

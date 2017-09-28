@@ -1,3 +1,9 @@
+download-npo (2.9.0-0) UNRELEASED; urgency=low
+
+  * Remove download-gemist-list
+
+ -- Martin Tournoij <martin@arp242.net>  Thu, 28 Sep 2017 20:18:08 +0000
+
 download-npo (2.8.0-0) UNRELEASED; urgency=low
 
   * Fix for updated NPO.nl site
