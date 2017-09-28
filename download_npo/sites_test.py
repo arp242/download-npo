@@ -14,9 +14,9 @@ class Test_NPOPlayer(unittest.TestCase):
         meta = site.meta('POW_03414349')
         self.assertEqual(meta.get('STATUS'), 'OK')
 
-    def test_list(self):
-        site = download_npo.sites.NPOPlayer()
-        l = site.list('VPWON_1247337', 1)
-        self.assertTrue(len(l) > 1)
-        self.assertTrue(len(l[0]) == 3)
-        self.assertTrue(l[0][0] in l[0][1])
+    #def test_list(self):
+    #    site = download_npo.sites.NPOPlayer()
+    #    l = site.list('VPWON_1247337', 1)
+    #    self.assertTrue(len(l) > 1)
+    #    self.assertTrue(len(l[0]) == 3)
+    #    self.assertTrue(l[0][0] in l[0][1])
