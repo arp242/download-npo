@@ -34,7 +34,7 @@ class Error(Exception):
 
 def version():
     """ Get (version, release date), both as string """
-    return ('2.8', '2017-07-04')
+    return ('2.9', '2017-09-28')
 
 
 def check_update():

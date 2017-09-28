@@ -22,4 +22,4 @@ rm "./Gouden_Jaren_Indonesië_2017-01-26_Aflevering_2.srt"
 $python download-npo -VVVn https://www.npo.nl/nooit-meer-slapen/23-03-2017/RBX_VPRO_5273361
 
 # Listings
-$python download-npo-list -VVV http://www.npo.nl/andere-tijden/VPWON_1247337
+#$python download-npo-list -VVV http://www.npo.nl/andere-tijden/VPWON_1247337

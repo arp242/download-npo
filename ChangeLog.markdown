@@ -1,5 +1,12 @@
 ChangeLog
 =========
+
+Versie 2.9, 2017-09-28
+----------------------
+- Verwijder `download-gemist-list` weer. Ik heb zelf geen tijd/zin om dit steeds
+  bij te houden, en blijkt toch vaak kapot te gaan. Als je je geroepen voelt:
+  voel je vrij om een PR te openen met een fix :-)
+
 Versie 2.8, 2017-07-04
 ----------------------
 - Fix voor de huidige versie van de site. `download-gemist-list` werkt niet, dat
