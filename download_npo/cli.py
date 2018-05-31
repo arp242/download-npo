@@ -184,13 +184,14 @@ def download(download_videos, filename, outdir, metaonly, getsubs, quality):
 
             if not metaonly:
                 outdir = download_npo.make_outdir(outdir, site.meta(player_id))
-                outfile = download_npo.make_filename(outdir, filename, ext,
-                                                     site.meta(player_id),
-                                                     _options['safefilename'],
-                                                     _options['replacespace'],
-                                                     _options['overwrite'])
-                if download_npo.verbose:
-                    print(u'Saving to {}'.format(outfile))
+                if getsubs != 2:  # -T
+                  outfile = download_npo.make_filename(outdir, filename, ext,
+                                                       site.meta(player_id),
+                                                       _options['safefilename'],
+                                                       _options['replacespace'],
+                                                       _options['overwrite'])
+                  if download_npo.verbose:
+                      print(u'Saving to {}'.format(outfile))
 
                 if getsubs > 0:
                     subout = download_npo.make_filename(outdir, filename, 'srt',
