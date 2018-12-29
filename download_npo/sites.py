@@ -303,34 +303,6 @@ class NPOPlayer(Site):
             return None
         return data
 
-    def list(self, url, page):
-        """ List all episodes for a series.
-        https://www.npostart.nl/media/series/VPWON_1247337/episodes?page=2&tilemapping=dedicated&tiletype=asset
-        """
-
-        raise download_npo.Error('Dit werkt momenteel niet. Sorry :-(')
-
-        if url.startswith('http://') or url.startswith('https://'):
-            series_id = re.search(r'([A-Z][A-Z_]{1,8}_\d{6,9})').groups()[1]
-        else:
-            series_id = url
-
-        url = 'http://www.npostart.nl/media/series/{}/episodes'.format(url)
-
-        if not url.endswith('/episodes'):
-            url += '/episodes'
-        url += '?tilemapping=dedicated&tiletype=asset&page={}'.format(page)
-        p = self.get_page(url)
-
-        matches = re.findall(r'id=["\']([A-Z][A-Z_]{1,8}_\d{6,9})["\'].*?alt=["\'](.*?)["\'] onerror',
-                             p, re.DOTALL | re.MULTILINE)
-
-        ret = []
-        for m in matches:
-            i = m[0].split('/').pop()
-            ret.append((i, 'http://{}'.format(i, m[0]), m[1].strip()))
-        return ret
-
 
 class NPO(NPOPlayer):
     match = r'(www\.)?npo(start)?.nl'
