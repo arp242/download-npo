@@ -4,6 +4,7 @@ ChangeLog
 Versie 2.9.1, 2018-12-29
 ------------------------
 - npo.nl is nu npostart.nl. Alles werkte nog, maar update documentatie e.d.
+- Download ondertitels ook als video al bestaat (#20).
 
 Versie 2.9, 2017-09-28
 ----------------------
