@@ -1,6 +1,10 @@
 ChangeLog
 =========
 
+Versie 2.9.1, 2018-12-29
+------------------------
+- npo.nl is nu npostart.nl. Alles werkte nog, maar update documentatie e.d.
+
 Versie 2.9, 2017-09-28
 ----------------------
 - Verwijder `download-gemist-list` weer. Ik heb zelf geen tijd/zin om dit steeds

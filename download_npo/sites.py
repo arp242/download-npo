@@ -103,9 +103,9 @@ class Site():
                 meta = self.meta(player_id)
                 fp = MP4(path)
                 fp['tvsh'] = meta.get('serie', {}).get('serie_titel', '')
-                fp['desc'] = (meta.get('aflevering_titel', '') or
-                              meta.get('titel', None) or
-                              meta.get('title', ''))
+                fp['desc'] = (meta.get('aflevering_titel', '')
+                              or meta.get('titel', None)
+                              or meta.get('title', ''))
                 fp.save()
             elif path.endswith('.mp3'):
                 from mutagen.mp3 import MP3
@@ -179,7 +179,7 @@ class NPOPlayer(Site):
             Returns (downloadurl, player_id, extension)"""
 
         if not (url.startswith('http://') or url.startswith('https://')):
-            url = 'http://www.npo.nl/{}'.format(url)
+            url = 'http://www.npostart.nl/{}'.format(url)
 
         page = self.get_page(url)
         page = unquote(page)
@@ -214,9 +214,9 @@ class NPOPlayer(Site):
         ext = 'mp4'
         if meta.get('items') and isinstance(meta['items'][0][0], dict):
             # Radiouitendingen
-            ext = (meta['items'][0][0].get('type') or
-                   meta['items'][0][0].get('format') or
-                   'mp4')
+            ext = (meta['items'][0][0].get('type')
+                   or meta['items'][0][0].get('format')
+                   or 'mp4')
 
             # MMS / Windows Media Speler
             if meta['items'][0][0].get('formaat') == 'wmv':
@@ -305,17 +305,17 @@ class NPOPlayer(Site):
 
     def list(self, url, page):
         """ List all episodes for a series.
-        https://www.npo.nl/media/series/VPWON_1247337/episodes?page=2&tilemapping=dedicated&tiletype=asset
+        https://www.npostart.nl/media/series/VPWON_1247337/episodes?page=2&tilemapping=dedicated&tiletype=asset
         """
 
         raise download_npo.Error('Dit werkt momenteel niet. Sorry :-(')
 
-        if url.startswith('http://') or  url.startswith('https://'):
+        if url.startswith('http://') or url.startswith('https://'):
             series_id = re.search(r'([A-Z][A-Z_]{1,8}_\d{6,9})').groups()[1]
         else:
             series_id = url
 
-        url = 'http://www.npo.nl/media/series/{}/episodes'.format(url)
+        url = 'http://www.npostart.nl/media/series/{}/episodes'.format(url)
 
         if not url.endswith('/episodes'):
             url += '/episodes'
@@ -333,7 +333,7 @@ class NPOPlayer(Site):
 
 
 class NPO(NPOPlayer):
-    match = r'(www\.)?npo.nl'
+    match = r'(www\.)?npo(start)?.nl'
     _playerid_regex = r'data-episode="(.*?)"'
 
 
