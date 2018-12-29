@@ -6,10 +6,9 @@ import download_npo
 import download_npo.sites
 import download_npo.cli
 import download_npo.gui
-import download_npo.listing
 
 doctest.testmod(download_npo)
-for m in ('sites', 'cli', 'gui', 'listing'):
+for m in ('sites', 'cli', 'gui'):
     doctest.testmod(getattr(download_npo, m))
 
 loader = unittest.TestLoader()
